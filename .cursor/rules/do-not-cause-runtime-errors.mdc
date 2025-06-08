@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+all variables functions and props used must be declared before use.
+
+check for undefined or null values before accessing object properties.
+
+always provide a unique key when rendering lists.
+
+never assume data is present without validating with optional chaining or guards.
+
+test each modified component in the browser to ensure it runs without error.
+
+
+never push code that causes crash warnings or red screens.

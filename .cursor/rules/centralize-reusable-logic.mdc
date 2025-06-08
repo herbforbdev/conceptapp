@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+All Firestore fetching should live in /services/firestore/
+
+Aggregation logic (totals, summaries) goes in /lib/
+
+Shared components (cards, tables, charts) in /components/
+
+
+Never repeat the same logic across pages — extract it once and reuse.

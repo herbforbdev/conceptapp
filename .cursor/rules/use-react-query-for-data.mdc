@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Automatically handles caching, refetching, and loading states.
+
+Avoids duplicate fetches and improves perceived performance.
+
+
+Example: useQuery(['products'], fetchProducts).

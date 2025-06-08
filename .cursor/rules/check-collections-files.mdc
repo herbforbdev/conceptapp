@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+always check collections.md and masterdata collections.md for master data references
+
+these files contain the full firestore structure for collections like products, expense types, and activity types.
+
+before adding, editing, or referencing any master data, review these files for the correct field names, data types, and structure.
+
+
+if unsure about a field or format, confirm it from these files first.

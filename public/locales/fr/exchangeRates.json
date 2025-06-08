@@ -1,0 +1,38 @@
+{
+  "title": "Taux de change",
+  "addNew": "Ajouter un nouveau taux",
+  "year": "Année",
+  "month": "Mois",
+  "rate": "Taux (CDF/USD)",
+  "notes": "Notes",
+  "add": "Ajouter",
+  "history": "Historique des taux",
+  "updatedAt": "Mis à jour le",
+  "edit": "Modifier",
+  "delete": "Supprimer",
+  "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce taux ?",
+  "success": {
+    "added": "Taux ajouté avec succès",
+    "updated": "Taux mis à jour avec succès",
+    "deleted": "Taux supprimé avec succès"
+  },
+  "error": {
+    "add": "Erreur lors de l'ajout du taux",
+    "update": "Erreur lors de la mise à jour du taux",
+    "delete": "Erreur lors de la suppression du taux",
+    "load": "Erreur lors du chargement des taux"
+  },
+  "validation": {
+    "required": "Ce champ est requis",
+    "invalidRate": "Le taux doit être un nombre positif",
+    "invalidYear": "L'année doit être valide",
+    "invalidMonth": "Le mois doit être valide",
+    "duplicateRate": "Un taux existe déjà pour cette période"
+  },
+  "noRates": "Aucun taux de change enregistré",
+  "loading": "Chargement des taux...",
+  "currentRate": "Taux actuel",
+  "lastUpdated": "Dernière mise à jour",
+  "monthlyOverview": "Aperçu mensuel",
+  "yearlyOverview": "Aperçu annuel"
+} 

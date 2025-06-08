@@ -1,0 +1,46 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+rule:
+  id: no-undef-functions
+  description: |
+    Ensure that every function you call in a component is either:
+    1. Defined in the same file  
+    2. Imported from another module  
+    This prevents ReferenceErrors like “selectAll is not defined.”
+  when_generating:
+    file_pattern: "*.js,*.jsx,*.ts,*.tsx"
+  checks:
+    - undefined_function_calls:
+        type: ast
+        # Match any call to an identifier that isn’t a React hook…
+        match: |
+          CallExpression[
+            callee.name =~ /^[a-zA-Z_$][a-zA-Z0-9_$]*$/
+          ]:not(
+            ImportDeclaration > ImportSpecifier[imported.name={{callee.name}}]
+          ):not(
+            FunctionDeclaration[id.name={{callee.name}}]
+          ):not(
+            VariableDeclaration > VariableDeclarator[id.name={{callee.name}}]
+          )
+        error: |
+          “ReferenceError: `{{callee.name}}` is not defined.  
+           Please either import it or define it above your component.”
+  fix_suggestion: |
+    1. **Import** the missing function at the top:
+       ```diff
+       - const result = selectAll(items);
+       + import { selectAll } from './utils';
+       + const result = selectAll(items);
+       ```
+    2. **Or** define it in the same module:
+       ```diff
+       + function selectAll(arr) {
+       +   return arr.filter(item => item.selected);
+       + }
+         const result = selectAll(items);
+       ```
+

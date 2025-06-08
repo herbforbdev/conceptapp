@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+be concise and go straight to the point
+
+avoid long explanations unless asked.
+
+summarize solutions clearly with only the needed steps or code.
+
+skip theory unless it's critical to understand the fix or feature.
+
+
+if an issue has multiple solutions, list them briefly with pros/cons.

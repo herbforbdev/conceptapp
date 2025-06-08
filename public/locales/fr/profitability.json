@@ -1,0 +1,130 @@
+{
+  "title": "Rentabilité",
+  "tabs": {
+    "general": "Général",
+    "products": "Produits",
+    "expenses": "Dépenses",
+    "activities": "Activités"
+  },
+  "filters": {
+    "activity": "Activité",
+    "year": "Année",
+    "month": "Mois"
+  },
+  "rows": {
+    "sales": "Ventes",
+    "costs": "Coûts",
+    "profit": "Profit"
+  },
+  "metrics": {
+    "sales": "Ventes",
+    "costs": "Coûts",
+    "profit": "Profit",
+    "margin": "Marge"
+  },
+  "activityTypes": {
+    "title": "Rentabilité par activité",
+    "comparison": "Comparaison des activités",
+    "details": "Détails par activité",
+    "metrics": {
+      "totalSales": "Total des ventes"
+    }
+  },
+  "months": {
+    "january": "Janvier",
+    "february": "Février",
+    "march": "Mars",
+    "april": "Avril",
+    "may": "Mai",
+    "june": "Juin",
+    "july": "Juillet",
+    "august": "Août",
+    "september": "Septembre",
+    "october": "Octobre",
+    "november": "Novembre",
+    "december": "Décembre",
+    "january_short": "Janv.",
+    "february_short": "Févr.",
+    "march_short": "Mars",
+    "april_short": "Avr.",
+    "may_short": "Mai",
+    "june_short": "Juin",
+    "july_short": "Juil.",
+    "august_short": "Août",
+    "september_short": "Sept.",
+    "october_short": "Oct.",
+    "november_short": "Nov.",
+    "december_short": "Déc."
+  },
+  "salesTrends": {
+    "sales": "Ventes",
+    "costs": "Coûts",
+    "grossProfit": "Profit brut",
+    "profitMargin": "Marge bénéficiaire",
+    "avgProfitPerSale": "Profit moyen par vente",
+    "profitabilityOverview": "Aperçu de la rentabilité",
+    "totalRevenue": "Revenu total",
+    "totalCosts": "Coûts totaux"
+  },
+  "year": "Année",
+  "sales_trends": {
+    "title": "Tendances des ventes",
+    "total_sales": "Ventes totales",
+    "avg_monthly": "Moyenne mensuelle",
+    "top_product": "Meilleur produit",
+    "highest_month": "Meilleur mois",
+    "monthly_trends": "Tendances mensuelles",
+    "monthly_distribution": "Distribution mensuelle",
+    "monthly_breakdown": "Détail mensuel",
+    "monthly_sales": "Ventes mensuelles",
+    "total_sales_chart": "Ventes totales (USD)",
+    "select_year": "Sélectionner l'année",
+    "select_month": "Sélectionner le mois",
+    "metrics": {
+      "total_sales": "Ventes totales",
+      "avg_monthly": "Moyenne mensuelle",
+      "top_product": "Meilleur produit",
+      "highest_month": "Meilleur mois"
+    },
+    "table": {
+      "month": "Mois",
+      "total_usd": "Total (USD)",
+      "num_sales": "Nombre de ventes",
+      "average": "Moyenne"
+    }
+  },
+  "cost_trends": {
+    "title": "Tendances des coûts",
+    "total_costs": "Coûts totaux",
+    "avg_monthly": "Moyenne mensuelle",
+    "top_expense": "Dépense principale",
+    "highest_month": "Mois le plus élevé",
+    "monthly_trends": "Tendances mensuelles",
+    "monthly_distribution": "Distribution mensuelle",
+    "monthly_breakdown": "Détail mensuel",
+    "monthly_costs": "Coûts mensuels",
+    "total_costs_chart": "Coûts totaux (USD)",
+    "select_year": "Sélectionner l'année",
+    "select_month": "Sélectionner le mois",
+    "metrics": {
+      "total_costs": "Coûts totaux",
+      "avg_monthly": "Moyenne mensuelle",
+      "top_expense": "Dépense principale",
+      "highest_month": "Mois le plus élevé"
+    },
+    "table": {
+      "month": "Mois",
+      "total_usd": "Total (USD)",
+      "num_expenses": "Nombre de dépenses",
+      "average": "Moyenne"
+    }
+  },
+  "common": {
+    "month": "Mois",
+    "total_usd": "Total (USD)",
+    "num_sales": "Nombre de ventes",
+    "num_expenses": "Nombre de dépenses",
+    "average": "Moyenne",
+    "all_months": "Tous les mois"
+  }
+} 

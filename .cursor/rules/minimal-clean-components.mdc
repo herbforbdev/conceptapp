@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Each component should have a single responsibility.
+
+No inline logic or large calculations inside JSX.
+
+
+Break complex views into small composable components.

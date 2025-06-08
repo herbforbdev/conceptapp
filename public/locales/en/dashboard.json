@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "daily_sales": "Today's Sales",
+    "daily_costs": "Today's Costs",
+    "total_sales": "Total Sales",
+    "total_costs": "Total Costs"
+  },
+  "top_products": "Top 3 Products Sold",
+  "top_expenses": "Top 3 Expenses",
+  "kpi": {
+    "stock_overview": "Stock Overview"
+  },
+  "recent_activity": "Recent Activity",
+  "activity": {
+    "type": "Type",
+    "name": "Name",
+    "date": "Date"
+  },
+  "no_data": "No data available"
+} 

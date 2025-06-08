@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+never modify font size font weight colors spacing or layout unless explicitly instructed.
+
+do not move or restyle charts cards tables or components unless part of the task.
+
+do not change calculation logic or add new metrics without approval.
+
+every change must strictly follow user request.
+
+if unsure ask before applying any modifications.
+
+

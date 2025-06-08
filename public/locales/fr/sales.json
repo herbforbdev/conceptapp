@@ -1,0 +1,70 @@
+{
+  "title": "Ventes",
+  "overview": "Aperçu des ventes",
+  "records": "Enregistrements de ventes",
+  "activityTypes": {
+    "block_ice": "Production de Blocs de glace",
+    "cube_ice_and_water_bottling": "Production de Glaçons et d'Eau en bouteille"
+  },
+  "add": {
+    "title": "Ajouter une vente",
+    "addDescription": "Ajoutez de nouvelles ventes à votre système",
+    "addEntry": "Ajouter une entrée",
+    "submit": "Enregistrer",
+    "entry": "entrée",
+    "entries": "entrées"
+  },
+  "fields": {
+    "date": "Date",
+    "activityType": "Type d'activité",
+    "product": "Produit",
+    "channel": "Canal",
+    "quantitySold": "Quantité vendue",
+    "amountFC": "Montant (FC)",
+    "amountUSD": "Montant (USD)",
+    "exchangeRate": "Taux de change"
+  },
+  "placeholders": {
+    "selectProduct": "Sélectionner un produit",
+    "selectChannel": "Sélectionner un canal",
+    "selectActivityType": "Sélectionner un type d'activité"
+  },
+  "metrics": {
+    "totalSales": "Ventes totales",
+    "averageSale": "Vente moyenne",
+    "bestSelling": "Meilleure vente",
+    "salesGrowth": "Croissance des ventes"
+  },
+  "loading": {
+    "data": "Chargement des données..."
+  },
+  "actions": {
+    "refresh": "Actualiser",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "cancel": "Annuler"
+  },
+  "confirmations": {
+    "deleteSelected": "Êtes-vous sûr de vouloir supprimer ces éléments ?",
+    "deleteItem": "Êtes-vous sûr de vouloir supprimer cet élément ?"
+  },
+  "errors": {
+    "loading": "Erreur lors du chargement des données",
+    "saving": "Erreur lors de l'enregistrement",
+    "deleting": "Erreur lors de la suppression"
+  },
+  "table": {
+    "selectAll": "Tout sélectionner",
+    "noData": "Aucune donnée disponible",
+    "loading": "Chargement..."
+  },
+  "quickEntry": "Mode saisie rapide",
+  "common": {
+    "loading": "Chargement...",
+    "cancel": "Annuler",
+    "actions": "Actions"
+  }
+} 

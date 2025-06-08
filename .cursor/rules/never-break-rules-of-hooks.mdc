@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+hooks like usestate useeffect usecontext must always be called in the same order
+
+never call hooks inside if else try catch or loops
+
+all hooks must be top level in the component not inside any condition
+
+if you must conditionally compute something use usememo or plain variables not hooks
+
+
+test the component at runtime to confirm no hook-order warnings

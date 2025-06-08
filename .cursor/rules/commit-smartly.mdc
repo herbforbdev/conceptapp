@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Atomic commits — one change per concern
+
+
+Clear message format: feat:, fix:, refactor:, chore:

@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Always Test Summary Logic with Edge Cases
+Empty collections
+
+Missing fields
+
+Extreme values
+
+
+Past/future date records

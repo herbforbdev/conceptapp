@@ -1,0 +1,184 @@
+import React from 'react';
+import { Card, Label, Select } from 'flowbite-react';
+
+export default function FilterSection({
+  filters,
+  onFilterChange,
+  activityTypes,
+  products,
+  colorTheme = 'red',
+  t, // Translation function
+  showMonthFilter = true,
+  showActivityFilter = true,
+  showProductFilter = true,
+  showMovementFilter = false,
+  showChannelFilter = false,
+  showStatusFilter = false,
+  customFilters = null
+}) {
+  // Map color themes to Tailwind classes
+  const themeClasses = {
+    red: {
+      border: 'border-red-300',
+      gradient: 'from-red-50 to-red-100',
+      borderB: 'border-red-200',
+      text: 'text-red-700',
+      select: 'border-red-200 focus:ring-red-500 focus:border-red-500'
+    },
+    blue: {
+      border: 'border-blue-300',
+      gradient: 'from-blue-50 to-blue-100',
+      borderB: 'border-blue-200',
+      text: 'text-blue-700',
+      select: 'border-blue-200 focus:ring-blue-500 focus:border-blue-500'
+    },
+    purple: {
+      border: 'border-purple-300',
+      gradient: 'from-purple-50 to-purple-100',
+      borderB: 'border-purple-200',
+      text: 'text-purple-700',
+      select: 'border-purple-200 focus:ring-purple-500 focus:border-purple-500'
+    },
+    green: {
+      border: 'border-green-300',
+      gradient: 'from-green-50 to-green-100',
+      borderB: 'border-green-200',
+      text: 'text-green-700',
+      select: 'border-green-200 focus:ring-green-500 focus:border-green-500'
+    }
+  };
+
+  const theme = themeClasses[colorTheme];
+
+  return (
+    <Card className={`mb-6 bg-white border ${theme.border} shadow-xl rounded-2xl overflow-hidden`}>
+      <div className={`bg-gradient-to-r ${theme.gradient} border-b ${theme.borderB} rounded-t-2xl`}>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {showMonthFilter && (
+              <div>
+                <Label htmlFor="monthSelect" className={`font-medium mb-1.5 block ${theme.text}`}>
+                  {t('common.month')}
+                </Label>
+                <Select
+                  id="monthSelect"
+                  value={filters.selectedMonth}
+                  onChange={(e) => onFilterChange('selectedMonth', e.target.value)}
+                  className={`w-full bg-white rounded-lg ${theme.select}`}
+                >
+                  <option value="">{t('filters.allMonths')}</option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {t(`months.${new Date(0, i).toLocaleString('default', { month: 'long' }).toLowerCase()}`)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
+
+            {showActivityFilter && (
+              <div>
+                <Label htmlFor="activityType" className={`font-medium mb-1.5 block ${theme.text}`}>
+                  {t('common.activityType')}
+                </Label>
+                <Select
+                  id="activityType"
+                  value={filters.selectedActivityType}
+                  onChange={(e) => onFilterChange('selectedActivityType', e.target.value)}
+                  className={`w-full bg-white rounded-lg ${theme.select}`}
+                >
+                  <option value="">{t('filters.allActivityTypes')}</option>
+                  {activityTypes?.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
+
+            {showProductFilter && (
+              <div>
+                <Label htmlFor="product" className={`font-medium mb-1.5 block ${theme.text}`}>
+                  {t('common.product')}
+                </Label>
+                <Select
+                  id="product"
+                  value={filters.selectedProduct}
+                  onChange={(e) => onFilterChange('selectedProduct', e.target.value)}
+                  className={`w-full bg-white rounded-lg ${theme.select}`}
+                >
+                  <option value="">{t('filters.allProducts')}</option>
+                  {products?.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.productid || product.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
+
+            {showMovementFilter && (
+              <div>
+                <Label htmlFor="movementType" className={`font-medium mb-1.5 block ${theme.text}`}>
+                  {t('inventory.filters.movementType')}
+                </Label>
+                <Select
+                  id="movementType"
+                  value={filters.selectedMovementType}
+                  onChange={(e) => onFilterChange('selectedMovementType', e.target.value)}
+                  className={`w-full bg-white rounded-lg ${theme.select}`}
+                >
+                  <option value="">{t('inventory.filters.allMovementTypes')}</option>
+                  <option value="IN">{t('inventory.table.stockIn')}</option>
+                  <option value="OUT">{t('inventory.table.stockOut')}</option>
+                  <option value="ADJUSTMENT">{t('inventory.table.adjustment')}</option>
+                </Select>
+              </div>
+            )}
+
+            {showChannelFilter && (
+              <div>
+                <Label htmlFor="channel" className={`font-medium mb-1.5 block ${theme.text}`}>
+                  {t('sales.filters.channel')}
+                </Label>
+                <Select
+                  id="channel"
+                  value={filters.selectedChannel}
+                  onChange={(e) => onFilterChange('selectedChannel', e.target.value)}
+                  className={`w-full bg-white rounded-lg ${theme.select}`}
+                >
+                  <option value="">{t('filters.allChannels')}</option>
+                  <option value="OnSite">{t('sales.channels.onSite')}</option>
+                  <option value="Truck Delivery">{t('sales.channels.truckDelivery')}</option>
+                  <option value="Motorcycle Delivery">{t('sales.channels.motorcycleDelivery')}</option>
+                </Select>
+              </div>
+            )}
+
+            {showStatusFilter && (
+              <div>
+                <Label htmlFor="status" className={`font-medium mb-1.5 block ${theme.text}`}>
+                  {t('common.status')}
+                </Label>
+                <Select
+                  id="status"
+                  value={filters.selectedStatus}
+                  onChange={(e) => onFilterChange('selectedStatus', e.target.value)}
+                  className={`w-full bg-white rounded-lg ${theme.select}`}
+                >
+                  <option value="">{t('filters.allStatus')}</option>
+                  <option value="completed">{t('common.completed')}</option>
+                  <option value="pending">{t('common.pending')}</option>
+                  <option value="cancelled">{t('common.cancelled')}</option>
+                </Select>
+              </div>
+            )}
+
+            {customFilters}
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+} 

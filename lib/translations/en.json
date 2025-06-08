@@ -1,0 +1,1325 @@
+{
+  "common": {
+    "all": "All",
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "refresh": "Refresh",
+    "actions": "Actions",
+    "date": "Date",
+    "status": "Status",
+    "total": "Total",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "activity": "Activity",
+    "product": "Product",
+    "expense": "Expense",
+    "channel": "Channel",
+    "quantity": "Quantity",
+    "type": "Type",
+    "description": "Description",
+    "budget": "Budget",
+    "category": "Category",
+    "select": "Select",
+    "month": "Month",
+    "year": "Year",
+    "week": "Week",
+    "day": "Day",
+    "today": "Today",
+    "all_months": "All months",
+    "total_usd": "Total (USD)",
+    "num_sales": "Number of sales",
+    "num_expenses": "Number of expenses",
+    "average": "Average",
+    "unknown": "Unknown",
+    "notAvailable": "Not available",
+    "accessDenied": "Access Denied",
+    "adminRequired": "This section requires administrator privileges.",
+    "backToDashboard": "Back to Dashboard"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "production": "Production",
+    "inventory": "Inventory",
+    "sales": "Sales",
+    "costs": "Costs",
+    "masterData": "Master Data",
+    "reports": "Reports",
+    "settings": "Settings",
+    "profitability": "Profitability"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "languageDescription": "Choose your preferred language for the user interface",
+    "theme": "Theme",
+    "selectTheme": "Select theme",
+    "themeDescription": "Choose between light and dark mode",
+    "notifications": "Notifications",
+    "notificationsDescription": "Manage your notification preferences",
+    "account": "Account",
+    "accountDescription": "Manage your account settings",
+    "security": "Security",
+    "securityDescription": "Manage your security settings",
+    "preferences": "Preferences",
+    "preferencesDescription": "Personalize your experience",
+    "dataManagement": "Data Management",
+    "dataManagementDescription": "Manage your data and exports",
+    "help": "Help",
+    "helpDescription": "Get help and support",
+    "about": "About",
+    "aboutDescription": "About the app",
+    "Users & Roles": "Users & Roles",
+    "Manage user access and permissions": "Manage user access and permissions",
+    "Notifications": "Notifications",
+    "Configure system notifications and alerts": "Configure system notifications and alerts",
+    "Profile Settings": "Profile Settings",
+    "Update your personal information and preferences": "Update your personal information and preferences",
+    "App Settings": "App Settings",
+    "Configure general application settings": "Configure general application settings",
+    "Configure": "Configure",
+    "General Settings": "General Settings",
+    "Dark Mode": "Dark Mode",
+    "Toggle dark mode appearance": "Toggle dark mode appearance",
+    "Email Notifications": "Email Notifications",
+    "Receive email notifications for important updates": "Receive email notifications for important updates",
+    "Choose your preferred language for the dashboard.": "Choose your preferred language for the user interface.",
+    "Settings": "Settings",
+    "Users": "Users",
+    "users": "Users",
+    "user": "User",
+    "User": "User",
+    "Email": "Email",
+    "Role": "Role",
+    "Status": "Status",
+    "Last Active": "Last Active",
+    "Actions": "Actions",
+    "Loading": "Loading...",
+    "Active": "Active",
+    "Inactive": "Inactive",
+    "Never": "Never",
+    "Edit User": "Edit User",
+    "Invite New User": "Invite New User",
+    "Invite User": "Invite User",
+    "Update User": "Update User",
+    "Send Invitation": "Send Invitation",
+    "Cancel": "Cancel",
+    "Administrator": "Administrator",
+    "Manager": "Manager",
+    "Standard User": "Standard User",
+    "Profile updated successfully!": "Profile updated successfully!",
+    "Profile Information": "Profile Information",
+    "Full Name": "Full Name",
+    "Phone Number": "Phone Number",
+    "Company": "Company",
+    "Bio": "Bio",
+    "Save Changes": "Save Changes",
+    "Edit Profile": "Edit Profile",
+    "Upload Photo": "Upload Photo",
+    "Security": "Security",
+    "Change Password": "Change Password",
+    "Two-Factor Auth": "Two-Factor Auth",
+    "Connected Accounts": "Connected Accounts",
+    "Google": "Google",
+    "Microsoft": "Microsoft",
+    "Connect": "Connect",
+    "Notification Settings": "Notification Settings",
+    "Email Channel": "Email Channel",
+    "Mobile Push": "Mobile Push",
+    "Desktop Push": "Desktop Push",
+    "Configure how you receive email notifications": "Configure how you receive email notifications",
+    "Manage your push notification preferences": "Manage your push notification preferences",
+    "Daily Digest": "Daily Digest",
+    "Receive a daily summary of all activities": "Receive a daily summary of all activities",
+    "Weekly Report": "Weekly Report",
+    "Get weekly performance and analytics reports": "Get weekly performance and analytics reports",
+    "Product Updates": "Product Updates",
+    "Be notified about product inventory changes": "Be notified about product inventory changes",
+    "Security Alerts": "Security Alerts",
+    "Receive notifications about security events": "Receive notifications about security events",
+    "New Orders": "New Orders",
+    "Get notified when new orders are placed": "Get notified when new orders are placed",
+    "Stock Alerts": "Stock Alerts",
+    "Receive alerts for low stock items": "Receive alerts for low stock items",
+    "System Updates": "System Updates",
+    "Be notified about system maintenance and updates": "Be notified about system maintenance and updates",
+    "Mentions": "Mentions",
+    "Notifications when you're mentioned in comments": "Notifications when you're mentioned in comments",
+    "Quiet Hours": "Quiet Hours",
+    "Set a time period when you don't want to receive notifications": "Set a time period when you don't want to receive notifications",
+    "Start Time": "Start Time",
+    "End Time": "End Time",
+    "Back": "Back"
+  },
+  "filters": {
+    "allActivities": "All activities",
+    "allProducts": "All products",
+    "allTypes": "All types",
+    "allChannels": "All channels",
+    "selectDate": "Select date",
+    "selectPeriod": "Select period",
+    "customRange": "Custom range",
+    "from": "From",
+    "to": "To",
+    "allMonths": "All months",
+    "allExpenseTypes": "All expense types",
+    "allActivityTypes": "All activity types"
+  },
+  "timePeriods": {
+    "all": "All time",
+    "today": "Today",
+    "thisWeek": "This week",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "lastWeek": "Last week",
+    "lastMonth": "Last month",
+    "lastYear": "Last year",
+    "custom": "Custom"
+  },
+  "products": {
+    "types": {
+      "blockIce": "Block Ice",
+      "BlockIce": "Block Ice",
+      "cubeIce": "Ice Cubes",
+      "Cube Ice": "Ice Cubes",
+      "CubeIce": "Ice Cubes",
+      "waterBottling": "Bottled Water",
+      "packaging": "Packaging",
+      "packagingForIceCube": "Packaging for Ice Cubes",
+      "PackagingForCubeIce": "Packaging for Ice Cubes",
+      "packagingForWaterBottling": "Packaging for Bottled Water",
+      "PackagingForWaterBottling": "Packaging for Bottled Water",
+      "Water Bottling": "Bottled Water",
+      "WaterBottling": "Bottled Water",
+      "WaterCans": "Water Cans",
+      "WaterCansBottling": "Water Bottles",
+      "Packaging": "Packaging",
+      "PackagingForIceCube": "Packaging for Ice Cubes",
+      "Packaging For Water Bottling": "Packaging for Bottled Water",
+      "waterCans": "Water Cans",
+      "PackagingOnly": "Packaging Only",
+      "UnmatchedPackaging": "Packaging Only"
+    },
+    "categories": {
+      "mainProducts": "Main products",
+      "packagingMaterials": "Packaging materials",
+      "filterByType": "Filter by product type",
+      "multiSelectHint": "Select product types"
+    },
+    "items": {
+      "blockIce": {
+        "5kg": "Block Ice 5Kg",
+        "8kg": "Block Ice 8Kg",
+        "30kg": "Block Ice 30Kg"
+      },
+      "cubeIce": {
+        "1kg": "Ice Cubes 1Kg",
+        "2kg": "Ice Cubes 2Kg",
+        "5kg": "Ice Cubes 5Kg"
+      },
+      "waterBottling": {
+        "600ml": "Bottled Water 600ml",
+        "750ml": "Bottled Water 750ml",
+        "1_5L": "Bottled Water 1.5L",
+        "1_5l": "Bottled Water 1.5L",
+        "1.5L": "Bottled Water 1.5L",
+        "1,5L": "Bottled Water 1.5L",
+        "1,5l": "Bottled Water 1.5L",
+        "1.5l": "Bottled Water 1.5L",
+        "5L": "Bottled Water 5L",
+        "5l": "Bottled Water 5L"
+      },
+      "waterCans": {
+        "1L": "Water Cans 1L",
+        "1,5L": "Water Cans 1.5L",
+        "2L": "Water Cans 2L",
+        "5L": "Water Cans 5L",
+        "5l": "Water Cans 5L",
+        "5LSLBS": "Water Cans 5L Without Label",
+        "10L": "Water Cans 10L",
+        "10LSLBS": "Water Cans 10L Without Label"
+      },
+      "packaging": {
+        "cubeIce": {
+          "1kg": "Packaging for Ice Cubes 1Kg",
+          "2kg": "Packaging for Ice Cubes 2Kg",
+          "5kg": "Packaging for Ice Cubes 5Kg"
+        },
+        "waterBottling": {
+          "600ml": "Packaging for Bottled Water 600ml",
+          "750ml": "Packaging for Bottled Water 750ml",
+          "1_5L": "Packaging for Bottled Water 1.5L",
+          "1_5l": "Packaging for Bottled Water 1.5L",
+          "1.5L": "Packaging for Bottled Water 1.5L",
+          "1,5L": "Packaging for Bottled Water 1.5L",
+          "5L": "Packaging for Bottled Water 5L",
+          "5l": "Packaging for Bottled Water 5L"
+        }
+      }
+    },
+    "descriptions": {
+      "blockIce": {
+        "5kg": "Block Ice 5Kg - 5 kg block of ice.",
+        "8kg": "Block Ice 8Kg - 8 kg block of ice.",
+        "30kg": "Block Ice 30Kg - 30 kg block of ice."
+      },
+      "cubeIce": {
+        "1kg": "Ice Cubes 1Kg - 1 kg bag of ice cubes.",
+        "2kg": "Ice Cubes 2Kg - 2 kg bag of ice cubes.",
+        "5kg": "Ice Cubes 5Kg - 5 kg bag of ice cubes."
+      },
+      "waterBottling": {
+        "600ml": "Bottled Water 600ml - 600ml water bottle",
+        "750ml": "Bottled Water 750ml - 750ml water bottle",
+        "1_5L": "Bottled Water 1.5L - 1.5L water bottle",
+        "1_5l": "Bottled Water 1.5L - 1.5L water bottle",
+        "1.5L": "Bottled Water 1.5L - 1.5L water bottle",
+        "1,5L": "Bottled Water 1.5L - 1.5L water bottle",
+        "5L": "Bottled Water 5L - 5L water bottle",
+        "5l": "Bottled Water 5L - 5L water bottle"
+      },
+      "waterCans": {
+        "1L": "Water Cans 1L - 1L water can",
+        "1,5L": "Water Cans 1.5L - 1.5L water can",
+        "2L": "Water Cans 2L - 2L water can",
+        "5L": "Water Cans 5L - 5L water can",
+        "WL5L": "Water Cans 5L Without Label - 5L water can",
+        "5LSLBS": "Water Cans 5L Without Label - 5L water can",
+        "10L": "Water Cans 10L - 10L water can",
+        "WL10L": "Water Cans 10L Without Label - 10L water can",
+        "10LSLBS": "Water Cans 10L Without Label - 10L water can"
+      },
+      "packaging": {
+        "cubeIce": {
+          "1kg": "Packaging for Ice Cubes 1Kg",
+          "2kg": "Packaging for Ice Cubes 2Kg",
+          "5kg": "Packaging for Ice Cubes 5Kg"
+        },
+        "waterBottling": {
+          "600ml": "Packaging for Bottled Water 600ml - Packaging for 600ml bottle.",
+          "750ml": "Packaging for Bottled Water 750ml - Packaging for 750ml bottle.",
+          "1_5L": "Packaging for Bottled Water 1.5L - Packaging for 1.5L bottle.",
+          "1_5l": "Packaging for Bottled Water 1.5L - Packaging for 1.5L bottle.",
+          "1.5L": "Packaging for Bottled Water 1.5L - Packaging for 1.5L bottle.",
+          "1,5L": "Packaging for Bottled Water 1.5L - Packaging for 1.5L bottle.",
+          "5L": "Packaging for Bottled Water 5L - Packaging for 5L bottle.",
+          "5l": "Packaging for Bottled Water 5L - Packaging for 5L bottle."
+        },
+        "waterCans": {
+          "1L": "Packaging for Water Cans 1L - Packaging for 1L can.",
+          "1,5L": "Packaging for Water Cans 1.5L - Packaging for 1.5L can.",
+          "2L": "Packaging for Water Cans 2L - Packaging for 2L can.",
+          "5L": "Packaging for Water Cans 5L - Packaging for 5L can.",
+          "10L": "Packaging for Water Cans 10L - Packaging for 10L can."
+        }
+      }
+    },
+    "activities": {
+      "block_ice": "Block Ice",
+      "cube_ice_and_water_bottling": "Ice Cubes & Bottled Water",
+      "cube_ice_&_water_bottling": "Ice Cubes & Bottled Water",
+      "cube_ice___water_bottling": "Ice Cubes & Bottled Water",
+      "glace_en_bloc": "Block Ice",
+      "glaçons_et_eau_en_bouteille": "Ice Cubes & Bottled Water"
+    },
+    "fields": {
+      "name": "Name",
+      "type": "Type",
+      "activityType": "Activity Type",
+      "description": "Description"
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "dashboard": {
+      "top_products": "Top 3 Best-Selling Products",
+      "top_expenses": "Top 3 Expenses",
+      "no_data": "No data available",
+      "summary": {
+        "title": "Summary",
+        "productivity": "Productivity",
+        "growth": "Growth"
+      },
+      "kpi": {
+        "title": "Key Performance Indicators",
+        "production": "Production",
+        "inventory": "Inventory",
+        "costs": "Costs",
+        "sales": "Sales"
+      },
+      "sales_trend": "Sales Trend",
+      "costs_trend": "Cost Trend"
+    },
+    "fields": {
+      "product": "Product",
+      "year": "Year",
+      "month": "Month",
+      "quantity": "Quantity",
+      "unitPrice": "Unit price",
+      "totalPrice": "Total price",
+      "date": "Date"
+    },
+    "records": {
+      "title": "Inventory Records",
+      "loading": "Loading inventory records...",
+      "noRecords": "No inventory records found matching the selected filters.",
+      "showing": "Showing",
+      "to": "to",
+      "of": "of",
+      "entries": "entries"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "add": "Add",
+      "delete": "Delete",
+      "edit": "Edit",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "filters": {
+      "activityType": "Activity Type",
+      "product": "Product",
+      "movementType": "Movement Type",
+      "allMonths": "All months",
+      "allYears": "All years",
+      "allActivityTypes": "All activity types",
+      "allProducts": "All products",
+      "allMovementTypes": "All movement types"
+    },
+    "table": {
+      "date": "Date",
+      "product": "Product",
+      "allMovementTypes": "All movement types",
+      "movementType": "Movement Type",
+      "initialQuantity": "Initial Qty",
+      "quantityMoved": "Moved Qty",
+      "remaining": "Remaining",
+      "actions": "Actions",
+      "source": "Source",
+      "in": "In",
+      "out": "Out",
+      "stockIn": "Stock In",
+      "stockOut": "Stock Out",
+      "adjustment": "Adjustment",
+      "activityType": "Activity Type"
+    },
+    "add": {
+      "title": "Add Inventory Movement",
+      "selectProduct": "Select product",
+      "selectType": "Select type",
+      "addRow": "Add row",
+      "submit": "Submit",
+      "entry": "entry",
+      "entries": "entries",
+      "currentStock": "Current stock",
+      "noProducts": "No products available for this activity type",
+      "error": {
+        "addAtLeastOne": "Add at least one inventory movement",
+        "selectDate": "Please select a date for all entries",
+        "selectMovementType": "Please select a movement type for all entries",
+        "selectActivityType": "Please select an activity type for all entries",
+        "selectProduct": "Please select a product for all entries",
+        "quantityMoved": "Moved quantity must be greater than 0 for all entries",
+        "failed": "Failed to add inventory movements"
+      }
+    },
+    "edit": {
+      "title": "Edit Inventory Movement",
+      "currentStock": "Current stock for",
+      "maxQuantity": "Maximum: {value} units"
+    },
+    "summary": {
+      "totalInventory": "Total inventory",
+      "monthlyMovements": "Monthly movements",
+      "blockIceStock": "Block Ice Stock",
+      "cubeIceStock": "Ice Cubes Stock",
+      "waterBottlingStock": "Bottled Water Stock",
+      "packagingStock": "Packaging Stock",
+      "currentStock": "Current stock",
+      "iceCubeProducts": "Ice Cube Products",
+      "waterBottlingProducts": "Bottled Water Products"
+    },
+    "initial_quantity": "Initial quantity",
+    "quantity_moved": "Moved quantity",
+    "remaining_quantity": "Remaining quantity",
+    "movement_type": "Movement type",
+    "stock_in": "Stock In",
+    "stock_out": "Stock Out",
+    "adjustment": "Adjustment",
+    "thresholds": {
+      "iceCubes": "Threshold for Ice Cubes",
+      "bottles": "Threshold for Bottles",
+      "warning": "Warning threshold"
+    },
+    "charts": {
+      "iceCubePackaging": "Packaging Stock for Ice Cubes",
+      "waterBottlingPackaging": "Packaging Stock for Bottled Water",
+      "threshold": "Threshold"
+    },
+    "source": {
+      "title": "Source",
+      "all": "All sources",
+      "production": "Production",
+      "consumption": "Consumption",
+      "sales": "Sales",
+      "manual": "Manual",
+      "description": "Data source",
+      "source": "Source",
+      "addNew": "Add new source",
+      "edit": "Edit source"
+    }
+  },
+  "production": {
+    "title": "Production",
+    "overview": "Production Overview",
+    "description": "Manage and track your production records",
+    "newProduction": "New production",
+    "editProduction": "Edit production record",
+    "records": "Production records",
+    "loading": {
+      "data": "Loading production data...",
+      "masterData": "Loading master data..."
+    },
+    "filters": {
+      "title": "Filters",
+      "activityType": "Activity Type",
+      "product": "Product",
+      "status": "Status",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "allActivityTypes": "All activity types",
+      "allProducts": "All products",
+      "allStatus": "All statuses"
+    },
+    "status": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "cancelled": "Cancelled"
+    },
+    "table": {
+      "date": "Date",
+      "product": "Product",
+      "quantity": "Quantity",
+      "activity": "Activity",
+      "packaging": "Packaging",
+      "packagingQuantity": "Packaging quantity",
+      "status": "Status",
+      "actions": "Actions",
+      "noPackagingRequired": "No packaging required"
+    },
+    "summary": {
+      "title": "Production Summary",
+      "activityType": "Activity Type / Product",
+      "quantity": "Quantity",
+      "percentageTotal": "% of total",
+      "totalProduction": "Total production"
+    },
+    "charts": {
+      "productionTrends": "Production trends by product type",
+      "quantityProduced": "Quantity produced",
+      "productionByActivity": "Production by activity type"
+    },
+    "metrics": {
+      "totalProduction": "Total production",
+      "topProduct": "Top product",
+      "productionActivities": "Production activities",
+      "mostUsedPackaging": "Most used packaging",
+      "activityDistribution": "Activity distribution",
+      "units": "Units",
+      "entries": "Entries",
+      "used": "used",
+      "ofTotal": "of total"
+    },
+    "fields": {
+      "date": "Date",
+      "month": "Month",
+      "year": "Year",
+      "allMonths": "All months",
+      "allYears": "All years",
+      "activityType": "Activity Type",
+      "product": "Product",
+      "quantity": "Quantity",
+      "packaging": "Packaging",
+      "packagingQuantity": "Packaging quantity",
+      "noPackaging": "No packaging required"
+    },
+    "add": {
+      "addRow": "Add row",
+      "title": "Add Production Entry",
+      "subtitle": "Add new production",
+      "submit": "Submit",
+      "entry": "entry",
+      "entries": "entries",
+      "error": {
+        "addAtLeastOne": "Add at least one production entry",
+        "requiredFields": "Please correctly fill in all required fields",
+        "failed": "Failed to add production records"
+      }
+    }
+  },
+  "sales": {
+    "title": "Sales",
+    "records": "Sales records",
+    "overview": "Sales overview",
+    "newSales": "New sales",
+    "editSales": "Edit sales",
+    "common": {
+      "actions": "Actions"
+    },
+    "summary": {
+      "byProduct": "Sales by product",
+      "byActivity": "Sales by activity type",
+      "byChannel": "Sales by channel",
+      "percentageOfTotal": "Percentage of total",
+      "byActivityType": "Sales by activity type"
+    },
+    "filters": {
+      "channel": "Channel",
+      "selectChannel": "Select channel",
+      "selectProduct": "Select product",
+      "allProducts": "All products",
+      "allActivityTypes": "All activity types",
+      "allChannels": "All channels",
+      "allMonths": "All months",
+      "allYears": "All years"
+    },
+    "channels": {
+      "onSite": "On Site",
+      "OnSite": "On Site",
+      "Truck Delivery": "Truck Delivery",
+      "Motorcycle Delivery": "Motorcycle Delivery",
+      "truckDelivery": "Truck Delivery",
+      "motorcycleDelivery": "Motorcycle Delivery",
+      "truckdelivery": "Truck Delivery",
+      "motorcycledelivery": "Motorcycle Delivery",
+      "onsite": "On Site"
+    },
+    "loading": {
+      "data": "Loading data...",
+      "sales": "Loading sales...",
+      "products": "Loading products...",
+      "activityTypes": "Loading activity types..."
+    },
+    "actions": {
+      "deleteSelected": "Delete selected"
+    },
+    "table": {
+      "date": "Date",
+      "activityType": "Activity Type",
+      "product": "Product",
+      "channel": "Channel",
+      "showing": "Showing",
+      "previous": "Previous",
+      "next": "Next",
+      "of": "of",
+      "entries": "entries",
+      "quantitySold": "Quantity sold"
+    },
+    "metrics": {
+      "totalSales": "Total sales",
+      "averageSale": "Average sale",
+      "bestSelling": "Best selling",
+      "salesGrowth": "Sales growth",
+      "perDay": "per day",
+      "vsLastMonth": "vs last month",
+      "salesCount": "Sales"
+    },
+    "add": {
+      "title": "Add Sales",
+      "subtitle": "Add new sale",
+      "addDescription": "Add new sales",
+      "quickMode": "Quick entry mode",
+      "lockFields": "Lock fields",
+      "addEntry": "Add entry",
+      "entries": "entries",
+      "entry": "entry",
+      "submit": "Submit",
+      "duplicateEntry": "Duplicate entry",
+      "removeEntry": "Remove entry",
+      "error": {
+        "requiredFields": "Please correctly fill in all required fields",
+        "duplicateEntry": "An entry with the same date, activity, product, channel, and amounts already exists.",
+        "failed": "Failed to add sales records"
+      }
+    },
+    "edit": {
+      "title": "Edit Sale",
+      "backToSales": "Back to sales"
+    },
+    "charts": {
+      "trend": "Sales trend",
+      "byActivity": "Sales by activity type",
+      "byProduct": "Sales by product",
+      "byChannel": "Sales by channel"
+    },
+    "fields": {
+      "date": "Date",
+      "activityType": "Activity Type",
+      "product": "Product",
+      "channel": "Channel",
+      "quantitySold": "Quantity sold",
+      "amountFC": "Amount (FC)",
+      "amountUSD": "Amount (USD)",
+      "exchangeRate": "Exchange rate",
+      "month": "Month"
+    },
+    "placeholders": {
+      "selectActivityType": "Select activity type",
+      "selectProduct": "Select product",
+      "selectChannel": "Select channel"
+    }
+  },
+  "profitability": {
+    "title": "Profitability",
+    "year": "Year",
+    "salesTrends": {
+      "sales": "Sales",
+      "costs": "Costs",
+      "grossProfit": "Gross Profit",
+      "profitabilityOverview": "Profitability Overview",
+      "totalRevenue": "Total Revenue",
+      "totalCosts": "Total Costs",
+      "profitMargin": "Profit Margin",
+      "avgProfitPerSale": "Average Profit per Sale"
+    },
+    "tabs": {
+      "general": "General",
+      "products": "Products",
+      "expenses": "Expenses",
+      "activities": "Activities"
+    },
+    "rows": {
+      "sales": "Sales",
+      "costs": "Costs",
+      "profit": "Profit"
+    }
+  },
+  "costs": {
+    "title": "Costs",
+    "dashboard": "Costs Dashboard",
+    "records": "Cost records",
+    "summary": "Cost summary",
+    "manage_and_track": "Manage and track costs",
+    "filters": {
+      "title": "Filters",
+      "activityType": "Activity Type",
+      "expenseType": "Expense Type",
+      "month": "Month",
+      "year": "Year",
+      "timePeriod": "Period",
+      "allMonths": "All months",
+      "allYears": "All years"
+    },
+    "table": {
+      "date": "Date",
+      "activity": "Activity Type",
+      "expense": "Expense Type",
+      "amount_cdf": "Amount (CDF)",
+      "exchange_rate": "Exchange rate",
+      "amount_usd": "Amount (USD)",
+      "actions": "Actions"
+    },
+    "charts": {
+      "cost_trend": "Cost trend",
+      "costs_by_type": "Costs by type",
+      "amount_usd": "Amount (USD)",
+      "no_data": "No data available"
+    },
+    "add": {
+      "title": "Add Costs",
+      "addDescription": "Add new cost records",
+      "addEntry": "Add entry",
+      "submit": "Submit",
+      "entry": "entry",
+      "entries": "entries"
+    },
+    "fields": {
+      "date": "Date",
+      "year": "Year",
+      "month": "Month",
+      "activityType": "Activity Type",
+      "expenseType": "Expense Type",
+      "amountFC": "Amount (FC)",
+      "exchangeRate": "Exchange rate",
+      "amountUSD": "Amount (USD)",
+      "name": "Name",
+      "category": "Category",
+      "budget": "Budget",
+      "description": "Description"
+    },
+    "placeholders": {
+      "selectActivityType": "Select activity type",
+      "selectExpenseType": "Select expense type"
+    },
+    "periods": {
+      "all": "All time",
+      "year": "This year",
+      "month": "This month",
+      "previous_month": "Last month",
+      "quarterly": "Quarter (last 3 months)",
+      "week": "This week",
+      "today": "Today",
+      "custom": "Custom period"
+    },
+    "confirm": {
+      "delete_single": "Are you sure you want to delete this cost?",
+      "delete_multiple": "Are you sure you want to delete these items?"
+    }
+  },
+  "masterData": {
+    "title": "Master Data",
+    "loading": "Loading master data...",
+    "tabs": {
+      "products": "Products",
+      "expenses": "Expenses",
+      "activities": "Activities"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Name",
+      "type": "Type",
+      "activity": "Activity",
+      "description": "Description",
+      "category": "Category",
+      "budget": "Budget",
+      "actions": "Actions"
+    },
+    "actions": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "massEdit": "Mass edit",
+      "duplicate": "Duplicate",
+      "archive": "Archive"
+    },
+    "filters": {
+      "search": "Search items...",
+      "type": "Filter by type",
+      "activity": "Filter by activity",
+      "category": "Filter by category"
+    },
+    "modal": {
+      "addProduct": "Add product",
+      "editProduct": "Edit product",
+      "addExpense": "Add expense type",
+      "editExpense": "Edit expense type",
+      "addActivity": "Add activity type",
+      "editActivity": "Edit activity type",
+      "deleteTitle": "Delete item",
+      "deleteMessage": "Are you sure you want to delete this item? This action cannot be undone.",
+      "bulkDeleteTitle": "Delete selected items",
+      "bulkDeleteMessage": "Are you sure you want to delete the selected items? This action cannot be undone."
+    },
+    "massEdit": {
+      "title": "Edit selected items",
+      "selectedCount": "Selected items: {count}",
+      "type": "Update type",
+      "activity": "Update activity",
+      "description": "Update description",
+      "category": "Update category",
+      "budget": "Update budget"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidNumber": "Please enter a valid number",
+      "duplicateId": "This ID already exists"
+    },
+    "cards": {
+      "totalProducts": "Total products",
+      "expenseTypes": "Expense types",
+      "activityTypes": "Activity types"
+    },
+    "expenses": {
+      "types": {
+        "construction_real_estate_repairs": "Construction & Real Estate Repairs",
+        "constructionRealEstateRepairs": "Construction & Real Estate Repairs",
+        "construction_&_real_estate_repairs": "Construction & Real Estate Repairs",
+        "maintenance_repairs_of_machines": "Machine Maintenance & Repairs",
+        "maintenanceRepairsOfMachines": "Machine Maintenance & Repairs",
+        "maintenance_&_repairs_of_machines": "Machine Maintenance & Repairs",
+        "monthly_commitment": "Monthly Commitment",
+        "monthlyCommitment": "Monthly Commitment",
+        "maintenance_repairs_of_rolling_equipment": "Rolling Equipment Maintenance & Repairs",
+        "maintenanceRepairsOfRollingEquipment": "Rolling Equipment Maintenance & Repairs",
+        "maintenance_&_repairs_of_rolling_equipment": "Rolling Equipment Maintenance & Repairs",
+        "social_charges": "Social Charges",
+        "socialCharges": "Social Charges",
+        "rolling_equipment": "Rolling Equipment",
+        "rollingEquipment": "Rolling Equipment",
+        "medical_care": "Medical Care",
+        "medicalCare": "Medical Care",
+        "generatorFuel": "Generator Fuel",
+        "generator_fuel": "Generator Fuel",
+        "tax_charges": "Tax Charges",
+        "taxCharges": "Tax Charges",
+        "miscellaneous_expenses": "Miscellaneous Expenses",
+        "miscellaneousExpenses": "Miscellaneous Expenses",
+        "staff": "Staff",
+        "unknown": "Unknown",
+        "construction": "Construction",
+        "real_estate": "Real Estate",
+        "realEstate": "Real Estate",
+        "repairs": "Repairs",
+        "maintenance": "Maintenance",
+        "machines": "Machines",
+        "equipment": "Equipment",
+        "fuel": "Fuel",
+        "taxes": "Taxes",
+        "miscellaneous": "Miscellaneous"
+      },
+      "descriptions": {
+        "construction_real_estate_repairs": "Expenses for construction and real estate repairs",
+        "maintenance_repairs_of_machines": "Expenses for machine maintenance and repairs",
+        "monthly_commitment": "Expenses for monthly commitment",
+        "maintenance_repairs_of_rolling_equipment": "Expenses for rolling equipment maintenance and repairs",
+        "social_charges": "Expenses for social charges",
+        "rolling_equipment": "Expenses for rolling equipment",
+        "medical_care": "Expenses for medical care",
+        "generator_fuel": "Expenses for generator fuel",
+        "tax_charges": "Expenses for tax charges",
+        "miscellaneous_expenses": "Miscellaneous expenses",
+        "staff": "Staff expenses"
+      },
+      "fields": {
+        "name": "Name",
+        "description": "Detailed description",
+        "category": "Category",
+        "budget": "Budget (%)"
+      }
+    },
+    "activities": {
+      "types": {
+        "block_ice": "Block Ice",
+        "cube_ice_water_bottling": "Ice Cubes & Bottled Water"
+      },
+      "descriptions": {
+        "block_ice": "Block ice production and management.",
+        "cube_ice_water_bottling": "Ice cubes and bottled water production and management."
+      },
+      "fields": {
+        "name": "Activity name",
+        "description": "Activity description"
+      }
+    },
+    "productType": {
+      "product": "Product",
+      "packaging": "Packaging"
+    }
+  },
+  "charts": {
+    "title": "Charts",
+    "legend": {
+      "title": "Legend",
+      "sales": "Sales",
+      "costs": "Costs",
+      "inventory": "Inventory",
+      "production": "Production",
+      "total": "Total",
+      "average": "Average",
+      "trend": "Trend",
+      "distribution": "Distribution"
+    },
+    "tooltip": {
+      "value": "Value",
+      "date": "Date",
+      "quantity": "Quantity",
+      "amount": "Amount",
+      "total": "Total",
+      "average": "Average",
+      "percentage": "Percentage"
+    },
+    "types": {
+      "line": "Line",
+      "bar": "Bar",
+      "pie": "Pie",
+      "area": "Area",
+      "scatter": "Scatter",
+      "radar": "Radar"
+    },
+    "performance": {
+      "ice_blocks": "Block Ice Performance",
+      "ice_cubes": "Ice Cubes Performance",
+      "water_bottles": "Bottled Water Performance",
+      "daily": "Daily Performance",
+      "monthly": "Monthly Performance",
+      "yearly": "Yearly Performance"
+    },
+    "axes": {
+      "x": "Date",
+      "y": "Value",
+      "quantity": "Quantity",
+      "amount": "Amount",
+      "date": "Date",
+      "time": "Time",
+      "units": "Units",
+      "currency": "Currency"
+    },
+    "sales_trend": "Sales trend",
+    "cost_trend": "Cost trend",
+    "inventory_trend": "Inventory trend",
+    "production_trend": "Production trend",
+    "sales_by_product": "Sales by product",
+    "sales_by_channel": "Sales by channel",
+    "costs_by_type": "Costs by type",
+    "costs_by_activity": "Costs by activity",
+    "inventory_by_product": "Inventory by product",
+    "inventory_by_type": "Inventory by type",
+    "production_by_product": "Production by product",
+    "production_by_type": "Production by type",
+    "no_data": "No data available",
+    "amount_usd": "Amount (USD)",
+    "amount_fc": "Amount (CDF)",
+    "thresholds": {
+      "title": "Thresholds",
+      "ice_cubes": "Ice Cubes Threshold",
+      "bottles": "Bottles Threshold",
+      "warning": "Warning threshold",
+      "critical": "Critical threshold"
+    },
+    "states": {
+      "loading": "Loading chart...",
+      "error": "Error loading chart",
+      "empty": "No data to display",
+      "no_data": "No data available"
+    },
+    "indicators": {
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "stable": "Stable",
+      "target": "Target",
+      "actual": "Actual",
+      "variance": "Variance"
+    },
+    "periods": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly",
+      "custom": "Custom"
+    },
+    "cost_trends": {
+      "title": "Cost Trends",
+      "total_costs": "Total costs",
+      "avg_monthly": "Monthly average",
+      "top_expense": "Top expense",
+      "highest_month": "Highest month",
+      "monthly_trends": "Monthly trends",
+      "monthly_distribution": "Monthly distribution"
+    },
+    "sales_trends": {
+      "title": "Sales Trends",
+      "metrics": {
+        "total_sales": "Total sales",
+        "avg_monthly": "Monthly average",
+        "top_product": "Top product",
+        "highest_month": "Best month"
+      },
+      "monthly_trends": "Monthly trends",
+      "monthly_distribution": "Monthly distribution",
+      "monthly_breakdown": "Monthly breakdown",
+      "monthly_sales": "Monthly sales",
+      "total_sales_chart": "Total sales (USD)",
+      "select_year": "Select year",
+      "select_month": "Select month",
+      "table": {
+        "month": "Month",
+        "total_usd": "Total (USD)",
+        "num_sales": "Number of sales",
+        "average": "Average"
+      }
+    }
+  },
+  "metrics": {
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "total": "Total",
+    "average": "Average",
+    "growth": "Growth",
+    "percentage": "Percentage",
+    "total_sales": "Total sales",
+    "average_sale": "Average sale",
+    "best_selling": "Best selling",
+    "sales_growth": "Sales growth",
+    "total_inventory": "Total inventory",
+    "monthly_movements": "Monthly movements",
+    "stock_level": "Stock level",
+    "total_costs": "Total costs",
+    "daily_average": "Daily average",
+    "top_expense": "Top expense",
+    "total_production": "Total production",
+    "daily_production": "Daily production",
+    "monthly_production": "Monthly production",
+    "production_efficiency": "Production efficiency",
+    "per_day": "per day",
+    "vs_last_month": "vs last month",
+    "vs_last_year": "vs last year",
+    "vs_last_week": "vs last week",
+    "vs_last_day": "vs previous day"
+  },
+  "currency": {
+    "cdf": "FC",
+    "usd": "USD",
+    "amount_fc": "Amount (FC)",
+    "amount_usd": "Amount (USD)",
+    "exchange_rate": "Exchange rate"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidNumber": "Please enter a valid number",
+    "invalidDate": "Please enter a valid date",
+    "positiveNumber": "Number must be positive",
+    "maxExceeded": "Maximum value exceeded",
+    "insufficientStock": "Insufficient stock"
+  },
+  "summaries": {
+    "sales_summary": "Sales summary",
+    "cost_summary": "Cost summary",
+    "inventory_summary": "Inventory summary",
+    "production_summary": "Production summary",
+    "current_period": "Current period",
+    "previous_period": "Previous period",
+    "variation": "Variation",
+    "total": "Total",
+    "subtotal": "Subtotal"
+  },
+  "table": {
+    "headers": {
+      "date": "Date",
+      "product": "Product",
+      "activity": "Activity",
+      "expense": "Expense",
+      "channel": "Channel",
+      "quantity": "Quantity",
+      "amount_fc": "Amount (FC)",
+      "amount_usd": "Amount (USD)",
+      "exchange_rate": "Exchange rate",
+      "actions": "Actions"
+    },
+    "empty": "No data available",
+    "loading": "Loading data...",
+    "error": "Error loading data",
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "entries": "entries"
+  },
+  "locale": "en-US",
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December",
+    "january_short": "Jan",
+    "february_short": "Feb",
+    "march_short": "Mar",
+    "april_short": "Apr",
+    "may_short": "May",
+    "june_short": "Jun",
+    "july_short": "Jul",
+    "august_short": "Aug",
+    "september_short": "Sep",
+    "october_short": "Oct",
+    "november_short": "Nov",
+    "december_short": "Dec"
+  },
+  "reports": {
+    "title": "Reports",
+    "viewReport": "View report",
+    "salesAnalysis": {
+      "title": "Sales Analysis",
+      "description": "Detailed analysis of sales performance"
+    },
+    "costAnalysis": {
+      "title": "Cost Analysis",
+      "description": "Cost and expense breakdown"
+    },
+    "productionReports": {
+      "title": "Production Reports",
+      "description": "Production and efficiency analysis"
+    },
+    "profitabilityAnalysis": {
+      "title": "Profitability Analysis",
+      "description": "Comprehensive profit and margin analysis"
+    },
+    "salaryScale": {
+      "title": "Salary Scale",
+      "description": "Employee salary calculation and bonus distribution",
+      "pageTitle": "Salary Scale",
+      "pageSubtitle": "Salary distribution calculation",
+      "totalSalaries": "Total Salaries",
+      "monthlyRevenue": "Monthly Revenue",
+      "monthlyCosts": "Monthly Costs",
+      "monthlyProfit": "Monthly Profit",
+      "financialSummary": "Financial Summary",
+      "salaryBreakdown": "Salary Breakdown",
+      "position": "Position",
+      "baseSalary": "Base Salary",
+      "salesBonus": "Sales Bonus",
+      "coordinationBonus": "Coordination Bonus",
+      "totalSalary": "Total Salary",
+      "selectMonth": "Select Month",
+      "selectYear": "Select Year",
+      "noDataForPeriod": "No data available for selected period",
+      "highTier": "High tier (Superviseur, Responsable, Technicien)",
+      "lowTier": "Low tier (Conducteur, Gardien, Aide)",
+      "bonusCalculation": "Bonus calculation based on monthly profit",
+      "positions": {
+        "superviseurP": "Superviseur P.",
+        "superviseurA1": "Superviseur A1",
+        "responsableT": "Responsable T.",
+        "responsableC": "Responsable C.",
+        "superviseurA2": "Superviseur A2",
+        "technicien": "Technicien",
+        "conducteur": "Conducteur",
+        "gardiens": "Gardiens",
+        "aide": "Aide"
+      }
+    },
+    "exchangeRates": {
+      "title": "Exchange Rates",
+      "description": "Currency exchange rates",
+      "exchangeRate": "Exchange rate",
+      "addNew": "Add new exchange rate",
+      "currentRate": "Current exchange rate",
+      "note": "Note",
+      "date": "Date",
+      "year": "Year",
+      "month": "Month",
+      "rate": "Rate",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "add": "Add"
+    }
+  },
+  "dashboard": {
+    "activity": {
+      "date": "Date",
+      "amount": "Amount",
+      "type": "Type",
+      "name": "Name",
+      "actions": "Actions"
+    },
+    "welcome": "Welcome to Dashboard Concept",
+    "subtitle": "Your all-in-one solution to manage and analyze your business operations",
+    "activity_types": "Activity Types",
+    "recent_activity": "Recent Activity",
+    "top_products": "Top 3 Best-Selling Products",
+    "top_expenses": "Top 3 Expenses",
+    "no_data": "No data available",
+    "sales_trend": "Sales Trend",
+    "costs_trend": "Cost Trend",
+    "kpi": {
+      "production": "Production",
+      "inventory": "Inventory",
+      "costs": "Costs",
+      "sales": "Sales",
+      "title": "Key Performance Indicators",
+      "stock_overview": "Stock Overview"
+    },
+    "summary": {
+      "title": "Summary",
+      "total_costs": "Total costs",
+      "total_sales": "Total sales",
+      "total_profit": "Total profit",
+      "daily_sales": "Daily sales",
+      "daily_costs": "Daily costs",
+      "daily_profit": "Daily profit",
+      "productivity": "Productivity",
+      "growth": "Growth"
+    },
+    "action": {
+      "add_product": "Add product",
+      "add_expense_type": "Add expense type",
+      "add_activity_type": "Add activity type"
+    }
+  },
+  "activityTypes": {
+    "block_ice": "Block Ice",
+    "cube_ice_water_bottling": "Ice Cubes & Bottled Water",
+    "FAFvIo1DPZrqZBVyAlju": "Block Ice"
+  },
+  "channels": {
+    "onsite": "On Site",
+    "truckdelivery": "Truck Delivery",
+    "motorcycledelivery": "Motorcycle Delivery"
+  },
+  "cost_trends": {
+    "title": "Cost Trends",
+    "total_costs": "Total costs",
+    "avg_monthly": "Monthly average",
+    "top_expense": "Top expense",
+    "highest_month": "Highest month",
+    "monthly_trends": "Monthly trends",
+    "monthly_distribution": "Monthly distribution"
+  },
+  "exchangeRates": {
+    "title": "Exchange Rates",
+    "description": "Currency exchange rates",
+    "exchangeRate": "Exchange rate",
+    "addNew": "Add new exchange rate",
+    "currentRate": "Current exchange rate",
+    "notes": "Notes",
+    "history": "History",
+    "date": "Date",
+    "year": "Year",
+    "month": "Month",
+    "rate": "Rate",
+    "noRates": "No exchange rates found",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add"
+  },
+  "notifications": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information",
+    "title": "Notifications",
+    "noNotifications": "No notifications"
+  },
+  "profile": {
+    "title": "User Profile",
+    "subtitle": "Manage your account information and preferences",
+    "personalInfo": "Personal Information",
+    "displayName": "Display Name",
+    "email": "Email Address",
+    "accountCreated": "Account Created",
+    "lastSignIn": "Last Sign In",
+    "edit": "Edit",
+    "quickActions": "Quick Actions",
+    "accountInfo": "Account Information",
+    "accountType": "Account Type",
+    "verified": "Email Verified",
+    "uid": "User ID"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "signInWithGoogle": "Sign In with Google",
+    "signInWithEmail": "Sign In with Email",
+    "logout": "Logout"
+  }
+}

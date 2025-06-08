@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Every page and component must handle:
+
+isLoading (e.g., spinner or skeleton)
+
+error (fallback UI or message)
+
+
+empty data (no records found)

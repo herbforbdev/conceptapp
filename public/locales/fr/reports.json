@@ -1,0 +1,20 @@
+{
+  "title": "Rapports",
+  "viewReport": "Voir le rapport",
+  "salesAnalysis": {
+    "title": "Analyse des ventes",
+    "description": "Analysez les tendances des ventes et les performances des produits"
+  },
+  "costAnalysis": {
+    "title": "Analyse des coûts",
+    "description": "Analysez les tendances des coûts et les dépenses par catégorie"
+  },
+  "profitabilityAnalysis": {
+    "title": "Analyse de rentabilité",
+    "description": "Analysez la rentabilité globale et les marges bénéficiaires"
+  },
+  "exchangeRates": {
+    "title": "Taux de change",
+    "description": "Gérez et suivez les taux de change mensuels"
+  }
+} 

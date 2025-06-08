@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "hooks/**/*", "app/**/*", ".next/types/**/*.ts", "deleteProduction.js", "hooks"],
   "exclude": ["node_modules"]
 }

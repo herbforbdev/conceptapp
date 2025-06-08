@@ -1,0 +1,284 @@
+## **Firestore Product Collection**
+
+### 🧊 **Product Type: Block Ice**
+
+#### Block Ice Of 5 Kg
+
+- **id:** `jTaX7TyHTnX5t6hvMFPH`
+- **activitytypeid:** `FAFvIo1DPZrqzBVyAIju`
+- **productid:** Block Ice 5Kg
+- **producttype:** Block Ice
+- **description:** Block Ice Of 5 Kg
+
+#### Block Ice Of 30 Kg
+
+- **id:** `4iKFN3iDQGKFQ7Iz4Nhf`
+- **activitytypeid:** `FAFvIo1DPZrqzBVyAIju`
+- **productid:** Block Ice 30 Kg
+- **producttype:** Block Ice
+- **description:** Block Ice Of 30 Kg
+
+#### Block Ice Of 8Kg
+
+- **id:** `0KBMK4ja1pRVcbjYzE3a`
+- **activitytypeid:** `FAFvIo1DPZrqzBVyAIju`
+- **productid:** Block Ice 8Kg
+- **producttype:** Block Ice
+- **description:** Block Ice Of 8Kg
+
+---
+
+### 🧊 **Product Type: Cube Ice**
+
+#### Cubes Ice Of 2Kg
+
+- **id:** `nIJPxUuot7LL5rpFpddr`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Cube Ice 2Kg
+- **producttype:** Cube Ice
+- **description:** Cubes Ice Of 2Kg
+
+#### Cube Ice Of 1Kg
+
+- **id:** `U2dqOiCz4NEnuhNwq2Wz`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Cube Ice 1Kg
+- **producttype:** Cube Ice
+- **description:** Cube Ice Of 1Kg
+
+#### Cube Ice Of 5Kg
+
+- **id:** `7sd9Qe9LtPUIpfYtdIdd`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Cube Ice 5Kg
+- **producttype:** Cube Ice
+- **description:** Cube Ice Of 5Kg
+
+---
+
+### 📦 **Product Type: Packaging For Cube Ice**
+
+#### Packaging For Ice Cubes Of 1Kg
+
+- **id:** `z8Ufh2syUQdpqb1VCUKA`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Package Cube Ice 1Kg
+- **producttype:** Packaging For Cube Ice
+- **description:** Packaging For Ice Cubes Of 1Kg
+
+#### Packaging For Ice Cubes Of 5Kg
+
+- **id:** `JUcRQAohcsUOA9TQApId`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Package Cube Ice Of 5Kg
+- **producttype:** Packaging For Cube Ice
+- **description:** Packaging For Ice Cubes Of 5Kg
+
+---
+
+### 📦 **Product Type: Packaging for Ice Cube**
+
+#### Packaging For Ice Cubes Of 2Kg
+
+- **id:** `2Nj46XeO84i1gzvFHZJB`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Package Cube Ice 2Kg
+- **producttype:** Packaging for Ice Cube
+- **description:** Packaging For Ice Cubes Of 2Kg
+
+---
+
+### 💧 **Product Type: Water Bottling**
+
+#### Bottled Water Of 750ml
+
+- **id:** `xdfqtx4mC7GSAQ2MXQlI`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Bottled Water 750ml
+- **producttype:** Water Bottling
+- **description:** Bottled Water Of 750ml
+
+#### Bottled Water Of 1.5L
+
+- **id:** `ldDsKPMaX3PHPETqt3qa`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Bottled Water 1.5L
+- **producttype:** Water Bottling
+- **description:** Bottled Water Of 1.5L
+
+#### Bottled Water Of 600ml
+
+- **id:** `KyS9Psc9BwGPbvSDLwfu`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Bottled Water 600ml
+- **producttype:** Water Bottling
+- **description:** Bottled Water Of 600ml
+
+#### Bottled Water Of 5L
+
+- **id:** `IbFQQV5c25nxGDsl9Atl`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Bottled Water 5L
+- **producttype:** Water Bottling
+- **description:** Bottled Water Of 5L
+
+---
+
+### 📦 **Product Type: Packaging For Water Bottling**
+
+#### Packaging for Bottle of Water 750ml
+
+- **id:** `yin59rKy2cFQpU3DHOka`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Package Bottled Water 750ml
+- **producttype:** Packaging For Water Bottling
+- **description:** Packaging for Bottle of Water 750ml
+
+#### Packaging For Bottle Of Water 5L
+
+- **id:** `WoeK4Q1d5aVfRP6L46C1`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Package Bottled Water 5L
+- **producttype:** Packaging For Water Bottling
+- **description:** Packaging For Bottle Of Water 5L
+
+#### Packaging for Bottle of Water 600ml
+
+- **id:** `KB6q4tpTrrhHrUzjKXOl`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Package Bottled Water 600ml
+- **producttype:** Packaging For Water Bottling
+- **description:** Packaging for Bottle of Water 600ml
+
+#### Packaging For Bottle Of Water 1,5L
+
+- **id:** `CjweWAoblpvcu3a7Ry3K`
+- **activitytypeid:** `imnrDyZiadr4orZarvIY`
+- **productid:** Package Bottled Water 1,5L
+- **producttype:** Packaging For Water Bottling
+- **description:** Packaging For Bottle Of Water 1,5L
+
+---
+
+---
+
+### **Firestore Collections – Expense Types**
+
+#### 🏗️ **Construction & Real Estate Repairs**
+
+- **ID:** `youlqtnjC7i6QcAYr9Xt`
+- **Name:** Construction & Real Estate Repairs
+- **Description:** Expenses for Construction & Real Estate Repairs
+- **Budget Code:** 2
+
+---
+
+#### 🛠️ **Maintenance & Repairs of Machines**
+
+- **ID:** `xsNBbGxClX3PrQ3MCVNp`
+- **Name:** Maintenance & Repairs of Machines
+- **Description:** Expenses for Maintenance & Repairs of Machines
+- **Budget Code:** 1
+
+---
+
+#### 📅 **Monthly Commitment**
+
+- **ID:** `rJmQiBwOFlBSMV2xqVWU`
+- **Name:** Monthly Commitment
+- **Description:** Expenses for Monthly Commitment
+- **Budget Code:** 5
+
+---
+
+#### 🚛 **Maintenance & Repairs of Rolling Equipment**
+
+- **ID:** `imVuQbhtYp1jQn2bygzu`
+- **Name:** Maintenance & Repairs of Rolling Equipment
+- **Description:** Expenses for Maintenance & Repairs of Rolling Equipment
+- **Budget Code:** 2
+
+---
+
+#### 👥 **Social Charges**
+
+- **ID:** `WBWByNEv2zFyX5Yth6OB`
+- **Name:** Social Charges
+- **Description:** Expenses for Social Charges
+- **Budget Code:** 4
+
+---
+
+#### 🛻 **Rolling Equipment**
+
+- **ID:** `T9xCRoYcemSHcQq2wu8o`
+- **Name:** Rolling Equipment
+- **Description:** Fuel Expenses for Rolling Equipment
+- **Budget Code:** 3
+
+---
+
+#### 🏥 **Medical Care**
+
+- **ID:** `Sbc3x4M66D1f5uc6qfLm`
+- **Name:** Medical Care
+- **Description:** Expenses for Medical Care
+- **Budget Code:** 2
+
+---
+
+#### 🧾 **Miscellaneous Expenses**
+
+- **ID:** `Q13wfciYwm1ExhDF212r`
+- **Name:** Miscellaneous Expenses
+- **Description:** Expenses for Miscellaneous Expenses
+- **Budget Code:** 8
+
+---
+
+#### 👨‍💼 **Staff**
+
+- **ID:** `Kz0wYCTSR6vrdcSI1P2x`
+- **Name:** Staff
+- **Description:** Expenses for the Staff
+- **Budget Code:** 27
+
+---
+
+#### 🧾 **Tax Charges**
+
+- **ID:** `K94oRU4tnZ5H29EYT0p2`
+- **Name:** Tax Charges
+- **Description:** Expenses for Tax Charges
+- **Budget Code:** 5
+
+---
+
+#### ⚡ **Generator Fuel**
+
+- **ID:** `GuB4Y1lggUzAbXiuNipL`
+- **Name:** Generator Fuel
+- **Description:** Expenses for Generator Fuel
+- **Budget Code:** 10
+
+---
+
+---
+
+### **Firestore Collections – Activity Types**
+
+#### 🧊 **Cube Ice & Water Bottling**
+
+- **ID:** `imnrDyZiadr4orZarvIY`
+- **Name:** Cube Ice & Water Bottling
+- **Description:** Cube and Bottles Activity
+- **Created At:** 10 February 2025, 00:00 (UTC+1)
+- **Last Modified:** 14 February 2025, 00:00 (UTC+1)
+
+#### 🧱 **Block Ice**
+
+- **ID:** `FAFvIo1DPZrqzBVyAIju`
+- **Name:** Block Ice
+- **Description:** Block Ice Activity
+- **Created At:** 12 February 2025, 00:00 (UTC+1)
+- **Last Modified:** 10 February 2025, 00:00 (UTC+1)

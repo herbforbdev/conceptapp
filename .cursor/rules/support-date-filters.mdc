@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Support for Date Filters Everywhere
+Any data-dependent component must accept:
+
+startDate, endDate, or range
+
+
+Avoid hardcoding any fixed dates — always dynamic.

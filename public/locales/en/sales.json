@@ -1,0 +1,7 @@
+{
+  "activityTypes": {
+    "block_ice": "Block Ice",
+    "cube_ice_and_water_bottling": "Cube Ice & Water Bottling"
+    // Add more activity types here as needed, using normalized names as keys
+  }
+} 

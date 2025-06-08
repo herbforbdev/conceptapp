@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Avoid computing in the render function or component body.
+
+Use useMemo() or move heavy calculations into utilities.
+
+
+Run Firestore aggregations in background or use cloud functions if too large.

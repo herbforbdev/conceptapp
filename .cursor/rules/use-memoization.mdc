@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Use React.memo for display-only components.
+
+
+Use useMemo/useCallback to avoid re-renders when possible.

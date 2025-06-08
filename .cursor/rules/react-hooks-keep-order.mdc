@@ -1,0 +1,43 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+rule:
+  id: react-hooks-keep-order
+  description: |
+    Enforce that all React Hooks (useState, useEffect, useContext, useMemo, useCallback, etc.) 
+    are only ever called unconditionally at the top level of a function component, 
+    in a fixed sequence on every render.
+  when_generating:
+    file_pattern: "*.tsx,*.jsx"
+    inside: "function_component"
+  checks:
+    - each_hook_at_top_level:
+        type: ast
+        match: |
+          CallExpression[
+            callee.name =~ /^use[A-Z]/
+          ]:not(:root > FunctionDeclaration.body > BlockStatement > ExpressionStatement:nth-child(n+1))
+        error: |
+          “Hooks must be called at the top level of the component function, 
+          not inside loops, conditionals, or nested functions.”
+    - hooks_order_immutable:
+        type: sequence
+        match: |
+          all CallExpression[coupled_hooks]
+        error: |
+          “The order of Hooks calls must remain the same on every render. 
+          Avoid inserting, removing or reordering Hooks between renders.”
+  fix_suggestion: |
+    1. **Lift** all hook calls to the very beginning of your component (before any `if`, `for`, early `return`, etc.).
+    2. **Never** wrap Hooks in conditionals:
+       ```diff
+       - if (user) {
+       -   const [data, setData] = useState(null);
+       - }
+       + const [data, setData] = useState(null);
+       + if (!user) return <Login />;
+       ```
+    3. **Keep** the same number and order of Hooks each time the component runs.
+

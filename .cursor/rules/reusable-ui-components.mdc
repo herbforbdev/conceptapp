@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+use one topcard chartbuilder and summarytable component
+
+customize with props like data title xkey ykey icon
+
+
+apply tailwind and shadcn styles consistently

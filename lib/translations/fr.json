@@ -1,0 +1,1292 @@
+{
+  "common": {
+    "all": "Tout",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "refresh": "Actualiser",
+    "actions": "Actions",
+    "date": "Date",
+    "status": "Statut",
+    "total": "Total",
+    "submit": "Soumettre",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "activity": "Activité",
+    "product": "Produit",
+    "expense": "Dépense",
+    "channel": "Canal",
+    "quantity": "Quantité",
+    "type": "Type",
+    "description": "Description",
+    "budget": "Budget",
+    "category": "Catégorie",
+    "select": "Sélectionner",
+    "month": "Mois",
+    "year": "Année",
+    "week": "Semaine",
+    "day": "Jour",
+    "today": "Aujourd'hui",
+    "all_months": "Tous les mois",
+    "total_usd": "Total (USD)",
+    "num_sales": "Nombre de ventes",
+    "num_expenses": "Nombre de dépenses",
+    "average": "Moyenne",
+    "unknown": "Inconnu",
+    "notAvailable": "Non disponible",
+    "accessDenied": "Accès Refusé",
+    "adminRequired": "Cette section nécessite des privilèges d'administrateur.",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "loadingData": "Chargement des données...",
+    "loadingFormData": "Chargement des données du formulaire..."
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "production": "Production",
+    "inventory": "Inventaire",
+    "sales": "Ventes",
+    "costs": "Coûts",
+    "masterData": "Données de base",
+    "reports": "Rapports",
+    "settings": "Paramètres",
+    "profitability": "Rentabilité"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "selectLanguage": "Sélectionner la langue",
+    "languageDescription": "Choisissez votre langue préférée pour l'interface utilisateur",
+    "theme": "Thème",
+    "selectTheme": "Sélectionner le thème",
+    "themeDescription": "Choisissez entre le mode clair et sombre",
+    "notifications": "Notifications",
+    "notificationsDescription": "Gérer vos préférences de notification",
+    "account": "Compte",
+    "accountDescription": "Gérer les paramètres de votre compte",
+    "security": "Sécurité",
+    "securityDescription": "Gérer les paramètres de sécurité",
+    "preferences": "Préférences",
+    "preferencesDescription": "Personnaliser votre expérience",
+    "dataManagement": "Gestion des données",
+    "dataManagementDescription": "Gérer vos données et exportations",
+    "help": "Aide",
+    "helpDescription": "Obtenir de l'aide et du support",
+    "about": "À propos",
+    "aboutDescription": "Informations sur l'application",
+    "Users & Roles": "Utilisateurs et rôles",
+    "Manage user access and permissions": "Gérer l'accès des utilisateurs et les autorisations",
+    "Notifications": "Notifications",
+    "Configure system notifications and alerts": "Configurer les notifications et alertes système",
+    "Profile Settings": "Paramètres du profil",
+    "Update your personal information and preferences": "Mettre à jour vos informations personnelles et préférences",
+    "App Settings": "Paramètres de l'application",
+    "Configure general application settings": "Configurer les paramètres généraux de l'application",
+    "Configure": "Configurer",
+    "General Settings": "Paramètres généraux",
+    "Dark Mode": "Mode sombre",
+    "Toggle dark mode appearance": "Activer/désactiver le mode sombre",
+    "Email Notifications": "Notifications par e-mail",
+    "Receive email notifications for important updates": "Recevoir des notifications par e-mail pour les mises à jour importantes",
+    "Choose your preferred language for the dashboard.": "Choisissez votre langue préférée pour l'interface utilisateur.",
+    "Settings": "Paramètres",
+    "Users": "Utilisateurs",
+    "User": "Utilisateur",
+    "Email": "E-mail",
+    "Role": "Rôle",
+    "Status": "Statut",
+    "Last Active": "Dernière activité",
+    "Actions": "Actions",
+    "Loading": "Chargement...",
+    "Active": "Actif",
+    "Inactive": "Inactif",
+    "Never": "Jamais",
+    "Edit User": "Modifier l'utilisateur",
+    "Invite New User": "Inviter un nouvel utilisateur",
+    "Invite User": "Inviter un utilisateur",
+    "Update User": "Mettre à jour l'utilisateur",
+    "Send Invitation": "Envoyer l'invitation",
+    "Cancel": "Annuler",
+    "Administrator": "Administrateur",
+    "Manager": "Gestionnaire",
+    "Standard User": "Utilisateur standard",
+    "Profile updated successfully!": "Profil mis à jour avec succès !",
+    "Profile Information": "Informations du profil",
+    "Full Name": "Nom complet",
+    "Phone Number": "Numéro de téléphone",
+    "Company": "Entreprise",
+    "Bio": "Bio",
+    "Save Changes": "Enregistrer les modifications",
+    "Edit Profile": "Modifier le profil",
+    "Upload Photo": "Télécharger la photo",
+    "Security": "Sécurité",
+    "Change Password": "Changer le mot de passe",
+    "Two-Factor Auth": "Authentification à deux facteurs",
+    "Connected Accounts": "Comptes connectés",
+    "Google": "Google",
+    "Microsoft": "Microsoft",
+    "Connect": "Connecter",
+    "Notification Settings": "Paramètres de notification",
+    "Email Channel": "Canal e-mail",
+    "Mobile Push": "Notifications mobiles",
+    "Desktop Push": "Notifications de bureau",
+    "Configure how you receive email notifications": "Configurer la réception des notifications par e-mail",
+    "Manage your push notification preferences": "Gérer vos préférences de notifications push",
+    "Daily Digest": "Résumé quotidien",
+    "Receive a daily summary of all activities": "Recevoir un résumé quotidien de toutes les activités",
+    "Weekly Report": "Rapport hebdomadaire",
+    "Get weekly performance and analytics reports": "Recevoir des rapports hebdomadaires de performance et d'analyse",
+    "Product Updates": "Mises à jour des produits",
+    "Be notified about product inventory changes": "Être notifié des changements d'inventaire des produits",
+    "Security Alerts": "Alertes de sécurité",
+    "Receive notifications about security events": "Recevoir des notifications sur les événements de sécurité",
+    "New Orders": "Nouvelles commandes",
+    "Get notified when new orders are placed": "Être notifié lors de nouvelles commandes",
+    "Stock Alerts": "Alertes de stock",
+    "Receive alerts for low stock items": "Recevoir des alertes pour les articles en stock faible",
+    "System Updates": "Mises à jour du système",
+    "Be notified about system maintenance and updates": "Être notifié des maintenances et mises à jour du système",
+    "Mentions": "Mentions",
+    "Notifications when you're mentioned in comments": "Notifications lorsque vous êtes mentionné dans les commentaires",
+    "Quiet Hours": "Heures silencieuses",
+    "Set a time period when you don't want to receive notifications": "Définir une période pendant laquelle vous ne souhaitez pas recevoir de notifications",
+    "Start Time": "Heure de début",
+    "End Time": "Heure de fin",
+    "Back": "Retour"
+  },
+  "filters": {
+    "allActivities": "Toutes les activités",
+    "allProducts": "Tous les produits",
+    "allTypes": "Tous les types",
+    "allChannels": "Tous les canaux",
+    "selectDate": "Sélectionner une date",
+    "selectPeriod": "Sélectionner une période",
+    "customRange": "Période personnalisée",
+    "from": "Du",
+    "to": "Au",
+    "allMonths": "Tous les mois",
+    "allExpenseTypes": "Tous les types de dépenses",
+    "allActivityTypes": "Tous les types d'activité"
+  },
+  "timePeriods": {
+    "all": "Toute la période",
+    "today": "Aujourd'hui",
+    "month": "Mois",
+    "thisWeek": "Cette semaine",
+    "thisMonth": "Ce mois",
+    "thisYear": "Cette année",
+    "lastWeek": "Semaine dernière",
+    "lastMonth": "Mois dernier",
+    "lastYear": "Année dernière",
+    "custom": "Personnalisé"
+  },
+  "products": {
+    "types": {
+      "blockIce": "Bloc de Glace",
+      "BlockIce": "Bloc de Glace",
+      "cubeIce": "Glaçons",
+      "Cube Ice": "Glaçons",
+      "CubeIce": "Glaçons",
+      "waterBottling": "Eau en bouteille",
+      "packaging": "Emballage",
+      "packagingForIceCube": "Emballage pour Glaçons",
+      "PackagingForCubeIce": "Emballage pour Glaçons",
+      "packagingForWaterBottling": "Emballage pour Eau en bouteille",
+      "PackagingForWaterBottling": "Emballage pour Eau en bouteille",
+      "Water Bottling": "Eau en bouteille",
+      "WaterBottling": "Eau en bouteille",
+      "WaterCans": "Bidon D'Eau",
+      "WaterCansBottling": "Bouteilles d'eau",
+      "Packaging": "Emballage",
+      "PackagingForIceCube": "Emballage pour Glaçons",
+      "Packaging For Water Bottling": "Emballage pour Eau en bouteille",
+      "waterCans": "Bidon D'Eau",
+      "PackagingOnly": "Emballages Uniquement"
+    },
+    "categories": {
+      "mainProducts": "Produits principaux",
+      "packagingMaterials": "Matériaux d'emballage",
+      "filterByType": "Filtrer par type de produit",
+      "multiSelectHint": "Sélectionner les types de produits"
+    },
+    "items": {
+      "blockIce": {
+        "5kg": "Bloc de Glace 5Kg",
+        "8kg": "Bloc de Glace 8Kg",
+        "30kg": "Bloc de Glace 30Kg"
+      },
+      "cubeIce": {
+        "1kg": "Glaçons 1Kg",
+        "2kg": "Glaçons 2Kg",
+        "5kg": "Glaçons 5Kg"
+      },
+      "waterBottling": {
+        "600ml": "Eau en bouteille 600ml",
+        "750ml": "Eau en bouteille 750ml",
+        "1_5L": "Eau en bouteille 1,5L",
+        "1_5l": "Eau en bouteille 1,5L",
+        "1.5L": "Eau en bouteille 1,5L",
+        "1,5L": "Eau en bouteille 1,5L",
+        "1,5l": "Eau en bouteille 1,5L",
+        "1.5l": "Eau en bouteille 1,5L",
+        "5L": "Eau en bouteille 5L",
+        "5l": "Eau en bouteille 5L"
+      },
+      "waterCans": {
+        "1L": "Bidon d'eau 1L",
+        "1,5L": "Bidon d'eau 1,5L",
+        "2L": "Bidon d'eau 2L",
+        "5L": "Bidon d'eau 5L",
+        "10L": "Bidon d'eau 10L"
+      },
+      "packaging": {
+        "cubeIce": {
+          "1kg": "Emballage pour Glaçons 1Kg",
+          "2kg": "Emballage pour Glaçons 2Kg",
+          "5kg": "Emballage pour Glaçons 5Kg"
+        },
+        "waterBottling": {
+          "600ml": "Emballage pour Eau en bouteille 600ml",
+          "750ml": "Emballage pour Eau en bouteille 750ml",
+          "1_5L": "Emballage pour Eau en bouteille 1,5L",
+          "1_5l": "Emballage pour Eau en bouteille 1,5L",
+          "1.5L": "Emballage pour Eau en bouteille 1,5L",
+          "1,5L": "Emballage pour Eau en bouteille 1,5L",
+          "5L": "Emballage pour Eau en bouteille 5L",
+          "5l": "Emballage pour Eau en bouteille 5L"
+        },
+        "waterCans": {
+          "1L": "Emballage pour Bidon d'eau 1L",
+          "1,5L": "Emballage pour Bidon d'eau 1,5L",
+          "2L": "Emballage pour Bidon d'eau 2L",
+          "5L": "Emballage pour Bidon d'eau 5L",
+          "10L": "Emballage pour Bidon d'eau 10L"
+        }
+      }
+    },
+    "descriptions": {
+      "blockIce": {
+        "5kg": "Bloc de Glace 5Kg - Bloc de glace de 5 Kg.",
+        "8kg": "Bloc de Glace 8Kg - Bloc de glace de 8 Kg.",
+        "30kg": "Bloc de Glace 30Kg - Bloc de glace de 30 Kg."
+      },
+      "cubeIce": {
+        "1kg": "Glaçons 1Kg - Sac de glaçons de 1 Kg.",
+        "2kg": "Glaçons 2Kg - Sac de glaçons de 2 Kg.",
+        "5kg": "Glaçons 5Kg - Sac de glaçons de 5 Kg."
+      },
+      "waterBottling": {
+        "600ml": "Eau en bouteille 600ml - Bouteille d'eau de 600ml",
+        "750ml": "Eau en bouteille 750ml - Bouteille d'eau de 750ml",
+        "1_5L": "Eau en bouteille 1,5L - Bouteille d'eau de 1,5L",
+        "1_5l": "Eau en bouteille 1,5L - Bouteille d'eau de 1,5L",
+        "1.5L": "Eau en bouteille 1,5L - Bouteille d'eau de 1,5L",
+        "1,5L": "Eau en bouteille 1,5L - Bouteille d'eau de 1,5L",
+        "5L": "Eau en bouteille 5L - Bouteille d'eau de 5L",
+        "5l": "Eau en bouteille 5L - Bouteille d'eau de 5L"
+      },
+      "waterCans": {
+        "1L": "Bidon d'eau 1L - Bidon d'eau de 1L.",
+        "1,5L": "Bidon d'eau 1,5L - Bidon d'eau de 1,5L.",
+        "2L": "Bidon d'eau 2L - Bidon d'eau de 2L.",
+        "5L": "Bidon d'eau 5L - Bidon d'eau de 5L.",
+        "5l": "Bidon d'eau 5L - Bidon d'eau de 5L.",
+        "5LSLBS": "Bidon d'eau 5L Sans Label - Bidon d'eau de 5L.",
+        "10L": "Bidon d'eau 10L - Bidon d'eau de 10L.",
+        "10LSLBS": "Bidon d'eau 10L Sans Label - Bidon d'eau de 10L."
+      },
+      "packaging": {
+        "cubeIce": {
+          "1kg": "Emballage pour Glaçons 1Kg",
+          "2kg": "Emballage pour Glaçons 2Kg",
+          "5kg": "Emballage pour Glaçons 5Kg"
+        },
+        "waterBottling": {
+          "600ml": "Emballage pour Eau en bouteille 600ml - Emballage pour bouteille de 600ml.",
+          "750ml": "Emballage pour Eau en bouteille 750ml - Emballage pour bouteille de 750ml.",
+          "1_5L": "Emballage pour Eau en bouteille 1,5L - Emballage pour bouteille de 1,5L.",
+          "1_5l": "Emballage pour Eau en bouteille 1,5L - Emballage pour bouteille de 1,5L.",
+          "1.5L": "Emballage pour Eau en bouteille 1,5L - Emballage pour bouteille de 1,5L.",
+          "1,5L": "Emballage pour Eau en bouteille 1,5L - Emballage pour bouteille de 1,5L.",
+          "5L": "Emballage pour Eau en bouteille 5L - Emballage pour bouteille de 5L.",
+          "5l": "Emballage pour Eau en bouteille 5L - Emballage pour bouteille de 5L."
+        },
+        "waterCans": {
+          "1L": "Emballage pour Bidon d'eau 1L - Emballage pour bidon de 1L.",
+          "1,5L": "Emballage pour Bidon d'eau 1,5L - Emballage pour bidon de 1,5L.",
+          "2L": "Emballage pour Bidon d'eau 2L - Emballage pour bidon de 2L.",
+          "5L": "Emballage pour Bidon d'eau 5L - Emballage pour bidon de 5L.",
+          "10L": "Emballage pour Bidon d'eau 10L - Emballage pour bidon de 10L."
+        }
+      }
+    },
+    "activities": {
+      "block_ice": "Blocs de glace",
+      "cube_ice_and_water_bottling": "Glaçons et Eau en bouteille",
+      "cube_ice_&_water_bottling": "Glaçons et Eau en bouteille",
+      "cube_ice___water_bottling": "Glaçons et Eau en bouteille",
+      "glace_en_bloc": "Blocs de glace",
+      "glaçons_et_eau_en_bouteille": "Glaçons et Eau en bouteille"
+    },
+    "fields": {
+      "name": "Nom",
+      "type": "Type",
+      "activityType": "Type d'activité",
+      "description": "Description"
+    }
+  },
+    
+  "inventory": {
+    "title": "Inventaire",
+    "dashboard": {
+      "top_products": "Top 3 produits les plus vendus",
+      "top_expenses": "Top 3 des dépenses",
+      "no_data": "Aucune donnée disponible",
+      "summary": {
+        "title": "Résumé",
+        "productivity": "Productivité",
+        "growth": "Croissance"
+      },
+      "kpi": {
+        "title": "Indicateurs clés de performance",
+        "production": "Production",
+        "inventory": "Inventaire",
+        "costs": "Coûts",
+        "sales": "Ventes"
+      },
+      "sales_trend": "Tendance des ventes",
+      "costs_trend": "Tendance des coûts"
+    },
+    "fields": {
+      "product": "Produit",
+      "year": "Année",
+      "month": "Mois",
+      "quantity": "Quantité",
+      "unitPrice": "Prix unitaire",
+      "totalPrice": "Prix total",
+      "date": "Date"
+    },
+    "records": {
+      "title": "Registre d'inventaire",
+      "loading": "Chargement des enregistrements d'inventaire...",
+      "noRecords": "Aucun enregistrement d'inventaire trouvé correspondant aux filtres sélectionnés.",
+      "showing": "Affichage de",
+      "to": "à",
+      "of": "sur",
+      "entries": "entrées"
+    },
+    "actions": {
+      "refresh": "Actualiser",
+      "add": "Ajouter",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "previous": "Précédent",
+      "next": "Suivant"
+    },
+    "filters": {
+      "activityType": "Type d'activité",
+      "product": "Produit",
+      "movementType": "Type de mouvement",
+      "allMonths": "Tous les mois",
+      "allYears": "Toutes les années",
+      "allActivityTypes": "Tous les types d'activité",
+      "allProducts": "Tous les produits",
+      "allMovementTypes": "Tous les types de mouvement"
+    },
+    "table": {
+      "date": "Date",
+      "product": "Produit",
+      "movementType": "Type de mouvement",
+      "initialQuantity": "Qté initiale",
+      "quantityMoved": "Qté déplacée",
+      "remaining": "Restant",
+      "actions": "Actions",
+      "source": "Source",
+      "stockIn": "Entrée en stock",
+      "stockOut": "Sortie de stock",
+      "adjustment": "Ajustement",
+      "activityType": "Type d'activité"
+    },
+    "add": {
+      "title": "Ajouter un mouvement d'inventaire",
+      "selectProduct": "Sélectionner un produit",
+      "selectType": "Sélectionner un type",
+      "addRow": "Ajouter une ligne",
+      "submit": "Soumettre",
+      "entry": "entrée",
+      "entries": "entrées",
+      "currentStock": "Stock actuel",
+      "noProducts": "Aucun produit disponible pour ce type d'activité",
+      "error": {
+        "addAtLeastOne": "Ajoutez au moins un mouvement d'inventaire",
+        "selectDate": "Veuillez sélectionner une date pour toutes les entrées",
+        "selectMovementType": "Veuillez sélectionner un type de mouvement pour toutes les entrées",
+        "selectActivityType": "Veuillez sélectionner un type d'activité pour toutes les entrées",
+        "selectProduct": "Veuillez sélectionner un produit pour toutes les entrées",
+        "quantityMoved": "La quantité déplacée doit être supérieure à 0 pour toutes les entrées",
+        "failed": "Échec de l'ajout des mouvements d'inventaire"
+      }
+    },
+    "edit": {
+      "title": "Modifier le mouvement d'inventaire",
+      "currentStock": "Stock actuel pour",
+      "maxQuantity": "Maximum : {value} unités"
+    },
+    "summary": {
+      "totalInventory": "Inventaire total",
+      "monthlyMovements": "Mouvements mensuels",
+      "blockIceStock": "Stock de Bloc de Glace",
+      "cubeIceStock": "Stock de Glaçons",
+      "waterBottlingStock": "Stock d'Eau en bouteille",
+      "packagingStock": "Stock d'Emballages",
+      "currentStock": "Stock actuel",
+      "iceCubeProducts": "Produits Glaçons",
+      "waterBottlingProducts": "Produits Eau en bouteille"
+    },
+    "initial_quantity": "Quantité initiale",
+    "quantity_moved": "Quantité déplacée",
+    "remaining_quantity": "Quantité restante",
+    "movement_type": "Type de mouvement",
+    "stock_in": "Entrée en stock",
+    "stock_out": "Sortie de stock",
+    "adjustment": "Ajustement",
+    "thresholds": {
+      "iceCubes": "Seuil pour Glaçons",
+      "bottles": "Seuil pour Bouteilles",
+      "warning": "Seuil d'avertissement"
+    },
+    "charts": {
+      "iceCubePackaging": "Stock d'Emballage pour Glaçons",
+      "waterBottlingPackaging": "Stock d'Emballage pour Eau en bouteille",
+      "threshold": "Seuil"
+    },
+    "source": {
+      "title": "Source",
+      "all": "Toutes les sources",
+      "production": "Production",
+      "consumption": "Consommation",
+      "sales": "Ventes",
+      "manual": "Manuel",
+      "description": "Source des données",
+      "source": "Source",
+      "addNew": "Ajouter une nouvelle source",
+      "edit": "Modifier la source"
+    }
+  },
+  "production": {
+    "title": "Production",
+    "overview": "Aperçu de la production",
+    "description": "Gérez et suivez vos enregistrements de production",
+    "newProduction": "Nouvelle production",
+    "editProduction": "Modifier l'enregistrement de production",
+    "records": "Registre de production",
+    "loading": {
+      "data": "Chargement des données de production...",
+      "masterData": "Chargement des données de base..."
+    },
+    "filters": {
+      "title": "Filtres",
+      "activityType": "Type d'activité",
+      "product": "Produit",
+      "status": "Statut",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "allMonths": "Tous les mois",
+      "allYears": "Toutes les années",
+      "allActivityTypes": "Tous les types d'activité",
+      "allProducts": "Tous les produits",
+      "allStatus": "Tous les statuts"
+    },
+    "status": {
+      "completed": "Terminé",
+      "pending": "En attente",
+      "cancelled": "Annulé"
+    },
+    "table": {
+      "date": "Date",
+      "product": "Produit",
+      "quantity": "Quantité",
+      "activity": "Activité",
+      "packaging": "Emballage",
+      "packagingQuantity": "Quantité d'emballage",
+      "status": "Statut",
+      "actions": "Actions",
+      "noPackagingRequired": "Aucun emballage requis"
+    },
+    "summary": {
+      "title": "Résumé de la production",
+      "activityType": "Type d'activité / Produit",
+      "quantity": "Quantité",
+      "percentageTotal": "% du total",
+      "totalProduction": "Production totale"
+    },
+    "charts": {
+      "individualProducts": "Production par produit",
+      "viewBy": "Voir par",
+      "productTypes": "Production par type de produit",
+      "productionTrends": "Tendances de production par type de produit",
+      "quantityProduced": "Quantité produite",
+      "productionByActivity": "Production par type d'activité"
+    },
+    "metrics": {
+      "totalProduction": "Production totale",
+      "topProduct": "Produit principal",
+      "productionActivities": "Activités de production",
+      "mostUsedPackaging": "Emballage le plus utilisé",
+      "activityDistribution": "Distribution des activités",
+      "units": "Unités",
+      "entries": "Entrées",
+      "used": "utilisé",
+      "ofTotal": "du total"
+    },
+    "fields": {
+      "date": "Date",
+      "month": "Mois",
+      "year": "Année",
+      "allMonths": "Tous les mois",
+      "allYears": "Toutes les années",
+      "activityType": "Type d'activité",
+      "product": "Produit",
+      "quantity": "Quantité",
+      "packaging": "Emballage",
+      "packagingQuantity": "Quantité d'emballage",
+      "noPackaging": "Aucun emballage requis"
+    },
+    "add": {
+      "addRow": "Ajouter une ligne",
+      "title": "Ajouter une entrée de production",
+      "subtitle": "Ajoutez une nouvelle production",
+      "submit": "Soumettre",
+      "entry": "entrée",
+      "entries": "entrées",
+      "error": {
+        "addAtLeastOne": "Ajoutez au moins une entrée de production",
+        "requiredFields": "Veuillez remplir correctement tous les champs obligatoires",
+        "failed": "Échec de l'ajout des enregistrements de production"
+      }
+    }
+  },
+  "sales": {
+    "title": "Ventes",
+    "records": "Registre des ventes",
+    "overview": "Aperçu des ventes",
+    "newSales": "Nouvelles ventes",
+    "editSales": "Modifier les ventes",
+    "common": {
+      "actions": "Actions"
+    },
+    
+    "summary": {
+      "byProduct": "Ventes par produit",
+      "byActivity": "Ventes par type d'activité",
+      "byChannel": "Ventes par canal",
+      "percentageOfTotal": "Pourcentage du total",
+      "byActivityType": "Ventes par type d'activité"
+    },
+    "filters": {
+      "channel": "Canal",
+      "selectChannel": "Sélectionner un canal",
+      "selectProduct": "Sélectionner un produit",
+      "allProducts": "Tous les produits",
+      "allActivityTypes": "Tous les types d'activité",
+      "allChannels": "Tous les canaux",
+      "allMonths": "Tous les mois",
+      "allYears": "Toutes les années"
+    },
+    "channels": {
+      "onSite": "Sur place",
+      "OnSite": "Sur place",
+      "Truck Delivery": "Livraison par camion",
+      "Motorcycle Delivery": "Livraison par moto",
+      "truckDelivery": "Livraison par camion",
+      "motorcycleDelivery": "Livraison par moto",
+      "truckdelivery": "Livraison par camion",
+      "motorcycledelivery": "Livraison par moto",
+      "onsite": "Sur place"
+    },
+    "loading": {
+      "data": "Chargement des données...",
+      "sales": "Chargement des ventes...",
+      "products": "Chargement des produits...",
+      "activityTypes": "Chargement des types d'activité..."
+    },
+    "actions": {
+      "deleteSelected": "Supprimer la sélection"
+    },
+    "table": {
+      "date": "Date",
+      "activityType": "Type d'activité",
+      "product": "Produit",
+      "channel": "Canal",
+      "showing": "Affichage de",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "of": "sur",
+      "entries": "entrées",
+      "quantitySold": "Quantité vendue"
+    },
+    "metrics": {
+      "totalSales": "Ventes totales",
+      "averageSale": "Vente moyenne",
+      "bestSelling": "Meilleure vente",
+      "salesGrowth": "Croissance des ventes",
+      "perDay": "par jour",
+      "vsLastMonth": "vs mois dernier",
+      "salesCount": "Ventes"
+    },
+    "add": {
+      "title": "Ajouter des ventes",
+      "subtitle": "Ajoutez une nouvelle vente",
+      "addDescription": "Ajoutez de nouvelles ventes",
+      "quickMode": "Mode saisie rapide",
+      "lockFields": "Verrouiller les champs",
+      "addEntry": "Ajouter une entrée",
+      "entries": "entrées",
+      "entry": "entrée",
+      "submit": "Soumettre",
+      "duplicateEntry": "Dupliquer l'entrée",
+      "removeEntry": "Supprimer l'entrée",
+      "error": {
+        "requiredFields": "Veuillez remplir correctement tous les champs obligatoires",
+        "duplicateEntry": "Une entrée avec la même date, activité, produit, canal et montants existe déjà.",
+        "failed": "Échec de l'ajout des enregistrements de vente"
+      }
+    },
+    "edit": {
+      "title": "Modifier la vente",
+      "backToSales": "Retour aux ventes"
+    },
+    "charts": {
+      "trend": "Tendance des ventes",
+      "byActivity": "Ventes par type d'activité",
+      "byProduct": "Ventes par produit",
+      "byChannel": "Ventes par canal"
+    },
+    "fields": {
+      "date": "Date",
+      "activityType": "Type d'activité",
+      "product": "Produit",
+      "channel": "Canal",
+      "quantitySold": "Quantité vendue",
+      "amountFC": "Montant (FC)",
+      "amountUSD": "Montant (USD)",
+      "exchangeRate": "Taux de change",
+      "month": "Mois"
+    },
+    "placeholders": {
+      "selectActivityType": "Sélectionner le type d'activité",
+      "selectProduct": "Sélectionner le produit",
+      "selectChannel": "Sélectionner le canal"
+    },
+    "dashboard": "Tableau de bord des ventes"
+  },
+  "profitability": {
+    "title": "Rentabilité",
+    "year": "Année",
+    "salesTrends": {
+      "sales": "Ventes",
+      "costs": "Coûts",
+      "grossProfit": "Bénéfice Brut",
+      "profitabilityOverview": "Aperçu de la Rentabilité",
+      "totalRevenue": "Revenu Total",
+      "totalCosts": "Coûts Totaux",
+      "profitMargin": "Marge Bénéficiaire",
+      "avgProfitPerSale": "Bénéfice Moyen par Vente"
+    },
+    "tabs": {
+      "general": "Général",
+      "products": "Produits",
+      "expenses": "Dépenses",
+      "activities": "Activités"
+    },
+    "rows": {
+      "sales": "Ventes",
+      "costs": "Coûts",
+      "profit": "Bénéfice"
+    },
+    "description": "Analyse complète des profits et des marges. Suivez la performance financière de vos activités."
+  },
+  "costs": {
+    "title": "Coûts",
+    "dashboard": "Tableau de bord des coûts",
+    "records": "Registre des coûts",
+    "summary": "Résumé des coûts",
+    "manage_and_track": "Gérer et suivre les coûts",
+    "filters": {
+      "title": "Filtres",
+      "activityType": "Type d'activité",
+      "expenseType": "Type de dépense",
+      "month": "Mois",
+      "year": "Année",
+      "timePeriod": "Période",
+      "allMonths": "Tous les mois",
+      "allYears": "Toutes les années"
+    },
+    "table": {
+      "date": "Date",
+      "activity": "Type d'activité",
+      "expense": "Type de dépense",
+      "amount_cdf": "Montant (CDF)",
+      "exchange_rate": "Taux de change",
+      "amount_usd": "Montant (USD)",
+      "actions": "Actions"
+    },
+    "charts": {
+      "cost_trend": "Tendance des coûts",
+      "costs_by_type": "Coûts par type",
+      "amount_usd": "Montant (USD)",
+      "no_data": "Aucune donnée disponible"
+    },
+    "add": {
+      "title": "Ajouter des coûts",
+      "addDescription": "Ajoutez de nouveaux enregistrements de coûts",
+      "addEntry": "Ajouter une entrée",
+      "submit": "Soumettre",
+      "entry": "entrée",
+      "entries": "entrées"
+    },
+    "fields": {
+      "date": "Date",
+      "year": "Année",
+      "month": "Mois",
+      "activityType": "Type d'activité",
+      "expenseType": "Type de dépense",
+      "amountFC": "Montant (FC)",
+      "exchangeRate": "Taux de change",
+      "amountUSD": "Montant (USD)",
+      "name": "Nom",
+      "category": "Catégorie",
+      "budget": "Budget",
+      "description": "Description"
+    },
+    "placeholders": {
+      "selectActivityType": "Sélectionner le type d'activité",
+      "selectExpenseType": "Sélectionner le type de dépense"
+    },
+    "periods": {
+      "all": "Toute la période",
+      "year": "Cette année",
+      "month": "Ce mois",
+      "previous_month": "Mois dernier",
+      "quarterly": "Trimestre (3 derniers mois)",
+      "week": "Cette semaine",
+      "today": "Aujourd'hui",
+      "custom": "Période personnalisée"
+    },
+    "confirm": {
+      "delete_single": "Êtes-vous sûr de vouloir supprimer ce coût ?",
+      "delete_multiple": "Êtes-vous sûr de vouloir supprimer ces éléments ?"
+    }
+  },
+  "masterData": {
+    "title": "Données de base",
+    "loading": "Chargement des données de base...",
+    "tabs": {
+      "products": "Produits",
+      "expenses": "Dépenses",
+      "activities": "Activités"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Nom",
+      "type": "Type",
+      "activity": "Activité",
+      "description": "Description",
+      "category": "Catégorie",
+      "budget": "Budget",
+      "actions": "Actions"
+    },
+    "actions": {
+      "add": "Ajouter",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "massEdit": "Modification en masse",
+      "duplicate": "Dupliquer",
+      "archive": "Archiver"
+    },
+    "filters": {
+      "search": "Rechercher des éléments...",
+      "type": "Filtrer par type",
+      "activity": "Filtrer par activité",
+      "category": "Filtrer par catégorie"
+    },
+    "modal": {
+      "addProduct": "Ajouter un produit",
+      "editProduct": "Modifier le produit",
+      "addExpense": "Ajouter un type de dépense",
+      "editExpense": "Modifier le type de dépense",
+      "addActivity": "Ajouter un type d'activité",
+      "editActivity": "Modifier le type d'activité",
+      "deleteTitle": "Supprimer l'élément",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer cet élément ? Cette action ne peut pas être annulée.",
+      "bulkDeleteTitle": "Supprimer les éléments sélectionnés",
+      "bulkDeleteMessage": "Êtes-vous sûr de vouloir supprimer les éléments sélectionnés ? Cette action ne peut pas être annulée."
+    },
+    "massEdit": {
+      "title": "Modifier les éléments sélectionnés",
+      "selectedCount": "Éléments sélectionnés : {count}",
+      "type": "Mettre à jour le type",
+      "activity": "Mettre à jour l'activité",
+      "description": "Mettre à jour la description",
+      "category": "Mettre à jour la catégorie",
+      "budget": "Mettre à jour le budget"
+    },
+    "validation": {
+      "required": "Ce champ est obligatoire",
+      "invalidNumber": "Veuillez entrer un nombre valide",
+      "duplicateId": "Cet ID existe déjà"
+    },
+    "cards": {
+      "totalProducts": "Nombre total de produits",
+      "expenseTypes": "Types de dépenses",
+      "activityTypes": "Types d'activités"
+    },
+    "expenses": {
+      "types": {
+        "construction_real_estate_repairs": "Construction & Réparations Immobilières",
+        "constructionRealEstateRepairs": "Construction & Réparations Immobilières",
+        "construction_&_real_estate_repairs": "Construction & Réparations Immobilières",
+        "maintenance_repairs_of_machines": "Entretien & Réparations des Machines",
+        "maintenanceRepairsOfMachines": "Entretien & Réparations des Machines",
+        "maintenance_&_repairs_of_machines": "Entretien & Réparations des Machines",
+        "monthly_commitment": "Engagement Mensuel",
+        "monthlyCommitment": "Engagement Mensuel",
+        "maintenance_repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
+        "maintenanceRepairsOfRollingEquipment": "Entretien & Réparations de l'Équipement Roulant",
+        "maintenance_&_repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
+        "social_charges": "Charges Sociales",
+        "socialCharges": "Charges Sociales",
+        "rolling_equipment": "Équipement Roulant",
+        "rollingEquipment": "Équipement Roulant",
+        "medical_care": "Soins Médicaux",
+        "medicalCare": "Soins Médicaux",
+        "generatorFuel": "Carburant Générateur",
+        "generator_fuel": "Carburant Générateur",
+        "tax_charges": "Charges Fiscales",
+        "taxCharges": "Charges Fiscales",
+        "miscellaneous_expenses": "Dépenses Diverses",
+        "miscellaneousExpenses": "Dépenses Diverses",
+        "staff": "Personnel",
+        "unknown": "Inconnu",
+        "construction": "Construction",
+        "real_estate": "Immobilier",
+        "realEstate": "Immobilier",
+        "repairs": "Réparations",
+        "maintenance": "Entretien",
+        "machines": "Machines",
+        "equipment": "Équipement",
+        "fuel": "Carburant",
+        "taxes": "Taxes",
+        "miscellaneous": "Divers"
+      },
+      "descriptions": {
+        "construction_real_estate_repairs": "Dépenses pour la construction et les réparations immobilières",
+        "maintenance_repairs_of_machines": "Dépenses pour l'entretien et les réparations des machines",
+        "monthly_commitment": "Dépenses pour l'engagement mensuel",
+        "maintenance_repairs_of_rolling_equipment": "Dépenses pour l'entretien et les réparations de l'équipement roulant",
+        "social_charges": "Dépenses pour les charges sociales",
+        "rolling_equipment": "Dépenses pour l'équipement roulant",
+        "medical_care": "Dépenses pour les soins médicaux",
+        "generator_fuel": "Dépenses pour le générateur de carburant",
+        "tax_charges": "Dépenses pour les charges fiscales",
+        "miscellaneous_expenses": "Dépenses diverses",
+        "staff": "Dépenses pour le personnel"
+      },
+      "fields": {
+        "name": "Nom",
+        "description": "Description détaillée",
+        "category": "Catégorie",
+        "budget": "Budget (%)"
+      }
+    },
+    "activities": {
+      "types": {
+        "block_ice": "Bloc de Glace",
+        "cube_ice_water_bottling": "Glaçons & Eau en Bouteille"
+      },
+      "descriptions": {
+        "block_ice": "Production et gestion de bloc de glace.",
+        "cube_ice_water_bottling": "Production et gestion des glaçons et de l'eau en bouteille."
+      },
+      "fields": {
+        "name": "Nom de l'activité",
+        "description": "Description de l'activité"
+      }
+    },
+    "productType": {
+      "product": "Produit",
+      "packaging": "Emballage"
+    }
+  },
+  "charts": {
+    "title": "Graphiques",
+    "legend": {
+      "title": "Légende",
+      "sales": "Ventes",
+      "costs": "Coûts",
+      "inventory": "Stock",
+      "production": "Production",
+      "total": "Total",
+      "average": "Moyenne",
+      "trend": "Tendance",
+      "distribution": "Distribution"
+    },
+    "tooltip": {
+      "value": "Valeur",
+      "date": "Date",
+      "quantity": "Quantité",
+      "amount": "Montant",
+      "total": "Total",
+      "average": "Moyenne",
+      "percentage": "Pourcentage"
+    },
+    "types": {
+      "line": "Ligne",
+      "bar": "Barre",
+      "pie": "Secteur",
+      "area": "Surface",
+      "scatter": "Nuage de points",
+      "radar": "Radar"
+    },
+    "performance": {
+      "ice_blocks": "Performance Blocs de Glace",
+      "ice_cubes": "Performance Glaçons",
+      "water_bottles": "Performance Eau en Bouteille",
+      "daily": "Performance Journalière",
+      "monthly": "Performance Mensuelle",
+      "yearly": "Performance Annuelle"
+    },
+    "axes": {
+      "x": "Date",
+      "y": "Valeur",
+      "quantity": "Quantité",
+      "amount": "Montant",
+      "date": "Date",
+      "time": "Temps",
+      "units": "Unités",
+      "currency": "Devise"
+    },
+    "sales_trend": "Tendance des ventes",
+    "cost_trend": "Tendance des coûts",
+    "inventory_trend": "Tendance du stock",
+    "production_trend": "Tendance de la production",
+    "sales_by_product": "Ventes par produit",
+    "sales_by_channel": "Ventes par canal",
+    "costs_by_type": "Coûts par type",
+    "costs_by_activity": "Coûts par activité",
+    "inventory_by_product": "Stock par produit",
+    "inventory_by_type": "Stock par type",
+    "production_by_product": "Production par produit",
+    "production_by_type": "Production par type",
+    "no_data": "Aucune donnée disponible",
+    "amount_usd": "Montant (USD)",
+    "amount_fc": "Montant (CDF)",
+    "thresholds": {
+      "title": "Seuils",
+      "ice_cubes": "Seuil Glaçons",
+      "bottles": "Seuil Bouteilles",
+      "warning": "Seuil d'avertissement",
+      "critical": "Seuil critique"
+    },
+    "states": {
+      "loading": "Chargement du graphique...",
+      "error": "Erreur de chargement",
+      "empty": "Aucune donnée à afficher",
+      "no_data": "Aucune donnée disponible"
+    },
+    "indicators": {
+      "increase": "Augmentation",
+      "decrease": "Diminution",
+      "stable": "Stable",
+      "target": "Objectif",
+      "actual": "Réel",
+      "variance": "Écart"
+    },
+    "periods": {
+      "daily": "Journalier",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "quarterly": "Trimestriel",
+      "yearly": "Annuel",
+      "custom": "Personnalisé"
+    },
+    "cost_trends": {
+      "title": "Tendances des coûts",
+      "total_costs": "Coûts totaux",
+      "avg_monthly": "Moyenne mensuelle",
+      "top_expense": "Dépense principale",
+      "highest_month": "Mois le plus élevé",
+      "monthly_trends": "Tendances mensuelles",
+      "monthly_distribution": "Distribution mensuelle"
+    },
+    "sales_trends": {
+      "title": "Tendances des ventes",
+      "metrics": {
+        "total_sales": "Ventes totales",
+        "avg_monthly": "Moyenne mensuelle",
+        "top_product": "Meilleur produit",
+        "highest_month": "Meilleur mois"
+      },
+      "monthly_trends": "Tendances mensuelles",
+      "monthly_distribution": "Distribution mensuelle",
+      "monthly_breakdown": "Détail mensuel",
+      "monthly_sales": "Ventes mensuelles",
+      "total_sales_chart": "Ventes totales (USD)",
+      "select_year": "Sélectionner l'année",
+      "select_month": "Sélectionner le mois",
+      "table": {
+        "month": "Mois",
+        "total_usd": "Total (USD)",
+        "num_sales": "Nombre de ventes",
+        "average": "Moyenne"
+      }
+    }
+  },
+  "metrics": {
+    "daily": "Quotidien",
+    "weekly": "Hebdomadaire",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "total": "Total",
+    "average": "Moyenne",
+    "growth": "Croissance",
+    "percentage": "Pourcentage",
+    "total_sales": "Ventes totales",
+    "average_sale": "Vente moyenne",
+    "best_selling": "Meilleure vente",
+    "sales_growth": "Croissance des ventes",
+    "total_inventory": "Stock total",
+    "monthly_movements": "Mouvements mensuels",
+    "stock_level": "Niveau de stock",
+    "total_costs": "Coûts totaux",
+    "daily_average": "Moyenne journalière",
+    "top_expense": "Plus grande dépense",
+    "total_production": "Production totale",
+    "daily_production": "Production journalière",
+    "monthly_production": "Production mensuelle",
+    "production_efficiency": "Efficacité de production",
+    "per_day": "par jour",
+    "vs_last_month": "vs mois dernier",
+    "vs_last_year": "vs année dernière",
+    "vs_last_week": "vs semaine dernière",
+    "vs_last_day": "vs jour précédent"
+  },
+  "currency": {
+    "cdf": "FC",
+    "usd": "USD",
+    "amount_fc": "Montant (FC)",
+    "amount_usd": "Montant (USD)",
+    "exchange_rate": "Taux de change"
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire",
+    "invalidNumber": "Veuillez entrer un nombre valide",
+    "invalidDate": "Veuillez entrer une date valide",
+    "positiveNumber": "Le nombre doit être positif",
+    "maxExceeded": "La valeur maximale est dépassée",
+    "insufficientStock": "Stock insuffisant"
+  },
+  "summaries": {
+    "sales_summary": "Résumé des ventes",
+    "cost_summary": "Résumé des coûts",
+    "inventory_summary": "Résumé du stock",
+    "production_summary": "Résumé de la production",
+    "current_period": "Période actuelle",
+    "previous_period": "Période précédente",
+    "variation": "Variation",
+    "total": "Total",
+    "subtotal": "Sous-total"
+  },
+  "table": {
+    "headers": {
+      "date": "Date",
+      "product": "Produit",
+      "activity": "Activité",
+      "expense": "Dépense",
+      "channel": "Canal",
+      "quantity": "Quantité",
+      "amount_fc": "Montant (FC)",
+      "amount_usd": "Montant (USD)",
+      "exchange_rate": "Taux de change",
+      "actions": "Actions"
+    },
+    "empty": "Aucune donnée disponible",
+    "loading": "Chargement des données...",
+    "error": "Erreur lors du chargement des données",
+    "showing": "Affichage de",
+    "to": "à",
+    "of": "sur",
+    "entries": "entrées"
+  },
+  "locale": "fr-FR",
+  "months": {
+    "january": "Janvier",
+    "february": "Février",
+    "march": "Mars",
+    "april": "Avril",
+    "may": "Mai",
+    "june": "Juin",
+    "july": "Juillet",
+    "august": "Août",
+    "september": "Septembre",
+    "october": "Octobre",
+    "november": "Novembre",
+    "december": "Décembre",
+    "january_short": "Janv.",
+    "february_short": "Févr.",
+    "march_short": "Mars",
+    "april_short": "Avr.",
+    "may_short": "Mai",
+    "june_short": "Juin",
+    "july_short": "Juil.",
+    "august_short": "Août",
+    "september_short": "Sept.",
+    "october_short": "Oct.",
+    "november_short": "Nov.",
+    "december_short": "Déc."
+  },
+  "reports": {
+    "title": "Rapports",
+    "viewReport": "Voir le rapport",
+    "salesAnalysis": {
+      "title": "Analyse des ventes",
+      "description": "Analyse détaillée des performances des ventes"
+    },
+    "costAnalysis": {
+      "title": "Analyse des coûts",
+      "description": "Répartition des coûts et des dépenses"
+    },
+    "profitabilityAnalysis": {
+      "title": "Analyse de rentabilité",
+      "description": "Analyse complète des profits et des marges"
+    },
+    "salaryScale": {
+      "title": "Barème de salaire",
+      "description": "Calcul des salaires et distribution des primes",
+      "pageTitle": "Barème de salaire",
+      "pageSubtitle": "Répartition des salaires",
+      "totalSalaries": "Total Salaires",
+      "monthlyRevenue": "Revenus Mensuels",
+      "monthlyCosts": "Coûts Mensuels",
+      "monthlyProfit": "Profit Mensuel",
+      "financialSummary": "Résumé Financier",
+      "salaryBreakdown": "Répartition des Salaires",
+      "position": "Poste",
+      "baseSalary": "Salaire de Base",
+      "salesBonus": "Prime de Vente",
+      "coordinationBonus": "Prime de Coordination",
+      "totalSalary": "Salaire Total",
+      "selectMonth": "Sélectionner le Mois",
+      "selectYear": "Sélectionner l'Année",
+      "noDataForPeriod": "Aucune donnée disponible pour la période sélectionnée",
+      "highTier": "Niveau supérieur (Superviseur, Responsable, Technicien)",
+      "lowTier": "Niveau inférieur (Conducteur, Gardien, Aide)",
+      "bonusCalculation": "Calcul des primes basé sur le profit mensuel",
+      "positions": {
+        "superviseurP": "Superviseur P.",
+        "superviseurA1": "Superviseur A1",
+        "responsableT": "Responsable T.",
+        "responsableC": "Responsable C.",
+        "superviseurA2": "Superviseur A2",
+        "technicien": "Technicien",
+        "conducteur": "Conducteur",
+        "gardiens": "Gardiens",
+        "aide": "Aide"
+      }
+    },
+    "exchangeRates": {
+      "title": "Taux de change",
+      "description": "Taux de change entre les devises"
+    }
+  },
+  "dashboard": {
+    "activity": {
+      "date": "Date",
+      "amount": "Montant",
+      "type": "Type",
+      "name": "Nom",
+      "actions": "Actions"
+    },
+    "welcome": "Bienvenue sur le Dashboard Concept",
+    "subtitle": "Votre solution tout-en-un pour gérer et analyser vos opérations commerciales",
+    "activity_types": "Types d'activité",
+    "recent_activity": "Activité récente",
+    "top_products": "Top 3 Produits Vendus",
+    "top_expenses": "Top 3 Dépenses",
+    "no_data": "Aucune donnée disponible",
+    "sales_trend": "Tendance des ventes",
+    "costs_trend": "Tendance des coûts",
+    "kpi": {
+      "production": "Production",
+      "inventory": "Inventaire",
+      "costs": "Coûts",
+      "sales": "Ventes",
+      "title": "Indicateurs clés de performance",
+      "stock_overview": "Aperçu du stock"
+    },
+    "summary": {
+      "title": "Résumé",
+      "total_costs": "Coûts totaux",
+      "total_sales": "Ventes totales",
+      "total_profit": "Profit total",
+      "daily_sales": "Ventes journalières",
+      "daily_costs": "Coûts journaliers",
+      "daily_profit": "Profit journalier",
+      "productivity": "Productivité",
+      "growth": "Croissance"
+    },
+    "action": {
+      "add_product": "Ajouter un produit",
+      "add_expense_type": "Ajouter un type de dépense",
+      "add_activity_type": "Ajouter un type d'activité"
+    }
+  },
+  "activityTypes": {
+    "block_ice": "Bloc de Glace",
+    "cube_ice_water_bottling": "Glaçons & Eau en Bouteille",
+    "FAFvIo1DPZrqZBVyAlju": "Bloc de Glace"
+  },
+  "channels": {
+    "onsite": "Sur place",
+    "truckdelivery": "Livraison camion",
+    "motorcycledelivery": "Livraison moto"
+  },
+  "cost_trends": {
+    "title": "Tendances des coûts",
+    "total_costs": "Coûts totaux",
+    "avg_monthly": "Moyenne mensuelle",
+    "top_expense": "Dépense principale",
+    "highest_month": "Mois le plus élevé",
+    "monthly_trends": "Tendances mensuelles",
+    "monthly_distribution": "Distribution mensuelle"
+  },
+  "notifications": {
+    "success": "Succès",
+    "error": "Erreur",
+    "warning": "Avertissement",
+    "info": "Information",
+    "title": "Notifications",
+    "noNotifications": "Aucune notification"
+  },  
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Vos informations personnelles et paramètres du compte",
+    "personalInfo": "Informations personnelles",
+    "displayName": "Nom affiché",
+    "email": "E-mail",
+    "accountCreated": "Compte créé le",
+    "lastSignIn": "Dernière connexion",
+    "edit": "Modifier",
+    "quickActions": "Actions rapides",
+    "accountInfo": "Informations du compte",
+    "accountType": "Type de compte",
+    "verified": "Vérifié",
+    "uid": "ID utilisateur"
+  }
+}
