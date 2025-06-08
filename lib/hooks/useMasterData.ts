@@ -1,4 +1,4 @@
-import { useFirestoreCollection } from './useFirestoreCollection';
+import { useFirestoreCollection } from '../../hooks/useFirestoreCollection';
 import { useMemo } from 'react';
 import { createProductMap, createActivityTypeMap, createExpenseTypeMap } from '../firestore/mappings';
 import { Product, ActivityType, ExpenseType } from '../types';

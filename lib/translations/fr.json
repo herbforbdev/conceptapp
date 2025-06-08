@@ -784,7 +784,8 @@
     "confirm": {
       "delete_single": "Êtes-vous sûr de vouloir supprimer ce coût ?",
       "delete_multiple": "Êtes-vous sûr de vouloir supprimer ces éléments ?"
-    }
+    },
+    "percentage": "Pourcentage"
   },
   "masterData": {
     "title": "Données de base",

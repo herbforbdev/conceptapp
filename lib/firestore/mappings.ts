@@ -27,8 +27,8 @@ export function createProductMap(products: Product[]): Map<string, Product> {
  * @param activityTypes - Array of activity type objects from Firestore
  * @returns Map with activity type identifiers as keys and activity type objects as values
  */
-export function createActivityTypeMap(activityTypes: ActivityType[]): Map<string, ActivityType> {
-  const map = new Map<string, ActivityType>();
+export function createActivityTypeMap(activityTypes: any[]): Map<string, any> {
+  const map = new Map<string, any>();
   for (const type of activityTypes) {
     if (type.id) map.set(type.id, type);
     if (type.activityid) map.set(type.activityid, type);

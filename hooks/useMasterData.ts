@@ -36,7 +36,7 @@ export function useMasterData(): MasterDataContextType {
 
   // Create maps
   const productMap = useMemo(() => createProductMap(products || []), [products]);
-  const activityTypeMap = useMemo(() => createActivityTypeMap(activityTypes || []), [activityTypes]);
+  const activityTypeMap = useMemo(() => createActivityTypeMap(activityTypes as any || []), [activityTypes]);
   const expenseTypeMap = useMemo(() => createExpenseTypeMap(expenseTypes || []), [expenseTypes]);
 
   // Validate relationships
@@ -72,7 +72,7 @@ export function useMasterData(): MasterDataContextType {
 
   const getExpenseTypesByCategory = (category: string): ExpenseType[] => {
     return Array.from(expenseTypeMap.values()).filter(e => 
-      e.category?.toLowerCase() === category.toLowerCase()
+      (e as any).category?.toLowerCase() === category.toLowerCase()
     );
   };
 

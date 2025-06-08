@@ -1,4 +1,4 @@
-import { Sale, Cost, Production, Inventory, Product, ActivityType, ExpenseType, PeriodSummary, DistributionSummary } from '../types';
+import { Sale, Cost, Production, Inventory, Product, ActivityType, ExpenseType, PeriodSummary, DistributionSummary } from '../../types/index';
 import { Timestamp } from 'firebase/firestore';
 
 interface BaseEntity {
@@ -78,7 +78,7 @@ export const analyzeSalesDistribution = (
     switch (dimension) {
       case 'product':
         const product = masterData.productMap.get(sale.productId);
-        key = product?.productId || 'Unknown Product';
+        key = product?.productid || 'Unknown Product';
         break;
       case 'channel':
         key = sale.channel || 'Unknown Channel';
@@ -171,7 +171,7 @@ export const analyzePackagingUsage = (
   productions.forEach(prod => {
     if (prod.packagingUsed && prod.packagingQuantity) {
       const packaging = productMap.get(prod.packagingUsed);
-      const packagingName = packaging?.productId || 'Unknown Packaging';
+      const packagingName = packaging?.productid || 'Unknown Packaging';
       distribution[packagingName] = (distribution[packagingName] || 0) + prod.packagingQuantity;
       total += prod.packagingQuantity;
     }
@@ -207,7 +207,7 @@ export const calculateProductionEfficiency = (
     const product = productMap.get(productId);
     if (product) {
       const avgQuantity = prods.reduce((sum, p) => sum + p.quantityProduced, 0) / prods.length;
-      efficiency[product.productId] = avgQuantity;
+      efficiency[product.productid] = avgQuantity;
     }
   });
 
@@ -384,7 +384,7 @@ export function getInventorySummaryTableData({
   const packagingProducts = products.filter(isPackaging);
 
   // Helper: match packaging to product by type, size, and activityType
-  function matchPackaging(mainProduct) {
+  function matchPackaging(mainProduct: any) {
     if (!mainProduct || !mainProduct.productid) return null;
     const mainType = mainProduct.producttype;
     let mainSize = '';

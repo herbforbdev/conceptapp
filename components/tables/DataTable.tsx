@@ -38,7 +38,7 @@ export const DataTable = <T extends { id: string }>({
   className = ''
 }: DataTableProps<T>) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState('');
+  const [sortField, setSortField] = useState<keyof T | ''>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Filter data based on search term

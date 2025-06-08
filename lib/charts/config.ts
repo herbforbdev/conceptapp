@@ -93,9 +93,14 @@ export const pieChartOptions: ChartOptions = {
       ...baseChartOptions.plugins?.legend,
       position: 'right'
     }
-  },
-  cutout: '65%'
+  }
 };
+
+// Doughnut chart specific options with cutout
+export const doughnutChartOptions = {
+  ...pieChartOptions,
+  cutout: '65%'
+} as any;
 
 // Helper function to create gradient backgrounds
 export const createGradient = (ctx: CanvasRenderingContext2D, color: string) => {

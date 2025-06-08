@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Table, Button, Modal, Label, TextInput, Select, Alert, Badge, Tabs, ToggleSwitch } from 'flowbite-react';
+import { Card, Table, Button, Modal, Label, TextInput, Alert, Badge, Tabs, ToggleSwitch } from 'flowbite-react';
 import { 
   HiShieldCheck, HiLockClosed, HiEye, HiRefresh,
-  HiClock, HiGlobe, HiUser, HiKey, HiCog, HiChartBar, HiBan, HiCheckCircle
+  HiClock, HiGlobe, HiUser, HiKey, HiCog, HiBan, HiCheckCircle
 } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 import { auditService } from '@/services/auditService';
@@ -14,7 +14,6 @@ export default function SecurityDashboardPage() {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [securityEvents, setSecurityEvents] = useState([]);
-  const [failedLogins, setFailedLogins] = useState([]);
   const [activeSessions, setActiveSessions] = useState([]);
   const [securityStats, setSecurityStats] = useState({
     totalEvents: 0,
@@ -68,15 +67,7 @@ export default function SecurityDashboardPage() {
         limit: 100
       });
 
-      const failedLoginsResult = await auditService.getAuditLogs({
-        action: 'login_failed',
-        startDate,
-        endDate,
-        limit: 50
-      });
-
       setSecurityEvents(securityEventsResult.logs || []);
-      setFailedLogins(failedLoginsResult.logs || []);
 
       // Calculate security statistics
       await calculateSecurityStats(startDate, endDate);
@@ -513,7 +504,7 @@ export default function SecurityDashboardPage() {
                 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="requireSpecialChars" value="Exiger des caractères spéciaux" />
-                  <Toggle
+                  <ToggleSwitch
                     id="requireSpecialChars"
                     checked={securitySettings.requireSpecialChars}
                     onChange={(checked) => handleSecuritySettingChange('requireSpecialChars', checked)}
@@ -522,7 +513,7 @@ export default function SecurityDashboardPage() {
                 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="enableTwoFactor" value="Authentification à deux facteurs" />
-                  <Toggle
+                  <ToggleSwitch
                     id="enableTwoFactor"
                     checked={securitySettings.enableTwoFactor}
                     onChange={(checked) => handleSecuritySettingChange('enableTwoFactor', checked)}
@@ -538,7 +529,7 @@ export default function SecurityDashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="enableIPWhitelist" value="Liste blanche IP" />
-                  <Toggle
+                  <ToggleSwitch
                     id="enableIPWhitelist"
                     checked={securitySettings.enableIPWhitelist}
                     onChange={(checked) => handleSecuritySettingChange('enableIPWhitelist', checked)}
@@ -547,7 +538,7 @@ export default function SecurityDashboardPage() {
                 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="enableRateLimit" value="Limitation du taux de requêtes" />
-                  <Toggle
+                  <ToggleSwitch
                     id="enableRateLimit"
                     checked={securitySettings.enableRateLimit}
                     onChange={(checked) => handleSecuritySettingChange('enableRateLimit', checked)}
@@ -573,7 +564,7 @@ export default function SecurityDashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="bruteForceDetection" value="Détection force brute" />
-                  <Toggle
+                  <ToggleSwitch
                     id="bruteForceDetection"
                     checked={threatDetection.bruteForceDetection}
                     onChange={(checked) => handleThreatDetectionChange('bruteForceDetection', checked)}
@@ -582,7 +573,7 @@ export default function SecurityDashboardPage() {
                 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="suspiciousLocationDetection" value="Détection localisation suspecte" />
-                  <Toggle
+                  <ToggleSwitch
                     id="suspiciousLocationDetection"
                     checked={threatDetection.suspiciousLocationDetection}
                     onChange={(checked) => handleThreatDetectionChange('suspiciousLocationDetection', checked)}
@@ -591,7 +582,7 @@ export default function SecurityDashboardPage() {
                 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="multipleSessionDetection" value="Détection sessions multiples" />
-                  <Toggle
+                  <ToggleSwitch
                     id="multipleSessionDetection"
                     checked={threatDetection.multipleSessionDetection}
                     onChange={(checked) => handleThreatDetectionChange('multipleSessionDetection', checked)}
@@ -600,7 +591,7 @@ export default function SecurityDashboardPage() {
                 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="privilegeEscalationDetection" value="Détection élévation privilèges" />
-                  <Toggle
+                  <ToggleSwitch
                     id="privilegeEscalationDetection"
                     checked={threatDetection.privilegeEscalationDetection}
                     onChange={(checked) => handleThreatDetectionChange('privilegeEscalationDetection', checked)}

@@ -17,8 +17,10 @@ const ChartFallback = ({ width, height }) => (
 const ApexChartComponent = dynamic(
   () => import('react-apexcharts').catch(() => {
     console.warn('Failed to load react-apexcharts. Using fallback component.');
-    return ({ options, series, type, width, height }) => 
+    const Fallback = ({ width, height }) => 
       <ChartFallback width={width} height={height} />;
+    Fallback.displayName = 'ApexChartsFallback';
+    return Fallback;
   }),
   { 
     ssr: false,
@@ -32,12 +34,6 @@ const ApexChartComponent = dynamic(
     )
   }
 );
-
-// Dynamically import ApexCharts with no SSR
-const ApexChart = dynamic(() => import('react-apexcharts'), {
-  ssr: false,
-  loading: () => <div className="flex items-center justify-center h-full">Loading chart...</div>
-});
 
 // Client-side only wrapper for ApexCharts
 export default function Chart({ options, series, type, width, height }) {

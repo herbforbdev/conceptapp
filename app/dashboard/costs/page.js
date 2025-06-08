@@ -5,14 +5,12 @@ import {
   QueryClient,
   QueryClientProvider,
   useQuery,
-  useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
 import {
   Card,
   Button,
   Select,
-  Label,
   TextInput,
 } from 'flowbite-react';
 import Link from 'next/link';
@@ -21,43 +19,20 @@ import {
   updateCost,
   deleteCost,
   batchDeleteCosts,
-  batchUpdateCosts,
 } from '@/services/firestore/costsService';
-import {
-  filterCosts,
-  calculateCostsMetrics,
-  getCostSummaryTables,
-  getCostChartData,
-} from '@/lib/analysis/costsAnalysis';
 import { useMasterData } from '@/hooks/useMasterData';
 import { useLanguage } from '@/context/LanguageContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  PieChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  CartesianGrid,
-  ResponsiveContainer,
-  Cell,
-  Pie
-} from 'recharts';
 import {
   HiPencil,
   HiTrash,
   HiCheck,
   HiX,
-  HiChevronLeft,
-  HiChevronRight,
   HiPlus,
   HiCurrencyDollar,
   HiTrendingUp,
-  HiInbox,
   HiTrendingDown,
+  HiInbox,
   HiRefresh,
 } from 'react-icons/hi';
 import TopCard from "@/components/shared/TopCard";
@@ -65,7 +40,6 @@ import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
 import dynamic from 'next/dynamic';
 import CostsDashboard from '@/components/costs/CostsDashboard';
-// // import { getDefaultDateRange } from '@/lib/utils/dateUtils';
 import TableHeader from '@/components/shared/TableHeader';
 import ChartTitle from '@/components/shared/ChartTitle';
 import { getTranslatedChartOptions } from '@/components/shared/ChartTitle';
@@ -80,79 +54,6 @@ const Chart = dynamic(() => import('../../../app/apexcharts'), { ssr: false });
 
 // React Query client
 const queryClient = new QueryClient();
-
-// Minimal defaultChartData to prevent ReferenceError
-const defaultChartData = {
-  byType: { options: {}, series: [] },
-  byActivity: { options: {}, series: [] }
-};
-
-// Helper to parse Firestore Timestamp or JS Date to Date
-const toDateObj = (d) =>
-  d && typeof d.toDate === 'function' ? d.toDate() :
-  d instanceof Date ? d : new Date(d);
-
-// Format date helper
-const formatDate = (date) => {
-  if (!date) return '—';
-  try {
-    const d = toDateObj(date);
-    return !isNaN(d.getTime()) 
-      ? d.toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        })
-      : '—';
-  } catch (err) {
-    console.error('Error formatting date:', err);
-    return '—';
-  }
-};
-
-// Add this helper function after imports and before the main component
-const getTranslatedExpenseTypeName = (expenseType, t) => {
-  if (!expenseType) return 'N/A';
-  const name = expenseType.name || expenseType;
-  if (!name) return 'N/A';
-  
-  // Convert the name to a valid translation key
-  const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-  const translationKey = `masterData.expenses.types.${key}`;
-  
-  // Try to get the translation
-  const translated = t(translationKey);
-  return translated && translated !== translationKey ? translated : name;
-};
-
-const getTranslatedActivityTypeName = (activityType, t) => {
-  if (!activityType) return 'N/A';
-  const name = activityType.name || activityType;
-  if (!name) return 'N/A';
-  
-  const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-  const translationKey = `masterData.activities.types.${key}`;
-  
-  const translated = t(translationKey);
-  return translated && translated !== translationKey ? translated : name;
-};
-
-// Notification helper for budget alerts
-async function createBudgetNotification(userId, title, message) {
-  try {
-    await addDoc(collection(firestore, 'notifications'), {
-      userId,
-      title,
-      message,
-      link: '/dashboard/costs', // Link to the costs page
-      isRead: false,
-      createdAt: serverTimestamp(),
-      source: 'costs_budget'
-    });
-  } catch (error) {
-    console.error("Error creating budget notification:", error);
-  }
-}
 
 export default function CostsPageWrapper() {
   return (
@@ -335,6 +236,55 @@ function CostsPage() {
     { bg: 'bg-[#006666]', text: 'text-white' },
     { bg: 'bg-[#004c4c]', text: 'text-white' }
   ];
+
+  // Helper function to safely convert various date formats to Date objects
+  function toDateObj(date) {
+    if (!date) return new Date();
+    if (date.toDate) return date.toDate(); // Firestore Timestamp
+    if (date instanceof Date) return date;
+    return new Date(date); // String or other formats
+  }
+
+  // Helper function to get translated expense type names
+  function getTranslatedExpenseTypeName(expenseType, t) {
+    if (!expenseType) return 'N/A';
+    const name = expenseType.name || expenseType;
+    if (!name) return 'N/A';
+    
+    // First try the direct masterData translation key pattern
+    const key = name.replace(/\s+/g, '_').toLowerCase();
+    const translated = t(`masterData.expenses.types.${key}`, '');
+    if (translated) return translated;
+    
+    // Also try camelCase version
+    const camelKey = name.replace(/\s+/g, '');
+    const camelTranslated = t(`masterData.expenses.types.${camelKey}`, '');
+    if (camelTranslated) return camelTranslated;
+    
+    // Fallback to the original name
+    return name;
+  }
+
+  // Helper function to get translated activity type names  
+  function getTranslatedActivityTypeName(activityType, t) {
+    if (!activityType) return 'N/A';
+    const name = activityType.name || activityType;
+    if (!name) return 'N/A';
+    
+    // First try the direct masterData translation key pattern
+    const key = name.replace(/\s+/g, '_').toLowerCase();
+    const translated = t(`masterData.activities.types.${key}`, '');
+    if (translated) return translated;
+    
+    // Also try without spaces in lowercase
+    const noSpaceKey = name.replace(/\s+/g, '').toLowerCase();
+    const noSpaceTranslated = t(`masterData.activities.types.${noSpaceKey}`, '');
+    if (noSpaceTranslated) return noSpaceTranslated;
+    
+    // Fallback to the original name
+    return name;
+  }
+
   function getTealColorIdx(str) {
     if (!str) return 0;
     let hash = 0;
@@ -395,90 +345,7 @@ function CostsPage() {
     cacheTime: 30 * 60 * 1000 // 30 minutes
   });
 
-  // Add state to track notified budget overruns
-  const [notifiedBudgets, setNotifiedBudgets] = useState(new Set());
 
-  // Add a useEffect for budget checking
-  useEffect(() => {
-    // Only run if we have the necessary data
-    if (!costs?.length || !expenseTypes?.length) return;
-
-    // 1. Get current month's expenses
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const currentMonthCosts = costs.filter(cost => {
-      const costDate = cost.date?.toDate ? cost.date.toDate() : new Date(cost.date);
-      return costDate.getMonth() === currentMonth && costDate.getFullYear() === currentYear;
-    });
-
-    if (!currentMonthCosts.length) return;
-
-    // 2. Group expenses by type and sum totals
-    const expenseTotals = currentMonthCosts.reduce((acc, cost) => {
-      const typeId = cost.expenseTypeId;
-      if (!acc[typeId]) {
-        acc[typeId] = { totalFC: 0, totalUSD: 0 };
-      }
-      acc[typeId].totalFC += cost.amountFC || 0;
-      acc[typeId].totalUSD += cost.amountUSD || 0;
-      return acc;
-    }, {});
-
-    // 3. Check budget for each type
-    const checkBudgets = async () => {
-      const adminUsers = (await userService.getAllUsers()).filter(u => u.role === 'admin' && u.uid);
-      if (!adminUsers.length) return;
-      
-      const exchangeRate = await ExchangeRateService.getRateForDate(new Date());
-
-      for (const expenseTypeId in expenseTotals) {
-        const expenseType = expenseTypeMap.get(expenseTypeId);
-        const budget = expenseType?.budget ? Number(expenseType.budget) : null;
-
-        if (budget !== null && expenseTotals[expenseTypeId].totalUSD > budget) {
-          // Budget exceeded, check if already notified
-          if (!notifiedBudgets.has(expenseTypeId)) {
-            const overrunUSD = expenseTotals[expenseTypeId].totalUSD - budget;
-            const overrunCDF = overrunUSD * exchangeRate;
-            const expenseTypeName = getTranslatedExpenseTypeName(expenseType, t);
-
-            const title = t('notifications.budgetExceeded.title');
-            const message = t('notifications.budgetExceeded.message', {
-              expenseType: expenseTypeName,
-              overrunUSD: overrunUSD.toFixed(2),
-              overrunCDF: overrunCDF.toLocaleString('fr-CD', { minimumFractionDigits: 0 })
-            });
-
-            // Create notification for all admins
-            adminUsers.forEach(admin => {
-              createBudgetNotification(admin.uid, title, message);
-            });
-            
-            // Mark as notified to prevent spam
-            setNotifiedBudgets(prev => new Set(prev).add(expenseTypeId));
-          }
-        }
-      }
-    };
-
-    checkBudgets();
-
-  }, [costs, expenseTypes, expenseTypeMap, t, notifiedBudgets]);
-
-  // Add filteredProducts for the product filter dropdown
-  const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    // Get unique products by id
-    const seen = new Set();
-    return products.filter(product => {
-      if (!product || !product.id) return false;
-      if (seen.has(product.id)) return false;
-      seen.add(product.id);
-      return true;
-    });
-  }, [products]);
 
   // Compute available years for the records filter bar (from costs data)
   const availableRecordYears = useMemo(() => {
@@ -750,6 +617,18 @@ function CostsPage() {
       console.log('USD Amount:', c.amountUSD, typeof c.amountUSD);
     });
   }, [filteredCosts]);
+
+  // Default chart data structure
+  const defaultChartData = {
+    byType: {
+      series: [],
+      labels: []
+    },
+    byActivity: {
+      series: [],
+      labels: []
+    }
+  };
 
   // Update chart options with translations
   const chartOptions = useMemo(() => ({
@@ -1351,7 +1230,7 @@ function CostsPage() {
                   <TableHeader label="amountFC" align="right" className="text-white" />
                   <TableHeader label="amountUSD" align="right" className="text-white" />
                   <TableHeader label="budget" align="right" className="text-white" />
-                  <TableHeader label="Percentage" align="right" className="text-white" />
+                  <TableHeader label={t('costs.percentage', 'Pourcentage')} align="right" className="text-white" />
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-[#004c4c]/50">
@@ -1455,16 +1334,19 @@ function CostsPage() {
                             tickAmount: 6,
                             min: 0
                           },
-                          xaxis: {
-                            type: 'datetime',
-                            labels: {
-                              formatter: (val) => {
-                                const d = new Date(Number(val));
-                                return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-                              },
-                              style: { fontSize: '12px', colors: '#64748b' }
-                            }
-                          },
+                                                  dataLabels: {
+                          enabled: false
+                        },
+                        xaxis: {
+                          type: 'datetime',
+                          labels: {
+                            formatter: (val) => {
+                              const d = new Date(Number(val));
+                              return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                            },
+                            style: { fontSize: '12px', colors: '#64748b' }
+                          }
+                        },
                           tooltip: {
                             y: {
                               formatter: (val) => val % 1 === 0 ? val.toFixed(0) : val.toFixed(2)
@@ -1525,7 +1407,7 @@ function CostsPage() {
                         colors: ['transparent']
                       },
                       xaxis: {
-                        categories: costsByType.categories.map(cat => getTranslatedExpenseTypeName({ name: cat }, t)),
+                        categories: costsByType.categories,
                         labels: {
                           style: {
                             colors: '#64748b',

@@ -13,7 +13,7 @@ export const getProductWithActivity = (
   activityTypeMap: Map<string, ActivityType>
 ): { product: Product | null; activityType: ActivityType | null } => {
   const product = productMap.get(productId) || null;
-  const activityType = product?.activitytypeid ? activityTypeMap.get(product.activitytypeid) : null;
+  const activityType = product?.activitytypeid ? (activityTypeMap.get(product.activitytypeid) || null) : null;
   return { product, activityType };
 };
 
@@ -25,7 +25,7 @@ export const getExpenseTypeWithBudget = (
   const expenseType = expenseTypeMap.get(expenseTypeId) || null;
   return {
     expenseType,
-    hasBudget: expenseType?.budgetCode !== undefined && expenseType.budgetCode > 0
+    hasBudget: (expenseType as any)?.budgetCode !== undefined && (expenseType as any).budgetCode > 0
   };
 };
 
@@ -69,7 +69,7 @@ export const getExpenseTypesByCategory = (
   expenseTypeMap: Map<string, ExpenseType>
 ): ExpenseType[] => {
   return Array.from(expenseTypeMap.values()).filter(e => 
-    e.category?.toLowerCase() === category.toLowerCase()
+    (e as any).category?.toLowerCase() === category.toLowerCase()
   );
 };
 
@@ -113,8 +113,8 @@ export function validateRelationships(
   // Check if all expense types have valid categories
   const validCategories = ['operational', 'administrative', 'maintenance', 'other'];
   expenseTypes.forEach(expense => {
-    if (expense.category && !validCategories.includes(expense.category.toLowerCase())) {
-      errors.push(`Expense type ${expense.name} has invalid category ${expense.category}`);
+    if ((expense as any).category && !validCategories.includes((expense as any).category.toLowerCase())) {
+      errors.push(`Expense type ${expense.name} has invalid category ${(expense as any).category}`);
     }
   });
 
