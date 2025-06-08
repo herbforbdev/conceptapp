@@ -163,8 +163,23 @@ export interface User {
   email: string;
   role: 'admin' | 'manager' | 'user';
   active: boolean;
+  invited: boolean;
   photoURL?: string;
   lastActive?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  invitedBy?: string;
+  invitedAt?: Date;
+}
+
+export interface AccessRequest {
+  id: string;
+  email: string;
+  displayName: string;
+  message?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: Date;
+  reviewedBy?: string;
+  reviewedAt?: Date;
+  createdAt?: Date;
 } 
