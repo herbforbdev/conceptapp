@@ -1,320 +1,1189 @@
 "use client";
 
-import { Card, Table, Button, Modal, Label, TextInput, Select } from "flowbite-react";
+import { Card, Table, Button, Modal, Label, TextInput, Select, Alert, Badge, Tabs } from "flowbite-react";
 import { useState, useEffect } from "react";
 import { useFirestoreCollection } from "../../../../hooks/useFirestoreCollection";
-import { HiOutlinePencilAlt, HiOutlineTrash, HiPlus, HiCheck, HiX } from "react-icons/hi";
+import { HiOutlinePencilAlt, HiOutlineTrash, HiPlus, HiCheck, HiX, HiMail, HiClock, HiShieldCheck, HiUserAdd, HiEye, HiRefresh, HiSearch, HiDownload, HiUsers, HiLogin, HiLogout, HiInformationCircle } from "react-icons/hi";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/firestore/userService";
+import { motion } from "framer-motion";
 
 export default function UsersPage() {
-  const { data: users, loading } = useFirestoreCollection("Users");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user: currentUser } = useAuth();
+  const { data: users, loading: usersLoading, refetch: refetchUsers } = useFirestoreCollection("Users");
+  const [accessRequests, setAccessRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+  
+  // Modal states
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [newUser, setNewUser] = useState({ displayName: '', email: '', role: 'user', active: true });
-  const [editUserId, setEditUserId] = useState(null);
-  const [editUserData, setEditUserData] = useState({});
+  
+  // Form states
+  const [inviteForm, setInviteForm] = useState({ email: '', displayName: '', role: 'user' });
+  const [editForm, setEditForm] = useState({ role: 'user', active: true });
+  
+  // Loading states
   const [actionLoading, setActionLoading] = useState(false);
-  const [usersList, setUsersList] = useState(users || []);
+  const [result, setResult] = useState(null);
+
+  // Phase 3: Enhanced search and filtering
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    role: '',
+    active: '',
+    company: '',
+    department: ''
+  });
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  
+  // Phase 3: Bulk operations
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [bulkAction, setBulkAction] = useState('');
+  const [bulkUpdateData, setBulkUpdateData] = useState({
+    role: '',
+    active: true,
+    company: '',
+    department: ''
+  });
+
+  // Phase 3: User activities
+  const [showUserActivities, setShowUserActivities] = useState(false);
+  const [selectedUserActivities, setSelectedUserActivities] = useState([]);
+  const [selectedUserForActivities, setSelectedUserForActivities] = useState(null);
 
   const roles = [
-    { id: "admin", name: "Administrator" },
-    { id: "manager", name: "Manager" },
-    { id: "user", name: "Standard User" }
+    { id: "admin", name: "Administrateur" },
+    { id: "manager", name: "Gestionnaire" },
+    { id: "user", name: "Utilisateur Standard" }
   ];
 
   const { t: rawT } = useLanguage?.() || { t: (x) => x };
   const t = (key) => {
     const value = rawT(key);
     if (typeof value === 'string' || typeof value === 'number') return value;
-    if (typeof value === 'object' && value !== null) {
-      if (process.env.NODE_ENV !== 'production') {
-        // eslint-disable-next-line no-console
-        console.warn(`Translation key '${key}' returned an object. Check your translation files for nested keys or missing leaf values.`);
-      }
-      return '';
-    }
     return '';
   };
 
-  // Fetch users on mount or after actions
+  // Check admin access
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Fetch access requests
   useEffect(() => {
-    if (users) {
-      setUsersList(
-        users.map(u => {
-          // If u.data is a function, it's a DocumentSnapshot; otherwise, it's a plain object
-          const d = typeof u.data === 'function' ? u.data() : u;
-          return {
-            id: u.id || d.id, // fallback to d.id if needed
-            displayName: d.displayName || d.name || '',
-            email: d.email || '',
-            role: d.role || 'user',
-            active: typeof d.active === 'boolean' ? d.active : false,
-            photoURL: d.photoURL || '',
-            lastActive: d.lastActive,
-            createdAt: d.createdAt,
-            updatedAt: d.updatedAt,
-          };
-        })
+    const fetchAccessRequests = async () => {
+      if (!isAdmin) return;
+      
+      try {
+        const requests = await userService.getAccessRequests();
+        setAccessRequests(requests);
+      } catch (error) {
+        console.error('Error fetching access requests:', error);
+      } finally {
+        setLoadingRequests(false);
+      }
+    };
+
+    fetchAccessRequests();
+  }, [isAdmin]);
+
+  // Phase 3: Filter users based on search and filters
+  useEffect(() => {
+    if (!users) return;
+    
+    let filtered = users.map(user => {
+      const userData = typeof user.data === 'function' ? user.data() : user;
+      return { ...userData, id: user.id || userData.id };
+    });
+
+    // Apply text search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(user => 
+        user.email?.toLowerCase().includes(term) ||
+        user.displayName?.toLowerCase().includes(term) ||
+        user.company?.toLowerCase().includes(term) ||
+        user.department?.toLowerCase().includes(term)
       );
     }
-  }, [users]);
 
-  // Add user (manual)
-  const handleAddUser = async () => {
-    setActionLoading(true);
-    await userService.addUser(newUser);
-    setNewUser({ displayName: '', email: '', role: 'user', active: true });
-    setActionLoading(false);
-  };
+    // Apply filters
+    if (filters.role) {
+      filtered = filtered.filter(user => user.role === filters.role);
+    }
+    if (filters.active !== '') {
+      filtered = filtered.filter(user => user.active === (filters.active === 'true'));
+    }
+    if (filters.company) {
+      filtered = filtered.filter(user => user.company === filters.company);
+    }
+    if (filters.department) {
+      filtered = filtered.filter(user => user.department === filters.department);
+    }
 
-  // Edit user
-  const handleSaveEditUser = async () => {
-    setActionLoading(true);
-    await userService.updateUser(editUserId, editUserData);
-    setEditUserId(null);
-    setEditUserData({});
-    setActionLoading(false);
-  };
+    setFilteredUsers(filtered);
+  }, [users, searchTerm, filters]);
 
-  // Delete user
-  const handleDeleteUserDb = async (userId) => {
-    setActionLoading(true);
-    await userService.deleteUser(userId);
-    setActionLoading(false);
-  };
+  // Get unique companies and departments for filter dropdowns
+  const companies = [...new Set(users?.map(user => {
+    const userData = typeof user.data === 'function' ? user.data() : user;
+    return userData.company;
+  }).filter(Boolean))];
+  
+  const departments = [...new Set(users?.map(user => {
+    const userData = typeof user.data === 'function' ? user.data() : user;
+    return userData.department;
+  }).filter(Boolean))];
 
-  // Invite user
-  const handleInviteUserDb = async (email, displayName) => {
-    setActionLoading(true);
-    await userService.inviteUser(email, displayName);
-    setIsModalOpen(false);
-    setSelectedUser(null);
-    setActionLoading(false);
-  };
-
-  const handleInviteUser = () => {
-    // Implement user invitation logic
-    setIsModalOpen(true);
-  };
-
-  const handleEditUser = (user) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
-
-  const handleDeleteUser = (userId) => {
-    if (confirm("Are you sure you want to delete this user?")) {
-      // Implement user deletion logic
+  // Phase 3: Bulk operations
+  const handleSelectUser = (userId, checked) => {
+    if (checked) {
+      setSelectedUserIds(prev => [...prev, userId]);
+    } else {
+      setSelectedUserIds(prev => prev.filter(id => id !== userId));
     }
   };
 
-  // Debug: Log users and usersList before rendering
-  console.log('users:', users);
-  console.log('usersList:', usersList);
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedUserIds(filteredUsers.map(user => user.id));
+    } else {
+      setSelectedUserIds([]);
+    }
+  };
+
+  const handleBulkOperation = async () => {
+    if (!selectedUserIds.length || !bulkAction) return;
+
+    setActionLoading(true);
+    setResult(null);
+
+    try {
+      switch (bulkAction) {
+        case 'update_role':
+          await userService.bulkUpdateUsers(
+            selectedUserIds, 
+            { role: bulkUpdateData.role },
+            currentUser?.id
+          );
+          break;
+        case 'update_status':
+          await userService.bulkUpdateUsers(
+            selectedUserIds, 
+            { active: bulkUpdateData.active },
+            currentUser?.id
+          );
+          break;
+        case 'update_company':
+          await userService.bulkUpdateUsers(
+            selectedUserIds, 
+            { company: bulkUpdateData.company },
+            currentUser?.id
+          );
+          break;
+        case 'update_department':
+          await userService.bulkUpdateUsers(
+            selectedUserIds, 
+            { department: bulkUpdateData.department },
+            currentUser?.id
+          );
+          break;
+      }
+
+      setResult({
+        type: 'success',
+        message: `${selectedUserIds.length} utilisateurs mis à jour avec succès!`
+      });
+
+      setSelectedUserIds([]);
+      setBulkAction('');
+      setIsBulkModalOpen(false);
+      refetchUsers();
+
+    } catch (error) {
+      console.error('Error performing bulk operation:', error);
+      setResult({
+        type: 'error',
+        message: 'Erreur lors de l\'opération en lot.'
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Phase 3: Export users
+  const handleExportUsers = async () => {
+    try {
+      const exportData = await userService.exportUsers();
+      const csv = convertToCSV(exportData);
+      downloadCSV(csv, 'users-export.csv');
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      setResult({
+        type: 'error',
+        message: 'Erreur lors de l\'exportation des utilisateurs.'
+      });
+    }
+  };
+
+  // Phase 3: View user activities
+  const handleViewUserActivities = async (user) => {
+    setSelectedUserForActivities(user);
+    try {
+      const activities = await userService.getUserActivities(user.id, 50);
+      setSelectedUserActivities(activities);
+      setShowUserActivities(true);
+    } catch (error) {
+      console.error('Error loading user activities:', error);
+      setResult({
+        type: 'error',
+        message: 'Erreur lors du chargement des activités utilisateur.'
+      });
+    }
+  };
+
+  // Utility functions
+  const convertToCSV = (data) => {
+    const headers = Object.keys(data[0]).join(',');
+    const rows = data.map(row => Object.values(row).join(','));
+    return [headers, ...rows].join('\n');
+  };
+
+  const downloadCSV = (csv, filename) => {
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return 'Jamais';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return new Intl.DateTimeFormat('fr-FR', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(date);
+  };
+
+  // Handle invite user
+  const handleInviteUser = async (e) => {
+    e.preventDefault();
+    setActionLoading(true);
+    setResult(null);
+
+    try {
+      // Check if user already exists
+      const { user: existingUser } = await userService.isUserAuthorized(inviteForm.email);
+      
+      if (existingUser) {
+        setResult({
+          type: 'error',
+          message: 'Un utilisateur avec cette adresse email existe déjà.'
+        });
+        setActionLoading(false);
+        return;
+      }
+
+      // Create invitation
+      await userService.inviteUser(
+        inviteForm.email,
+        inviteForm.displayName,
+        currentUser?.id
+      );
+
+      setResult({
+        type: 'success',
+        message: 'Invitation envoyée avec succès!'
+      });
+
+      // Reset form and close modal
+      setInviteForm({ email: '', displayName: '', role: 'user' });
+      setIsInviteModalOpen(false);
+      
+      // Refresh data
+      setTimeout(() => {
+        refetchUsers();
+        setResult(null);
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      setResult({
+        type: 'error',
+        message: 'Erreur lors de l\'envoi de l\'invitation.'
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle edit user
+  const handleEditUser = async (e) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+
+    setActionLoading(true);
+    setResult(null);
+
+    try {
+      await userService.updateUser(selectedUser.id, {
+        role: editForm.role,
+        active: editForm.active
+      });
+
+      setResult({
+        type: 'success',
+        message: 'Utilisateur mis à jour avec succès!'
+      });
+
+      setIsEditModalOpen(false);
+      setSelectedUser(null);
+      
+      // Refresh data
+      setTimeout(() => {
+        refetchUsers();
+        setResult(null);
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error updating user:', error);
+      setResult({
+        type: 'error',
+        message: 'Erreur lors de la mise à jour de l\'utilisateur.'
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle delete user
+  const handleDeleteUser = async (userId) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?')) return;
+
+    setActionLoading(true);
+    setResult(null);
+
+    try {
+      await userService.deleteUser(userId);
+      setResult({
+        type: 'success',
+        message: 'Utilisateur supprimé avec succès!'
+      });
+      
+      setTimeout(() => {
+        refetchUsers();
+        setResult(null);
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setResult({
+        type: 'error',
+        message: 'Erreur lors de la suppression de l\'utilisateur.'
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle access request approval/rejection
+  const handleAccessRequest = async (requestId, action, requestEmail, requestName) => {
+    setActionLoading(true);
+    setResult(null);
+
+    try {
+      if (action === 'approved') {
+        // Create user account
+        await userService.inviteUser(requestEmail, requestName, currentUser?.id);
+      }
+      
+      // Update request status
+      await userService.updateAccessRequest(requestId, action, currentUser?.id);
+
+      setResult({
+        type: 'success',
+        message: `Demande ${action === 'approved' ? 'approuvée' : 'rejetée'} avec succès!`
+      });
+
+      // Refresh access requests
+      const requests = await userService.getAccessRequests();
+      setAccessRequests(requests);
+      
+      if (action === 'approved') {
+        refetchUsers();
+      }
+
+      setTimeout(() => setResult(null), 3000);
+
+    } catch (error) {
+      console.error('Error handling access request:', error);
+      setResult({
+        type: 'error',
+        message: 'Erreur lors du traitement de la demande.'
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Open edit modal
+  const openEditModal = (user) => {
+    setSelectedUser(user);
+    setEditForm({
+      role: user.role || 'user',
+      active: user.active !== undefined ? user.active : true
+    });
+    setIsEditModalOpen(true);
+  };
+
+  // Get role badge color
+  const getRoleBadgeColor = (role) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
+      case 'manager': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  // Get status badge color
+  const getStatusBadgeColor = (active) => {
+    return active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  };
+
+  if (!isAdmin) {
+    return (
+      <div className="p-6">
+        <Alert color="warning" icon={HiShieldCheck}>
+          <span className="font-medium">Accès refusé!</span> Vous devez être administrateur pour accéder à cette page.
+        </Alert>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <div className="mb-4">
-        <a href="/dashboard/settings" className="inline-block bg-[#385e82] text-white rounded px-4 py-2 hover:bg-[#052c4f] transition">
-          {t('settings.Back')}
-        </a>
-      </div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{t('settings.Users & Roles')}</h1>
-        <Button onClick={handleInviteUser} className="bg-[#385e82] text-white hover:bg-[#052c4f] border-none">
-          <HiPlus className="mr-2 h-5 w-5" />
-          {t('settings.Invite User')}
-        </Button>
-      </div>
-
-      {/* Role Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {roles.map((role) => (
-          <Card key={role.id}>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">{t('settings.' + role.name)}</h3>
-              <p className="text-2xl font-bold text-blue-600">
-                {users?.filter(user => user.role === role.id).length || 0}
-              </p>
-              <p className="text-gray-600">{t('settings.Users')}</p>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Users Table */}
-      <Card className="mt-4 bg-gradient-to-br from-[#385e82]/10 to-[#031b31]/5 border border-[#385e82] shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left rounded-2xl overflow-hidden shadow-md">
-            <thead className="bg-[#031b31] text-white">
-              <tr>
-                <th className="px-4 py-3">{t('settings.User')}</th>
-                <th className="px-4 py-3">{t('settings.Email')}</th>
-                <th className="px-4 py-3">{t('settings.Role')}</th>
-                <th className="px-4 py-3">{t('settings.Status')}</th>
-                <th className="px-4 py-3">{t('settings.Created At')}</th>
-                <th className="px-4 py-3">{t('settings.Updated At')}</th>
-                <th className="px-4 py-3">{t('settings.Actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Add New User Row */}
-              <tr className="bg-white">
-                <td className="px-4 py-2">
-                  <input
-                    value={newUser.displayName}
-                    onChange={e => setNewUser({ ...newUser, displayName: e.target.value })}
-                    placeholder={t('settings.Full Name')}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
-                  />
-                </td>
-                <td className="px-4 py-2">
-                  <input
-                    value={newUser.email}
-                    onChange={e => setNewUser({ ...newUser, email: e.target.value })}
-                    placeholder={t('settings.Email')}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
-                  />
-                </td>
-                <td className="px-4 py-2">
-                  <select
-                    value={newUser.role}
-                    onChange={e => setNewUser({ ...newUser, role: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
-                  >
-                    {roles.map(role => (
-                      <option key={role.id} value={role.id}>{t('settings.' + role.name)}</option>
-                    ))}
-                  </select>
-                </td>
-                <td className="px-4 py-2">
-                  <select
-                    value={newUser.active ? 'active' : 'inactive'}
-                    onChange={e => setNewUser({ ...newUser, active: e.target.value === 'active' })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
-                  >
-                    <option value="active">{t('settings.Active')}</option>
-                    <option value="inactive">{t('settings.Inactive')}</option>
-                  </select>
-                </td>
-                <td className="px-4 py-2">-</td>
-                <td className="px-4 py-2">-</td>
-                <td className="px-4 py-2 text-center">
-                  <div className="flex space-x-2 justify-center">
-                    <button onClick={handleAddUser} disabled={actionLoading} className="bg-[#385e82] text-white rounded-lg w-9 h-9 flex items-center justify-center hover:bg-[#052c4f] transition disabled:opacity-50" title={t('settings.Add User')}>
-                      <HiPlus className="w-5 h-5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {/* Existing Users Rows */}
-              {(loading || actionLoading) ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-4">
-                    {actionLoading ? t('settings.Saving…') : t('settings.Loading…')}
-                  </td>
-                </tr>
-              ) : usersList.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-4">
-                    {t('settings.No Users Found')}
-                  </td>
-                </tr>
-              ) : (
-                usersList.map((user, idx) => (
-                  <tr key={user.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#f4f7fa]'}>
-                    <td className="px-4 py-2 font-medium">{user.displayName}</td>
-                    <td className="px-4 py-2">{user.email}</td>
-                    <td className="px-4 py-2">
-                      <span className={
-                        'inline-block px-3 py-1 rounded-full text-xs font-semibold ' +
-                        (user.role === 'admin'
-                          ? 'bg-blue-700 text-white'
-                          : user.role === 'manager'
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-300 text-[#031b31]')
-                      }>
-                        {t('settings.' + (roles.find(r => r.id === user.role)?.name || user.role))}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2">
-                      <span className={
-                        'inline-block px-3 py-1 rounded-full text-xs font-semibold ' +
-                        (user.active
-                          ? 'bg-green-100 text-green-800 border border-green-300'
-                          : 'bg-red-100 text-red-800 border border-red-300')
-                      }>
-                        {user.active ? t('settings.Active') : t('settings.Inactive')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2">
-                      {user.createdAt && user.createdAt.toDate ? user.createdAt.toDate().toLocaleString() : '-'}
-                    </td>
-                    <td className="px-4 py-2">
-                      {user.updatedAt && user.updatedAt.toDate ? user.updatedAt.toDate().toLocaleString() : '-'}
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <div className="flex space-x-2 justify-center">
-                        <button onClick={() => { setEditUserId(user.id); setEditUserData(user); }} className="bg-[#385e82] text-white rounded-lg w-9 h-9 flex items-center justify-center hover:bg-[#052c4f] transition" title={t('settings.Edit User')}>
-                          <HiOutlinePencilAlt className="w-5 h-5" />
-                        </button>
-                        <button onClick={() => handleDeleteUserDb(user.id)} disabled={actionLoading} className="bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center hover:bg-red-800 transition disabled:opacity-50" title={t('settings.Delete User')}>
-                          <HiOutlineTrash className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+          <p className="text-gray-600">Gérer les utilisateurs et les demandes d'accès</p>
         </div>
-      </Card>
+        <div className="flex gap-3">
+          <Button
+            onClick={handleExportUsers}
+            color="gray"
+            size="sm"
+          >
+            <HiDownload className="h-4 w-4 mr-2" />
+            Exporter
+          </Button>
+          <Button
+            onClick={() => {
+              refetchUsers();
+              const fetchRequests = async () => {
+                const requests = await userService.getAccessRequests();
+                setAccessRequests(requests);
+              };
+              fetchRequests();
+            }}
+            color="gray"
+            size="sm"
+          >
+            <HiRefresh className="h-4 w-4 mr-2" />
+            Actualiser
+          </Button>
+          <Button
+            onClick={() => setIsInviteModalOpen(true)}
+            size="sm"
+          >
+            <HiUserAdd className="h-4 w-4 mr-2" />
+            Inviter un utilisateur
+          </Button>
+        </div>
+      </div>
 
-      {/* User Modal */}
-      <Modal show={isModalOpen} onClose={() => {
-        setIsModalOpen(false);
-        setSelectedUser(null);
-      }}>
-        <Modal.Header>
-          {selectedUser ? t('settings.Edit User') : t('settings.Invite New User')}
-        </Modal.Header>
-        <Modal.Body>
-          <div className="mb-4 p-3 rounded-lg bg-gradient-to-r from-[#385e82]/10 to-[#b4c3d0]/10 border border-[#385e82]">
-            <p className="font-semibold text-[#385e82] mb-2">{t('settings.Invite User')}</p>
-            <p className="text-sm text-[#385e82]">{t('settings.Send an invitation to a new user by email. They will receive a link to join and set up their account.')}</p>
-          </div>
-          <form className="space-y-4">
-            <div>
-              <Label htmlFor="email">{t('settings.Email')}</Label>
-              <TextInput
-                id="email"
-                type="email"
-                placeholder="user@example.com"
-                defaultValue={selectedUser?.email}
-                required
-              />
+      {/* Result Alert */}
+      {result && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Alert
+            color={result.type === 'success' ? 'success' : 'failure'}
+            onDismiss={() => setResult(null)}
+          >
+            <span className="font-medium">{result.message}</span>
+          </Alert>
+        </motion.div>
+      )}
+
+      {/* Search and Filters */}
+      <Card>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Recherche et Filtres</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Search */}
+            <div className="lg:col-span-2">
+              <Label htmlFor="search" value="Rechercher" />
+              <div className="relative">
+                <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <TextInput
+                  id="search"
+                  placeholder="Rechercher par nom, email, entreprise..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
+
+            {/* Role Filter */}
             <div>
-              <Label htmlFor="role">{t('settings.Role')}</Label>
-              <Select id="role" defaultValue={selectedUser?.role}>
-                {roles.map((role) => (
+              <Label htmlFor="roleFilter" value="Rôle" />
+              <Select
+                id="roleFilter"
+                value={filters.role}
+                onChange={(e) => setFilters(prev => ({ ...prev, role: e.target.value }))}
+              >
+                <option value="">Tous les rôles</option>
+                {roles.map(role => (
                   <option key={role.id} value={role.id}>
-                    {t('settings.' + role.name)}
+                    {role.name}
                   </option>
                 ))}
               </Select>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button type="submit" className="bg-[#385e82] text-white hover:bg-[#052c4f] border-none" onClick={async (e) => { e.preventDefault(); await handleInviteUserDb(document.getElementById('email').value, document.getElementById('displayName')?.value); }} disabled={actionLoading}>
-                {selectedUser ? t('settings.Update User') : t('settings.Send Invitation')}
+
+            {/* Status Filter */}
+            <div>
+              <Label htmlFor="statusFilter" value="Statut" />
+              <Select
+                id="statusFilter"
+                value={filters.active}
+                onChange={(e) => setFilters(prev => ({ ...prev, active: e.target.value }))}
+              >
+                <option value="">Tous les statuts</option>
+                <option value="true">Actif</option>
+                <option value="false">Inactif</option>
+              </Select>
+            </div>
+
+            {/* Company Filter */}
+            <div>
+              <Label htmlFor="companyFilter" value="Entreprise" />
+              <Select
+                id="companyFilter"
+                value={filters.company}
+                onChange={(e) => setFilters(prev => ({ ...prev, company: e.target.value }))}
+              >
+                <option value="">Toutes les entreprises</option>
+                {companies.map(company => (
+                  <option key={company} value={company}>
+                    {company}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+
+          {/* Active filters display */}
+          {(searchTerm || Object.values(filters).some(f => f)) && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-600">Filtres actifs:</span>
+              {searchTerm && (
+                <Badge color="blue">
+                  Recherche: {searchTerm}
+                </Badge>
+              )}
+              {filters.role && (
+                <Badge color="purple">
+                  Rôle: {roles.find(r => r.id === filters.role)?.name}
+                </Badge>
+              )}
+              {filters.active && (
+                <Badge color="green">
+                  Statut: {filters.active === 'true' ? 'Actif' : 'Inactif'}
+                </Badge>
+              )}
+              {filters.company && (
+                <Badge color="yellow">
+                  Entreprise: {filters.company}
+                </Badge>
+              )}
+              <Button
+                size="xs"
+                color="gray"
+                onClick={() => {
+                  setSearchTerm('');
+                  setFilters({ role: '', active: '', company: '', department: '' });
+                }}
+              >
+                Effacer les filtres
               </Button>
-              <Button color="gray" onClick={() => setIsModalOpen(false)}>
-                {t('settings.Cancel')}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Bulk Operations */}
+      {selectedUserIds.length > 0 && (
+        <Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="font-medium">{selectedUserIds.length} utilisateur(s) sélectionné(s)</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => setIsBulkModalOpen(true)}
+              >
+                <HiUsers className="h-4 w-4 mr-2" />
+                Actions en lot
+              </Button>
+              <Button
+                size="sm"
+                color="gray"
+                onClick={() => setSelectedUserIds([])}
+              >
+                Désélectionner tout
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Users Table */}
+      <Tabs>
+        <Tabs.Item
+          active
+          title={
+            <span className="flex items-center gap-2">
+              <HiShieldCheck className="h-4 w-4" />
+              Utilisateurs ({filteredUsers.length})
+            </span>
+          }
+        >
+          <Card>
+            <div className="overflow-x-auto">
+              <Table hoverable>
+                <Table.Head>
+                  <Table.HeadCell>
+                    <input
+                      type="checkbox"
+                      checked={selectedUserIds.length === filteredUsers.length && filteredUsers.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                  </Table.HeadCell>
+                  <Table.HeadCell>Utilisateur</Table.HeadCell>
+                  <Table.HeadCell>Email</Table.HeadCell>
+                  <Table.HeadCell>Rôle</Table.HeadCell>
+                  <Table.HeadCell>Statut</Table.HeadCell>
+                  <Table.HeadCell>Entreprise</Table.HeadCell>
+                  <Table.HeadCell>Dernière connexion</Table.HeadCell>
+                  <Table.HeadCell>Actions</Table.HeadCell>
+                </Table.Head>
+                <Table.Body>
+                  {usersLoading ? (
+                    <Table.Row>
+                      <Table.Cell colSpan={8} className="text-center py-8">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          Chargement...
+                        </div>
+                      </Table.Cell>
+                    </Table.Row>
+                  ) : filteredUsers.length === 0 ? (
+                    <Table.Row>
+                      <Table.Cell colSpan={8} className="text-center py-8 text-gray-500">
+                        Aucun utilisateur trouvé
+                      </Table.Cell>
+                    </Table.Row>
+                  ) :
+                    filteredUsers.map((user) => (
+                      <Table.Row key={user.id} className="bg-white">
+                        <Table.Cell>
+                          <input
+                            type="checkbox"
+                            checked={selectedUserIds.includes(user.id)}
+                            onChange={(e) => handleSelectUser(user.id, e.target.checked)}
+                            className="rounded border-gray-300"
+                          />
+                        </Table.Cell>
+                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                              {user.photoURL ? (
+                                <img
+                                  src={user.photoURL}
+                                  alt={user.displayName}
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-sm font-medium text-gray-600">
+                                  {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {user.displayName || 'Nom non défini'}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {user.invited ? 'Invité' : 'Inscrit'}
+                              </div>
+                            </div>
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>{user.email}</Table.Cell>
+                        <Table.Cell>
+                          <Badge className={getRoleBadgeColor(user.role)}>
+                            {roles.find(r => r.id === user.role)?.name || user.role}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Badge color={user.active ? 'success' : 'failure'}>
+                            {user.active ? 'Actif' : 'Inactif'}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell>
+                          {user.company || '-'}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <div className="text-sm">
+                            {formatTimestamp(user.lastLoginAt)}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {user.totalLogins || 0} connexions
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="xs"
+                              color="gray"
+                              onClick={() => handleViewUserActivities(user)}
+                              title="Voir l'activité"
+                            >
+                              <HiClock className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="xs"
+                              color="gray"
+                              onClick={() => openEditModal(user)}
+                              title="Modifier"
+                            >
+                              <HiOutlinePencilAlt className="h-3 w-3" />
+                            </Button>
+                            {user.role !== 'admin' && (
+                              <Button
+                                size="xs"
+                                color="failure"
+                                onClick={() => handleDeleteUser(user.id)}
+                                disabled={actionLoading}
+                                title="Supprimer"
+                              >
+                                <HiOutlineTrash className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))
+                  )}
+                </Table.Body>
+              </Table>
+            </div>
+          </Card>
+        </Tabs.Item>
+
+        {/* Access Requests Tab */}
+        <Tabs.Item
+          title={
+            <span className="flex items-center gap-2">
+              <HiMail className="h-4 w-4" />
+              Demandes d'accès ({accessRequests.filter(r => r.status === 'pending').length})
+            </span>
+          }
+        >
+          <Card>
+            <div className="overflow-x-auto">
+              <Table hoverable>
+                <Table.Head>
+                  <Table.HeadCell>Demandeur</Table.HeadCell>
+                  <Table.HeadCell>Email</Table.HeadCell>
+                  <Table.HeadCell>Message</Table.HeadCell>
+                  <Table.HeadCell>Date</Table.HeadCell>
+                  <Table.HeadCell>Statut</Table.HeadCell>
+                  <Table.HeadCell>Actions</Table.HeadCell>
+                </Table.Head>
+                <Table.Body className="divide-y">
+                  {loadingRequests ? (
+                    <Table.Row>
+                      <Table.Cell colSpan={6} className="text-center py-8">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          Chargement...
+                        </div>
+                      </Table.Cell>
+                    </Table.Row>
+                  ) : accessRequests.length === 0 ? (
+                    <Table.Row>
+                      <Table.Cell colSpan={6} className="text-center py-8 text-gray-500">
+                        Aucune demande d'accès
+                      </Table.Cell>
+                    </Table.Row>
+                  ) : (
+                    accessRequests.map((request) => (
+                      <Table.Row key={request.id} className="bg-white">
+                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                              <span className="text-sm font-medium text-gray-600">
+                                {(request.displayName || request.email || '?').charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {request.displayName || 'Nom non spécifié'}
+                              </div>
+                            </div>
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>{request.email}</Table.Cell>
+                        <Table.Cell>
+                          <div className="max-w-xs truncate" title={request.message}>
+                            {request.message || 'Aucun message'}
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>
+                          {request.requestedAt ? 
+                            new Date(request.requestedAt.seconds * 1000).toLocaleDateString('fr-FR') :
+                            'Date inconnue'
+                          }
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Badge 
+                            color={
+                              request.status === 'pending' ? 'warning' : 
+                              request.status === 'approved' ? 'success' : 'failure'
+                            }
+                          >
+                            {request.status === 'pending' ? 'En attente' :
+                             request.status === 'approved' ? 'Approuvé' : 'Rejeté'}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell>
+                          {request.status === 'pending' && (
+                            <div className="flex gap-2">
+                              <Button
+                                size="xs"
+                                color="success"
+                                onClick={() => handleAccessRequest(
+                                  request.id, 
+                                  'approved', 
+                                  request.email, 
+                                  request.displayName
+                                )}
+                                disabled={actionLoading}
+                              >
+                                <HiCheck className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="xs"
+                                color="failure"
+                                onClick={() => handleAccessRequest(
+                                  request.id, 
+                                  'rejected', 
+                                  request.email, 
+                                  request.displayName
+                                )}
+                                disabled={actionLoading}
+                              >
+                                <HiX className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))
+                  )}
+                </Table.Body>
+              </Table>
+            </div>
+          </Card>
+        </Tabs.Item>
+      </Tabs>
+
+      {/* Bulk Operations Modal */}
+      <Modal show={isBulkModalOpen} onClose={() => setIsBulkModalOpen(false)}>
+        <Modal.Header>Actions en lot ({selectedUserIds.length} utilisateurs)</Modal.Header>
+        <Modal.Body>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="bulkAction" value="Action à effectuer" />
+              <Select
+                id="bulkAction"
+                value={bulkAction}
+                onChange={(e) => setBulkAction(e.target.value)}
+                required
+              >
+                <option value="">Sélectionnez une action</option>
+                <option value="update_role">Changer le rôle</option>
+                <option value="update_status">Changer le statut</option>
+                <option value="update_company">Changer l'entreprise</option>
+                <option value="update_department">Changer le département</option>
+              </Select>
+            </div>
+
+            {bulkAction === 'update_role' && (
+              <div>
+                <Label htmlFor="bulkRole" value="Nouveau rôle" />
+                <Select
+                  id="bulkRole"
+                  value={bulkUpdateData.role}
+                  onChange={(e) => setBulkUpdateData(prev => ({ ...prev, role: e.target.value }))}
+                  required
+                >
+                  <option value="">Sélectionnez un rôle</option>
+                  {roles.map(role => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
+
+            {bulkAction === 'update_status' && (
+              <div>
+                <Label htmlFor="bulkStatus" value="Nouveau statut" />
+                <Select
+                  id="bulkStatus"
+                  value={bulkUpdateData.active.toString()}
+                  onChange={(e) => setBulkUpdateData(prev => ({ ...prev, active: e.target.value === 'true' }))}
+                  required
+                >
+                  <option value="true">Actif</option>
+                  <option value="false">Inactif</option>
+                </Select>
+              </div>
+            )}
+
+            {bulkAction === 'update_company' && (
+              <div>
+                <Label htmlFor="bulkCompany" value="Nouvelle entreprise" />
+                <TextInput
+                  id="bulkCompany"
+                  value={bulkUpdateData.company}
+                  onChange={(e) => setBulkUpdateData(prev => ({ ...prev, company: e.target.value }))}
+                  placeholder="Nom de l'entreprise"
+                  required
+                />
+              </div>
+            )}
+
+            {bulkAction === 'update_department' && (
+              <div>
+                <Label htmlFor="bulkDepartment" value="Nouveau département" />
+                <TextInput
+                  id="bulkDepartment"
+                  value={bulkUpdateData.department}
+                  onChange={(e) => setBulkUpdateData(prev => ({ ...prev, department: e.target.value }))}
+                  placeholder="Nom du département"
+                  required
+                />
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                color="gray"
+                onClick={() => setIsBulkModalOpen(false)}
+                disabled={actionLoading}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleBulkOperation}
+                disabled={actionLoading || !bulkAction}
+              >
+                {actionLoading ? 'Traitement...' : 'Appliquer'}
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* User Activities Modal */}
+      <Modal show={showUserActivities} onClose={() => setShowUserActivities(false)} size="lg">
+        <Modal.Header>
+          Activité de {selectedUserForActivities?.displayName || selectedUserForActivities?.email}
+        </Modal.Header>
+        <Modal.Body>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {selectedUserActivities.length > 0 ? (
+              selectedUserActivities.map((activity, index) => (
+                <div key={activity.id || index} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                  <div className="flex-shrink-0">
+                    {getActionIcon(activity.action)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">
+                      {getActionText(activity.action)}
+                    </div>
+                    {activity.details && (
+                      <div className="text-sm text-gray-600">
+                        {activity.details}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-500">
+                      {formatTimestamp(activity.timestamp)}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Aucune activité trouvée
+              </div>
+            )}
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* Invite User Modal */}
+      <Modal show={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)}>
+        <Modal.Header>Inviter un utilisateur</Modal.Header>
+        <Modal.Body>
+          <form onSubmit={handleInviteUser} className="space-y-4">
+            <div>
+              <Label htmlFor="invite-email" value="Adresse email *" />
+              <TextInput
+                id="invite-email"
+                type="email"
+                required
+                value={inviteForm.email}
+                onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="utilisateur@exemple.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="invite-name" value="Nom complet" />
+              <TextInput
+                id="invite-name"
+                type="text"
+                value={inviteForm.displayName}
+                onChange={(e) => setInviteForm(prev => ({ ...prev, displayName: e.target.value }))}
+                placeholder="Nom de l'utilisateur"
+              />
+            </div>
+            <div>
+              <Label htmlFor="invite-role" value="Rôle" />
+              <Select
+                id="invite-role"
+                value={inviteForm.role}
+                onChange={(e) => setInviteForm(prev => ({ ...prev, role: e.target.value }))}
+              >
+                {roles.map(role => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                color="gray"
+                onClick={() => setIsInviteModalOpen(false)}
+                disabled={actionLoading}
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'Envoi...' : 'Envoyer l\'invitation'}
               </Button>
             </div>
           </form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Edit User Modal */}
+      <Modal show={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+        <Modal.Header>Modifier l'utilisateur</Modal.Header>
+        <Modal.Body>
+          {selectedUser && (
+            <form onSubmit={handleEditUser} className="space-y-4">
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-sm font-medium text-gray-600">
+                      {(selectedUser.displayName || selectedUser.email || '?').charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {selectedUser.displayName || 'Nom non défini'}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {selectedUser.email}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-role" value="Rôle" />
+                <Select
+                  id="edit-role"
+                  value={editForm.role}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, role: e.target.value }))}
+                >
+                  {roles.map(role => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-active" value="Statut" />
+                <Select
+                  id="edit-active"
+                  value={editForm.active ? 'true' : 'false'}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, active: e.target.value === 'true' }))}
+                >
+                  <option value="true">Actif</option>
+                  <option value="false">Inactif</option>
+                </Select>
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  color="gray"
+                  onClick={() => setIsEditModalOpen(false)}
+                  disabled={actionLoading}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? 'Enregistrement...' : 'Enregistrer'}
+                </Button>
+              </div>
+            </form>
+          )}
         </Modal.Body>
       </Modal>
     </div>

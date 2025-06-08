@@ -2,10 +2,11 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth, firestore } from "@/lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { userService } from "@/services/firestore/userService";
 import { useRouter } from "next/navigation";
+import { GoogleAuthProvider } from "firebase/auth";
 
 // Export AuthContext as a named export
 export const AuthContext = createContext({ 
@@ -13,7 +14,12 @@ export const AuthContext = createContext({
   loading: true, 
   logout: () => {},
   authError: null,
-  isAuthorized: false 
+  isAuthorized: false,
+  sessionId: null,
+  userActivities: [],
+  loginWithGoogle: () => {},
+  updateUserProfile: () => {},
+  loadUserActivities: () => {}
 });
 
 export function AuthProvider({ children }) {
@@ -21,7 +27,10 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const [userActivities, setUserActivities] = useState([]);
   const router = useRouter();
+  const googleProvider = new GoogleAuthProvider();
 
   useEffect(() => {
     // Listen for auth state changes
@@ -89,19 +98,173 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  const logout = async () => {
+  // Phase 3: Enhanced login with session tracking
+  const loginWithGoogle = async () => {
     try {
-      await signOut(auth);
-      console.log("✅ Logout Successful");
-      setUser(null);
-      router.push("/login"); // Redirect to login page after logout
+      setLoading(true);
+      setAuthError(null);
+      
+      const result = await signInWithPopup(auth, googleProvider);
+      const authUser = result.user;
+      
+      // Check authorization first
+      const authCheck = await userService.isUserAuthorized(authUser.email);
+      
+      if (!authCheck.authorized) {
+        await auth.signOut();
+        if (authCheck.user && !authCheck.user.active) {
+          setAuthError('Votre compte a été désactivé. Contactez un administrateur.');
+        } else {
+          setAuthError('Vous n\'êtes pas autorisé à accéder à cette application. Vous pouvez demander l\'accès en cliquant sur le lien ci-dessous.');
+        }
+        setIsAuthorized(false);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      
+      // User is authorized, proceed with login
+      setIsAuthorized(true);
+      setUser(authCheck.user);
+      
+      // Phase 3: Create user session and track activity
+      try {
+        const session = await userService.createUserSession(authCheck.user.id);
+        setSessionId(session.sessionId);
+        
+        // Store session in localStorage for persistence
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userSessionId', session.sessionId);
+        }
+      } catch (sessionError) {
+        console.error('Error creating user session:', sessionError);
+        // Don't fail login if session creation fails
+      }
+      
     } catch (error) {
-      console.error("❌ Logout Failed:", error);
+      console.error('Login error:', error);
+      setAuthError('Erreur lors de la connexion. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Phase 3: Enhanced logout with session cleanup
+  const logout = async () => {
+    try {
+      setLoading(true);
+      
+      // End user session if exists
+      if (sessionId && user?.id) {
+        try {
+          await userService.endUserSession(sessionId, user.id);
+        } catch (error) {
+          console.error('Error ending user session:', error);
+        }
+      }
+      
+      // Clear session from localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userSessionId');
+      }
+      
+      await auth.signOut();
+      setUser(null);
+      setIsAuthorized(false);
+      setSessionId(null);
+      setUserActivities([]);
+      setAuthError(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Phase 3: Session activity tracking
+  useEffect(() => {
+    let activityInterval;
+    
+    if (sessionId && user?.id) {
+      // Update session activity every 5 minutes
+      activityInterval = setInterval(async () => {
+        try {
+          await userService.updateUserSession(sessionId);
+        } catch (error) {
+          console.error('Error updating session activity:', error);
+        }
+      }, 5 * 60 * 1000); // 5 minutes
+    }
+    
+    return () => {
+      if (activityInterval) {
+        clearInterval(activityInterval);
+      }
+    };
+  }, [sessionId, user?.id]);
+
+  // Phase 3: Load user activities
+  const loadUserActivities = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const activities = await userService.getUserActivities(user.id, 20);
+      setUserActivities(activities);
+    } catch (error) {
+      console.error('Error loading user activities:', error);
+    }
+  };
+
+  // Phase 3: Enhanced user profile update
+  const updateUserProfile = async (profileData) => {
+    if (!user?.id) return false;
+    
+    try {
+      await userService.updateUserProfile(user.id, profileData);
+      
+      // Update local user state
+      setUser(prev => ({ ...prev, ...profileData }));
+      
+      // Reload activities to show the update
+      await loadUserActivities();
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      return false;
+    }
+  };
+
+  // Phase 3: Check for existing session on app load
+  useEffect(() => {
+    if (user?.id && typeof window !== 'undefined') {
+      const savedSessionId = localStorage.getItem('userSessionId');
+      if (savedSessionId && !sessionId) {
+        setSessionId(savedSessionId);
+        // Update session to mark as active
+        userService.updateUserSession(savedSessionId).catch(console.error);
+      }
+      
+      // Load user activities
+      loadUserActivities();
+    }
+  }, [user?.id]);
+
+  const value = {
+    user,
+    loading,
+    authError,
+    isAuthorized,
+    sessionId,
+    userActivities,
+    loginWithGoogle,
+    logout,
+    updateUserProfile,
+    loadUserActivities
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, logout, authError, isAuthorized }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

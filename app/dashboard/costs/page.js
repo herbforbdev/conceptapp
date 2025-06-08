@@ -231,7 +231,7 @@ function CostsPage() {
 
   // Save filters to localStorage when they change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined') {
       localStorage.setItem('costs_filters', JSON.stringify(filters));
       localStorage.setItem('costs_selectedMonth', filters.selectedMonth);
       localStorage.setItem('costs_selectedYear', filters.selectedYear);
@@ -537,12 +537,18 @@ function CostsPage() {
   // Month selector state
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(() => {
-    const saved = localStorage.getItem('costs_selectedMonth');
-    return saved !== null ? Number(saved) : now.getMonth();
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('costs_selectedMonth');
+      return saved !== null ? Number(saved) : now.getMonth();
+    }
+    return now.getMonth();
   });
   const [selectedYear, setSelectedYear] = useState(() => {
-    const saved = localStorage.getItem('costs_selectedYear');
-    return saved !== null ? Number(saved) : now.getFullYear();
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('costs_selectedYear');
+      return saved !== null ? Number(saved) : now.getFullYear();
+    }
+    return now.getFullYear();
   });
   const MONTHS = [
     t('months.january'),

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, Button, TextInput, Label, Textarea, Alert } from 'flowbite-react';
 import { HiMail, HiUser, HiChatAlt, HiCheckCircle, HiExclamationCircle } from 'react-icons/hi';
 import { userService } from '@/services/firestore/userService';
+import { notificationService } from '@/services/firestore/notificationService';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -40,6 +41,21 @@ export default function RequestAccessPage() {
         formData.displayName,
         formData.message
       );
+
+      // Get all admin users to notify
+      const allUsers = await userService.getAllUsers();
+      const adminIds = allUsers
+        .filter(user => user.role === 'admin')
+        .map(user => user.id);
+
+      // Notify admins of new access request
+      if (adminIds.length > 0) {
+        await notificationService.notifyAdminsOfAccessRequest(
+          formData.email,
+          formData.displayName,
+          adminIds
+        );
+      }
 
       setResult({
         type: 'success',

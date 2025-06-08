@@ -1,4 +1,6 @@
 // Master Data Types
+import { Timestamp } from 'firebase/firestore';
+
 export interface Product {
   id: string;
   productid: string;
@@ -158,18 +160,69 @@ export interface CostFilters {
 }
 
 export interface User {
-  id: string;
-  displayName: string;
+  id?: string;
   email: string;
+  displayName?: string;
+  photoURL?: string;
   role: 'admin' | 'manager' | 'user';
   active: boolean;
-  invited: boolean;
-  photoURL?: string;
-  lastActive?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+  lastLoginAt?: Timestamp;
+  invited?: boolean;
   invitedBy?: string;
-  invitedAt?: Date;
+  invitedAt?: Timestamp;
+  // Phase 3: Enhanced profile fields
+  phoneNumber?: string;
+  company?: string;
+  department?: string;
+  bio?: string;
+  location?: string;
+  timezone?: string;
+  // Phase 3: Activity tracking
+  totalLogins?: number;
+  lastActiveAt?: Timestamp;
+  sessionId?: string;
+  ipAddress?: string;
+  loginHistory?: UserLoginEntry[];
+  // Phase 3: Preferences
+  emailNotifications?: boolean;
+  pushNotifications?: boolean;
+  weeklyReports?: boolean;
+  language?: string;
+  theme?: 'light' | 'dark' | 'auto';
+}
+
+// Phase 3: New interfaces for enhanced user management
+export interface UserLoginEntry {
+  timestamp: Timestamp;
+  ipAddress?: string;
+  userAgent?: string;
+  sessionId?: string;
+  location?: string;
+}
+
+export interface UserActivity {
+  id?: string;
+  userId: string;
+  action: 'login' | 'logout' | 'profile_update' | 'password_change' | 'role_change' | 'status_change' | 'data_access';
+  timestamp: Timestamp;
+  ipAddress?: string;
+  userAgent?: string;
+  details?: string;
+  performedBy?: string; // For admin actions
+}
+
+export interface UserSession {
+  id?: string;
+  userId: string;
+  sessionId: string;
+  startTime: Timestamp;
+  lastActivity: Timestamp;
+  endTime?: Timestamp;
+  ipAddress?: string;
+  userAgent?: string;
+  isActive: boolean;
 }
 
 export interface AccessRequest {
