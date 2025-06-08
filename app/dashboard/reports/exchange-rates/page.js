@@ -1,46 +1,54 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Table, Modal, Label, TextInput, Select } from 'flowbite-react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
-import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
-import AdminOnly from '@/components/AdminOnly';
-import { HiArrowNarrowLeft, HiPlus, HiCurrencyDollar, HiCalendar, HiClock } from 'react-icons/hi';
-import Link from 'next/link';
-import { collection, query, orderBy, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
-
-// Utility for deterministic date formatting
-function formatDateYYYYMMDD(date) {
-  if (!date) return '';
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import { Card, Button, TextInput, Label, Select, Alert, Table, Badge } from 'flowbite-react';
+import { HiPlus, HiPencil, HiTrash, HiCalendar, HiTrendingUp } from 'react-icons/hi';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function ExchangeRatesPage() {
   const { t } = useLanguage();
+  const router = useRouter();
+  
   const [rates, setRates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [newRate, setNewRate] = useState({
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRate, setEditingRate] = useState(null);
+  const [formData, setFormData] = useState({
     year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
-    rate: ''
+    month: '',
+    rate: '',
   });
+  const [message, setMessage] = useState(null);
+
+  const months = [
+    { value: 1, label: 'Janvier' },
+    { value: 2, label: 'Février' },
+    { value: 3, label: 'Mars' },
+    { value: 4, label: 'Avril' },
+    { value: 5, label: 'Mai' },
+    { value: 6, label: 'Juin' },
+    { value: 7, label: 'Juillet' },
+    { value: 8, label: 'Août' },
+    { value: 9, label: 'Septembre' },
+    { value: 10, label: 'Octobre' },
+    { value: 11, label: 'Novembre' },
+    { value: 12, label: 'Décembre' },
+  ];
 
   useEffect(() => {
-    loadRates();
+    fetchRates();
   }, []);
 
-  const loadRates = async () => {
+  const fetchRates = async () => {
     try {
-      setLoading(true);
-      const ratesRef = collection(firestore, 'exchangeRates');
+      setIsLoading(true);
       const q = query(
-        ratesRef,
-        orderBy('yearMonth', 'desc')
+        collection(db, 'exchangeRates'),
+        orderBy('year', 'desc'),
+        orderBy('month', 'desc')
       );
       const snapshot = await getDocs(q);
       const ratesData = snapshot.docs.map(doc => ({
@@ -49,194 +57,266 @@ export default function ExchangeRatesPage() {
       }));
       setRates(ratesData);
     } catch (error) {
-      console.error('Error loading rates:', error);
+      console.error('Error fetching exchange rates:', error);
+      setMessage({ type: 'error', text: 'Erreur lors du chargement des taux de change' });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleAddRate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.month || !formData.rate) {
+      setMessage({ type: 'error', text: 'Veuillez remplir tous les champs requis' });
+      return;
+    }
+
     try {
-      const yearMonth = `${newRate.year}-${String(newRate.month).padStart(2, '0')}`;
-      const rateRef = doc(firestore, 'exchangeRates', yearMonth);
-      await setDoc(rateRef, {
-        year: parseInt(newRate.year),
-        month: parseInt(newRate.month),
-        yearMonth,
-        rate: parseFloat(newRate.rate),
-        updatedAt: serverTimestamp()
-      });
-      setNewRate({
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1,
-        rate: ''
-      });
-      await loadRates();
+      const rateData = {
+        year: parseInt(formData.year),
+        month: parseInt(formData.month),
+        rate: parseFloat(formData.rate),
+        updatedAt: new Date(),
+      };
+
+      if (editingRate) {
+        await updateDoc(doc(db, 'exchangeRates', editingRate.id), rateData);
+        setMessage({ type: 'success', text: 'Taux de change mis à jour avec succès' });
+      } else {
+        rateData.createdAt = new Date();
+        await addDoc(collection(db, 'exchangeRates'), rateData);
+        setMessage({ type: 'success', text: 'Nouveau taux de change ajouté avec succès' });
+      }
+
+      setIsModalOpen(false);
+      setEditingRate(null);
+      setFormData({ year: new Date().getFullYear(), month: '', rate: '' });
+      fetchRates();
     } catch (error) {
-      console.error('Error adding rate:', error);
+      console.error('Error saving exchange rate:', error);
+      setMessage({ type: 'error', text: 'Erreur lors de la sauvegarde' });
     }
   };
 
-  const months = [
-    t('months.january'), t('months.february'), t('months.march'),
-    t('months.april'), t('months.may'), t('months.june'),
-    t('months.july'), t('months.august'), t('months.september'),
-    t('months.october'), t('months.november'), t('months.december')
-  ];
+  const handleEdit = (rate) => {
+    setEditingRate(rate);
+    setFormData({
+      year: rate.year,
+      month: rate.month,
+      rate: rate.rate,
+    });
+    setIsModalOpen(true);
+  };
 
-  // Find the current rate for the current month/year using yearMonth
-  const now = new Date();
-  const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const currentRateObj = rates.find(r => r.yearMonth === currentYearMonth);
-  const currentRate = currentRateObj?.rate || 0;
-  const lastUpdated = currentRateObj?.updatedAt?.toDate() || new Date();
+  const handleDelete = async (rateId) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce taux de change ?')) {
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'exchangeRates', rateId));
+      setMessage({ type: 'success', text: 'Taux de change supprimé avec succès' });
+      fetchRates();
+    } catch (error) {
+      console.error('Error deleting exchange rate:', error);
+      setMessage({ type: 'error', text: 'Erreur lors de la suppression' });
+    }
+  };
+
+  const getCurrentRate = () => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+    
+    return rates.find(rate => rate.year === currentYear && rate.month === currentMonth);
+  };
+
+  const currentRate = getCurrentRate();
 
   return (
-    <AdminOnly>
-      <div className="p-4 bg-gray-50 min-h-screen">
-        <div className="mb-4">
-          <Link href="/dashboard/reports" className="inline-flex items-center text-green-700 hover:underline font-medium">
-            <HiArrowNarrowLeft className="mr-2 h-5 w-5" />
-            {t('reports.title')}
-          </Link>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Taux de Change</h1>
+          <p className="text-gray-600">Gestion des taux de change CDF/USD</p>
         </div>
+        <Button
+          onClick={() => {
+            setIsModalOpen(true);
+            setEditingRate(null);
+            setFormData({ year: new Date().getFullYear(), month: '', rate: '' });
+          }}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <HiPlus className="h-4 w-4 mr-2" />
+          Ajouter un taux
+        </Button>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Current Rate Card */}
-          <Card className="lg:col-span-3 bg-gradient-to-br from-green-50 to-white border border-green-200">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                <div className="bg-green-100 p-3 rounded-full">
-                  <HiCurrencyDollar className="h-8 w-8 text-green-600" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800">{t('exchangeRates.currentRate')}</h2>
-                  <p className="text-3xl font-bold text-green-600">{currentRate.toLocaleString()} CDF/USD</p>
-                </div>
+      {message && (
+        <Alert color={message.type === 'success' ? 'success' : 'failure'} className="mb-4">
+          {message.text}
+        </Alert>
+      )}
+
+      {/* Current Rate Card */}
+      {currentRate && (
+        <Card className="mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-green-100 rounded-full">
+                <HiTrendingUp className="h-6 w-6 text-green-600" />
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center text-gray-600">
-                  <HiCalendar className="h-5 w-5 mr-2" />
-                  <span>{formatDateYYYYMMDD(lastUpdated)}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <HiClock className="h-5 w-5 mr-2" />
-                  <span>{lastUpdated.toLocaleTimeString()}</span>
-                </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Taux de change actuel</h3>
+                <p className="text-2xl font-bold text-green-600">{currentRate.rate.toLocaleString()} CDF/USD</p>
               </div>
             </div>
-          </Card>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">
+                {months.find(m => m.value === currentRate.month)?.label} {currentRate.year}
+              </p>
+              <Badge color="success">Actuel</Badge>
+            </div>
+          </div>
+        </Card>
+      )}
 
-          {/* Add New Rate Form */}
-          <Card className="lg:col-span-1 bg-white shadow-lg">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-              <HiPlus className="h-5 w-5 mr-2 text-green-600" />
-              {t('exchangeRates.addNew')}
-            </h2>
-            <form onSubmit={handleAddRate} className="space-y-4">
+      {/* Rates Table */}
+      <Card>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Historique des taux</h3>
+          
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-2 text-gray-600">Chargement...</p>
+            </div>
+          ) : rates.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <HiCalendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>Aucun taux de change enregistré</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <Table.Head>
+                  <Table.HeadCell>Année</Table.HeadCell>
+                  <Table.HeadCell>Mois</Table.HeadCell>
+                  <Table.HeadCell>Taux (CDF/USD)</Table.HeadCell>
+                  <Table.HeadCell>Mis à jour</Table.HeadCell>
+                  <Table.HeadCell>Actions</Table.HeadCell>
+                </Table.Head>
+                <Table.Body>
+                  {rates.map((rate) => (
+                    <Table.Row key={rate.id}>
+                      <Table.Cell className="font-medium">{rate.year}</Table.Cell>
+                      <Table.Cell>
+                        {months.find(m => m.value === rate.month)?.label}
+                      </Table.Cell>
+                      <Table.Cell className="font-bold text-green-600">
+                        {rate.rate.toLocaleString()}
+                      </Table.Cell>
+                      <Table.Cell>
+                        {rate.updatedAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="xs"
+                            color="warning"
+                            onClick={() => handleEdit(rate)}
+                          >
+                            <HiPencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="xs"
+                            color="failure"
+                            onClick={() => handleDelete(rate.id)}
+                          >
+                            <HiTrash className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Add/Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">
+              {editingRate ? 'Modifier le taux' : 'Ajouter un nouveau taux'}
+            </h3>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('exchangeRates.year')}
-                </label>
-                <input
+                <Label htmlFor="year">Année</Label>
+                <TextInput
+                  id="year"
                   type="number"
-                  value={newRate.year}
-                  onChange={(e) => setNewRate({ ...newRate, year: e.target.value })}
-                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  value={formData.year}
+                  onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                   required
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('exchangeRates.month')}
-                </label>
-                <select
-                  value={newRate.month}
-                  onChange={(e) => setNewRate({ ...newRate, month: e.target.value })}
-                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+                <Label htmlFor="month">Mois</Label>
+                <Select
+                  id="month"
+                  value={formData.month}
+                  onChange={(e) => setFormData({ ...formData, month: e.target.value })}
                   required
                 >
-                  {months.map((month, index) => (
-                    <option key={index + 1} value={index + 1}>
-                      {month}
+                  <option value="">Sélectionner un mois</option>
+                  {months.map((month) => (
+                    <option key={month.value} value={month.value}>
+                      {month.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('exchangeRates.rate')}
-                </label>
-                <input
+                <Label htmlFor="rate">Taux (CDF/USD)</Label>
+                <TextInput
+                  id="rate"
                   type="number"
                   step="0.01"
-                  value={newRate.rate}
-                  onChange={(e) => setNewRate({ ...newRate, rate: e.target.value })}
-                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  value={formData.rate}
+                  onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
+                  placeholder="Ex: 2900"
                   required
                 />
               </div>
-              <button
-                type="submit"
-                className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
-              >
-                <HiPlus className="h-5 w-5 mr-2" />
-                {t('exchangeRates.add')}
-              </button>
-            </form>
-          </Card>
 
-          {/* Rates Table */}
-          <Card className="lg:col-span-2 bg-white shadow-lg">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('exchangeRates.history')}</h2>
-            {loading ? (
-              <div className="text-center py-8 text-gray-500">{t('exchangeRates.loading')}</div>
-            ) : rates.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">{t('exchangeRates.noRates')}</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('exchangeRates.year')}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('exchangeRates.month')}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('exchangeRates.rate')}
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('exchangeRates.updatedAt')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {rates.map((rate) => (
-                      <tr key={rate.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {rate.year}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {months[rate.month - 1]}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                          {rate.rate.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDateYYYYMMDD(rate.updatedAt?.toDate())}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  color="gray"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditingRate(null);
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                  {editingRate ? 'Mettre à jour' : 'Ajouter'}
+                </Button>
               </div>
-            )}
-          </Card>
+            </form>
+          </div>
         </div>
-      </div>
-    </AdminOnly>
+      )}
+    </div>
   );
 } 

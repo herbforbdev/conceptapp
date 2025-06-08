@@ -1,26 +1,40 @@
 {
-  "title": "Taux de change",
+  "title": "Taux de Change",
+  "description": "Gestion des taux de change CDF/USD",
   "addNew": "Ajouter un nouveau taux",
+  "addRate": "Ajouter un taux",
+  "currentRate": "Taux de change actuel",
   "year": "Année",
   "month": "Mois",
   "rate": "Taux (CDF/USD)",
   "notes": "Notes",
   "add": "Ajouter",
+  "update": "Mettre à jour",
+  "cancel": "Annuler",
   "history": "Historique des taux",
   "updatedAt": "Mis à jour le",
   "edit": "Modifier",
   "delete": "Supprimer",
-  "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce taux ?",
+  "modify": "Modifier le taux",
+  "addNewRate": "Ajouter un nouveau taux",
+  "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce taux de change ?",
+  "selectMonth": "Sélectionner un mois",
+  "current": "Actuel",
+  "placeholder": {
+    "rate": "Ex: 2900"
+  },
   "success": {
-    "added": "Taux ajouté avec succès",
-    "updated": "Taux mis à jour avec succès",
-    "deleted": "Taux supprimé avec succès"
+    "added": "Taux de change ajouté avec succès",
+    "updated": "Taux de change mis à jour avec succès",
+    "deleted": "Taux de change supprimé avec succès"
   },
   "error": {
-    "add": "Erreur lors de l'ajout du taux",
-    "update": "Erreur lors de la mise à jour du taux",
-    "delete": "Erreur lors de la suppression du taux",
-    "load": "Erreur lors du chargement des taux"
+    "add": "Erreur lors de l'ajout du taux de change",
+    "update": "Erreur lors de la mise à jour du taux de change",
+    "delete": "Erreur lors de la suppression du taux de change",
+    "load": "Erreur lors du chargement des taux de change",
+    "save": "Erreur lors de la sauvegarde",
+    "required": "Veuillez remplir tous les champs requis"
   },
   "validation": {
     "required": "Ce champ est requis",
@@ -31,8 +45,21 @@
   },
   "noRates": "Aucun taux de change enregistré",
   "loading": "Chargement des taux...",
-  "currentRate": "Taux actuel",
   "lastUpdated": "Dernière mise à jour",
   "monthlyOverview": "Aperçu mensuel",
-  "yearlyOverview": "Aperçu annuel"
+  "yearlyOverview": "Aperçu annuel",
+  "months": {
+    "1": "Janvier",
+    "2": "Février",
+    "3": "Mars",
+    "4": "Avril",
+    "5": "Mai",
+    "6": "Juin",
+    "7": "Juillet",
+    "8": "Août",
+    "9": "Septembre",
+    "10": "Octobre",
+    "11": "Novembre",
+    "12": "Décembre"
+  }
 } 

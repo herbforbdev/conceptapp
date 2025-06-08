@@ -1,0 +1,65 @@
+{
+  "title": "Exchange Rates",
+  "description": "CDF/USD exchange rate management",
+  "addNew": "Add New Rate",
+  "addRate": "Add Rate",
+  "currentRate": "Current Exchange Rate",
+  "year": "Year",
+  "month": "Month",
+  "rate": "Rate (CDF/USD)",
+  "notes": "Notes",
+  "add": "Add",
+  "update": "Update",
+  "cancel": "Cancel",
+  "history": "Rate History",
+  "updatedAt": "Updated On",
+  "edit": "Edit",
+  "delete": "Delete",
+  "modify": "Modify Rate",
+  "addNewRate": "Add New Rate",
+  "confirmDelete": "Are you sure you want to delete this rate?",
+  "selectMonth": "Select a month",
+  "current": "Current",
+  "placeholder": {
+    "rate": "Ex: 2900"
+  },
+  "success": {
+    "added": "Exchange rate added successfully",
+    "updated": "Exchange rate updated successfully",
+    "deleted": "Exchange rate deleted successfully"
+  },
+  "error": {
+    "add": "Error adding exchange rate",
+    "update": "Error updating exchange rate",
+    "delete": "Error deleting exchange rate",
+    "load": "Error loading exchange rates",
+    "save": "Error saving exchange rate",
+    "required": "Please fill all required fields"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidRate": "Rate must be a positive number",
+    "invalidYear": "Year must be valid",
+    "invalidMonth": "Month must be valid",
+    "duplicateRate": "A rate already exists for this period"
+  },
+  "noRates": "No exchange rates recorded",
+  "loading": "Loading rates...",
+  "lastUpdated": "Last Updated",
+  "monthlyOverview": "Monthly Overview",
+  "yearlyOverview": "Yearly Overview",
+  "months": {
+    "1": "January",
+    "2": "February", 
+    "3": "March",
+    "4": "April",
+    "5": "May",
+    "6": "June",
+    "7": "July",
+    "8": "August",
+    "9": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December"
+  }
+} 
