@@ -9,7 +9,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Phase 4+ planning: Email integration, audit logging, advanced permissions
+- Phase 5+ planning: Audit logging, advanced security, permissions system
+
+## [0.4.0] - 2025-01-22
+
+### Added - Phase 4: Email Integration & Notifications
+
+- **Comprehensive Email Service**
+
+  - Modern email service using Resend or SendGrid APIs
+  - Beautiful HTML email templates with responsive design
+  - Fallback to development console logging for testing
+  - Support for attachments, CC/BCC, and reply-to addresses
+  - Professional email templates with company branding
+
+- **Email Templates & Automation**
+
+  - User invitation emails with branded design
+  - Access request approval/rejection notifications
+  - Low stock alerts with detailed product information
+  - Budget overrun alerts with spending analysis
+  - Weekly activity reports with comprehensive statistics
+  - System notification emails for important events
+
+- **Enhanced Notification System**
+
+  - Integration with email service for automatic email sending
+  - User notification preferences with granular controls
+  - Support for multiple notification types (email, push, system)
+  - Real-time notification status tracking (sent, delivered, read)
+  - Bulk admin notifications for system-wide alerts
+
+- **User Notification Preferences**
+
+  - Dedicated notification preferences page (`/dashboard/profile/notifications`)
+  - Granular controls for different notification types:
+    - Email notifications (master toggle)
+    - Push notifications for browser alerts
+    - Weekly reports with activity summaries
+    - Inventory alerts for low stock items
+    - Budget alerts for overrun notifications
+    - User management alerts for access requests
+    - System alerts for important updates
+  - Real-time preference saving with success/error feedback
+  - Visual status indicators for notification settings
+
+- **Weekly Reports System**
+  - Automated weekly report generation
+  - Comprehensive statistics covering:
+    - Production metrics (completed, pending, cancelled)
+    - Sales performance (revenue, top channels, products)
+    - Inventory movements and low stock alerts
+    - Cost analysis and budget status
+    - User activity and engagement metrics
+  - Automatic email delivery to subscribed users
+  - Manual test report generation for administrators
+  - Beautiful email format with charts and statistics
+
+### Enhanced
+
+- **Notification Service (`notificationService.ts`)**
+
+  - Complete rewrite with email integration
+  - User preference checking before sending emails
+  - Support for notification type-specific preferences
+  - Email delivery status tracking and error handling
+  - Bulk notification capabilities for admin alerts
+  - Enhanced notification creation with email automation
+
+- **Report Service (`reportService.ts`)**
+
+  - New service for generating weekly and custom reports
+  - Statistical analysis across all major system components
+  - Automated data aggregation and calculation
+  - Flexible date range support for custom reports
+  - Performance-optimized database queries
+  - Export capabilities for external analysis
+
+- **Email Service (`emailService.ts`)**
+  - Professional email service with multiple provider support
+  - Template-based email generation with dynamic content
+  - Error handling and fallback mechanisms
+  - Development mode simulation for testing
+  - Support for both HTML and plain text formats
+  - Configurable sender information and branding
+
+### Technical
+
+- **Database Collections**
+
+  - Enhanced `notifications` collection with email tracking
+  - New `notificationPreferences` collection for user settings
+  - Email delivery status and timestamp tracking
+  - User notification history and analytics
+
+- **Email Infrastructure**
+
+  - Support for Resend API (preferred) and SendGrid (fallback)
+  - Environment variable configuration for email services
+  - Template-based email generation with consistent branding
+  - Error handling and delivery confirmation
+  - Development mode with console simulation
+
+- **User Interface Enhancements**
+  - Modern notification preferences interface
+  - Toggle controls for granular notification management
+  - Real-time status indicators and feedback
+  - Professional email template previews
+  - Responsive design across all new components
+
+### Configuration
+
+- **Environment Variables**
+  - `RESEND_API_KEY` - Resend email service API key
+  - `SENDGRID_API_KEY` - SendGrid email service API key (fallback)
+  - `FROM_EMAIL` - Sender email address for all notifications
+  - `FROM_NAME` - Sender name for email branding
+  - `NEXT_PUBLIC_COMPANY_NAME` - Company name for email templates
+  - `NEXT_PUBLIC_APP_URL` - Application URL for email links
 
 ## [0.3.0] - 2025-01-22
 
@@ -289,33 +406,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **v0.1.0**: Initial production management system with full CRUD operations
 - **v0.2.0**: User management system with access control and notifications
 - **v0.3.0**: Enhanced user management with activity tracking and bulk operations
-- **v0.4.0+**: Planned - Email integration, audit logging, advanced permissions
+- **v0.4.0**: Email integration with automated notifications and weekly reports
+- **v0.5.0+**: Planned - Audit logging, advanced security, permissions system
 
 ---
 
 ## Development Guidelines
 
-### Commit Message Format
+### Email Service Setup
 
-- `feat:` New features
-- `fix:` Bug fixes
-- `refactor:` Code refactoring
-- `chore:` Maintenance tasks
-- `docs:` Documentation updates
+To enable email functionality in production:
 
-### Branches
+1. **Resend (Recommended)**:
 
-- `main`: Production-ready code
-- `develop`: Development integration
-- `feature/*`: Feature development
-- `hotfix/*`: Critical fixes
+   ```bash
+   RESEND_API_KEY=your_resend_api_key
+   FROM_EMAIL=noreply@yourdomain.com
+   FROM_NAME="Your Company Name"
+   ```
 
-### Testing
+2. **SendGrid (Fallback)**:
 
-- Manual testing required for all features
-- Browser compatibility testing
-- Mobile responsiveness verification
+   ```bash
+   SENDGRID_API_KEY=your_sendgrid_api_key
+   FROM_EMAIL=noreply@yourdomain.com
+   FROM_NAME="Your Company Name"
+   ```
 
----
+3. **Development Mode**:
+   - Leave API keys unset for console simulation
+   - All emails will be logged to console instead of sent
+
+### Weekly Reports
+
+Weekly reports are automatically generated and sent every Monday for the previous week. To enable:
+
+1. Set up email service (above)
+2. Configure users' notification preferences
+3. Reports include production, sales, inventory, costs, and user statistics
+
+### Notification System
+
+The notification system supports:
+
+- Real-time in-app notifications
+- Email notifications with user preferences
+- Push notifications (browser-based)
+- Bulk admin notifications for system events
 
 _For detailed technical documentation, see individual component README files and code comments._
