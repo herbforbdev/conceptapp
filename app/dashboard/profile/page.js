@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Card, Button, TextInput, Label, Select, ToggleSwitch, Badge, Alert } from 'flowbite-react';
+import { Card, Button, TextInput, Label, Select, ToggleSwitch, Badge, Alert, Textarea } from 'flowbite-react';
 import { HiUser, HiMail, HiCalendar, HiShieldCheck, HiCog, HiLogout, HiUsers, HiPencil, HiCheck, HiX, HiLogin, HiPencilAlt, HiInformationCircle, HiRefresh, HiClock } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -37,6 +37,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [activeSessions, setActiveSessions] = useState([]);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     if (user) {
