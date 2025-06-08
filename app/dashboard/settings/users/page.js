@@ -208,7 +208,7 @@ export default function UsersPage() {
         message: 'Erreur lors de l\'opération en lot.'
       });
     } finally {
-      setActionLoading(false);
+    setActionLoading(false);
     }
   };
 
@@ -317,7 +317,7 @@ export default function UsersPage() {
         message: 'Erreur lors de l\'envoi de l\'invitation.'
       });
     } finally {
-      setActionLoading(false);
+    setActionLoading(false);
     }
   };
 
@@ -356,7 +356,7 @@ export default function UsersPage() {
         message: 'Erreur lors de la mise à jour de l\'utilisateur.'
       });
     } finally {
-      setActionLoading(false);
+    setActionLoading(false);
     }
   };
 
@@ -386,7 +386,7 @@ export default function UsersPage() {
         message: 'Erreur lors de la suppression de l\'utilisateur.'
       });
     } finally {
-      setActionLoading(false);
+    setActionLoading(false);
     }
   };
 
@@ -471,7 +471,7 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
           <p className="text-gray-600">Gérer les utilisateurs et les demandes d'accès</p>
-        </div>
+      </div>
         <div className="flex gap-3">
           <Button
             onClick={handleExportUsers}
@@ -503,7 +503,7 @@ export default function UsersPage() {
           >
             <HiUserAdd className="h-4 w-4 mr-2" />
             Inviter un utilisateur
-          </Button>
+        </Button>
         </div>
       </div>
 
@@ -590,7 +590,7 @@ export default function UsersPage() {
                 ))}
               </Select>
             </div>
-          </div>
+      </div>
 
           {/* Active filters display */}
           {(searchTerm || Object.values(filters).some(f => f)) && (
@@ -670,11 +670,11 @@ export default function UsersPage() {
           }
         >
           <Card>
-            <div className="overflow-x-auto">
+        <div className="overflow-x-auto">
               <Table hoverable>
                 <Table.Head>
                   <Table.HeadCell>
-                    <input
+                  <input
                       type="checkbox"
                       checked={selectedUserIds.length === filteredUsers.length && filteredUsers.length > 0}
                       onChange={(e) => handleSelectAll(e.target.checked)}
@@ -709,7 +709,7 @@ export default function UsersPage() {
                     filteredUsers.map((user) => (
                       <Table.Row key={user.id} className="bg-white">
                         <Table.Cell>
-                          <input
+                  <input
                             type="checkbox"
                             checked={selectedUserIds.includes(user.id)}
                             onChange={(e) => handleSelectUser(user.id, e.target.checked)}
@@ -830,7 +830,7 @@ export default function UsersPage() {
                         <div className="flex items-center justify-center gap-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                           Chargement...
-                        </div>
+                  </div>
                       </Table.Cell>
                     </Table.Row>
                   ) : accessRequests.length === 0 ? (
@@ -847,7 +847,7 @@ export default function UsersPage() {
                             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                               <span className="text-sm font-medium text-gray-600">
                                 {(request.displayName || request.email || '?').charAt(0).toUpperCase()}
-                              </span>
+                      </span>
                             </div>
                             <div>
                               <div className="font-medium text-gray-900">
@@ -908,16 +908,16 @@ export default function UsersPage() {
                               >
                                 <HiX className="h-3 w-3" />
                               </Button>
-                            </div>
+                      </div>
                           )}
                         </Table.Cell>
                       </Table.Row>
-                    ))
-                  )}
+                ))
+              )}
                 </Table.Body>
               </Table>
-            </div>
-          </Card>
+        </div>
+      </Card>
         </Tabs.Item>
       </Tabs>
 

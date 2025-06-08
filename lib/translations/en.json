@@ -1287,6 +1287,7 @@
     "year": "Year",
     "month": "Month",
     "rate": "Rate",
+    "loading": "Loading exchange rates...",
     "noRates": "No exchange rates found",
     "actions": "Actions",
     "edit": "Edit",

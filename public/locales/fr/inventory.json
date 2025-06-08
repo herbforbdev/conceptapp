@@ -1,17 +1,1 @@
-{
-  "table": {
-    "source": "Source",
-    "allMovementTypes": "Tous les Types de Mouvement",
-    "stockIn": "Entrée",
-    "stockOut": "Sortie",
-    "stockAdjustment": "Ajustement",
-    "remaining": "Restant"
-  },
-  "source": {
-    "all": "Toutes les Sources",
-    "production": "Production",
-    "consumption": "Consommation",
-    "sales": "Ventes",
-    "manual": "Manuel"
-  }
-} 
+ 
