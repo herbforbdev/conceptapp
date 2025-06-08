@@ -17,10 +17,10 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore
 export const firestore = getFirestore(app);
+export const db = firestore; // Alias for compatibility
 
 // Initialize Auth
 export const auth = getAuth(app);
 
 // Initialize Google Provider
-const googleProvider = new GoogleAuthProvider();
-export { googleProvider }; 
+export const googleProvider = new GoogleAuthProvider(); 
