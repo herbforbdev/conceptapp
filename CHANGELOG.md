@@ -9,7 +9,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Phase 3+ planning: Email integration, audit logging, advanced permissions
+- Phase 4+ planning: Email integration, audit logging, advanced permissions
+
+## [0.3.0] - 2025-01-22
+
+### Added - Phase 3: Enhanced User Management Features
+
+- **Advanced User Profile Management**
+
+  - Enhanced user profile fields: phone, company, department, bio, location, timezone
+  - User preferences: email notifications, push notifications, weekly reports, language, theme
+  - Tabbed profile interface with Profile, Security, Activity, and Preferences sections
+  - Real-time user statistics and activity tracking
+
+- **User Activity Tracking & Session Management**
+
+  - Comprehensive activity logging for all user actions (login, logout, profile updates, role changes)
+  - Session management with real-time tracking and automatic cleanup
+  - User login history and session analytics
+  - Activity timeline with detailed timestamps and action descriptions
+  - Session activity heartbeat every 5 minutes
+
+- **Advanced User Search & Filtering**
+
+  - Multi-criteria search: name, email, company, department
+  - Advanced filtering by role, status, company, department
+  - Real-time filtering with active filter display and quick clear options
+  - Dynamic filter dropdowns based on existing data
+
+- **Bulk User Operations**
+
+  - Bulk user selection with select all/none functionality
+  - Bulk role changes across multiple users
+  - Bulk status updates (activate/deactivate users)
+  - Bulk company and department assignments
+  - Comprehensive audit logging for all bulk operations
+
+- **User Data Export & Management**
+
+  - CSV export functionality for user data
+  - Comprehensive user data including login statistics and profile information
+  - Export with sanitized and formatted data for analysis
+
+- **Enhanced User Dashboard**
+  - Individual user activity viewing with detailed timeline
+  - User statistics: total logins, account creation date, active sessions
+  - Last activity tracking and session management
+  - Enhanced user table with additional columns and data
+
+### Enhanced
+
+- **User Service (`userService.ts`)**
+
+  - Added activity tracking functions: `logUserActivity()`, `getUserActivities()`
+  - Session management: `createUserSession()`, `updateUserSession()`, `endUserSession()`, `getActiveSessions()`
+  - Enhanced profile management: `updateUserProfile()`, `getUserProfile()`
+  - Bulk operations: `bulkUpdateUsers()`, `exportUsers()`
+  - Advanced search: `searchUsers()` with filtering capabilities
+
+- **Authentication Context**
+
+  - Integrated session management with login/logout
+  - Automatic session activity tracking
+  - Enhanced profile update capabilities
+  - Session persistence with localStorage
+  - Activity monitoring and session cleanup
+
+- **User Interface Enhancements**
+  - Modern tabbed interface for user profiles
+  - Enhanced user management dashboard with search and filtering
+  - Bulk operations modal with conditional form fields
+  - User activity modal with timeline view
+  - Responsive design improvements
+
+### Technical
+
+- **Enhanced Data Models**
+
+  - Extended User interface with profile fields, activity tracking, and preferences
+  - New `UserLoginEntry` interface for login history
+  - New `UserActivity` interface for action tracking
+  - New `UserSession` interface for session management
+
+- **Database Collections**
+  - `UserActivities` - User action tracking and audit log
+  - `UserSessions` - Active session management
+  - Enhanced `Users` collection with new profile fields
+
+### Fixed
+
+- **SSR Issues**
+  - Additional localStorage SSR fixes in costs page
+  - Proper window checks for client-side only operations
 
 ## [0.2.0] - 2025-01-22
 
@@ -197,7 +288,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **v0.1.0**: Initial production management system with full CRUD operations
 - **v0.2.0**: User management system with access control and notifications
-- **v0.3.0+**: Planned - Email integration, audit logging, advanced permissions
+- **v0.3.0**: Enhanced user management with activity tracking and bulk operations
+- **v0.4.0+**: Planned - Email integration, audit logging, advanced permissions
 
 ---
 
