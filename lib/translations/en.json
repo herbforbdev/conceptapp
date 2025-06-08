@@ -2,6 +2,7 @@
   "common": {
     "all": "All",
     "loading": "Loading...",
+    "loadingFormData": "Loading form data...",
     "error": "Error",
     "save": "Save",
     "cancel": "Cancel",
@@ -410,6 +411,7 @@
       "stockIn": "Stock In",
       "stockOut": "Stock Out",
       "adjustment": "Adjustment",
+      "stockAdjustment": "Stock Adjustment",
       "activityType": "Activity Type"
     },
     "add": {

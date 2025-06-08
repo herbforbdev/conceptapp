@@ -2,6 +2,7 @@
   "common": {
     "all": "Tout",
     "loading": "Chargement...",
+    "loadingFormData": "Chargement des données du formulaire...",
     "error": "Erreur",
     "save": "Enregistrer",
     "cancel": "Annuler",
@@ -411,6 +412,7 @@
       "stockIn": "Entrée en stock",
       "stockOut": "Sortie de stock",
       "adjustment": "Ajustement",
+      "stockAdjustment": "Ajustement de stock",
       "activityType": "Type d'activité"
     },
     "add": {
