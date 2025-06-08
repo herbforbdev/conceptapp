@@ -499,6 +499,7 @@ export default function UsersPage() {
           <Button
             onClick={() => setIsInviteModalOpen(true)}
             size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <HiUserAdd className="h-4 w-4 mr-2" />
             Inviter un utilisateur
@@ -704,7 +705,7 @@ export default function UsersPage() {
                         Aucun utilisateur trouvé
                       </Table.Cell>
                     </Table.Row>
-                  ) :
+                  ) : (
                     filteredUsers.map((user) => (
                       <Table.Row key={user.id} className="bg-white">
                         <Table.Cell>

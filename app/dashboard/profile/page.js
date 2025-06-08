@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, Button, TextInput, Label, Select, ToggleSwitch, Badge, Alert } from 'flowbite-react';
-import { HiUser, HiMail, HiCalendar, HiShieldCheck, HiCog, HiLogout, HiUsers, HiPencil, HiCheck, HiX, HiLogin, HiPencilAlt, HiInformationCircle, HiRefresh } from 'react-icons/hi';
+import { HiUser, HiMail, HiCalendar, HiShieldCheck, HiCog, HiLogout, HiUsers, HiPencil, HiCheck, HiX, HiLogin, HiPencilAlt, HiInformationCircle, HiRefresh, HiClock } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { userService } from '@/services/firestore/userService';
