@@ -11,7 +11,7 @@ import {
   startAfter,
   limit as firestoreLimit
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '../lib/firebase.ts';
 import { notificationService } from './firestore/notificationService';
 
 interface WeeklyStats {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Label, TextInput, Select, Alert, Badge, Tabs } from 'flowbite-react';
 import { 
   HiShieldCheck, HiEye, HiDownload, HiSearch, HiFilter, HiRefresh, 
-  HiExclamationTriangle, HiInformationCircle, HiClock, HiUser,
+  HiInformationCircle, HiClock, HiUser,
   HiDatabase, HiLockClosed, HiChartBar, HiDocumentReport
 } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
@@ -166,7 +166,7 @@ export default function AuditDashboardPage() {
       case 'authorization': return <HiShieldCheck className="h-4 w-4" />;
       case 'data_access': return <HiEye className="h-4 w-4" />;
       case 'data_modification': return <HiDatabase className="h-4 w-4" />;
-      case 'security': return <HiExclamationTriangle className="h-4 w-4" />;
+      case 'security': return <HiShieldCheck className="h-4 w-4" />;
       case 'system_administration': return <HiUser className="h-4 w-4" />;
       default: return <HiInformationCircle className="h-4 w-4" />;
     }
@@ -182,7 +182,7 @@ export default function AuditDashboardPage() {
     return (
       <div className="p-6">
         <Alert color="failure">
-          <HiExclamationTriangle className="h-4 w-4" />
+          <HiShieldCheck className="h-4 w-4" />
           <span className="ml-2">Accès refusé. Cette page est réservée aux administrateurs.</span>
         </Alert>
       </div>

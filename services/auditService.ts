@@ -15,7 +15,7 @@ import {
   doc,
   getDoc
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '../lib/firebase.ts';
 
 // Audit Log Entry Interface
 export interface AuditLogEntry {

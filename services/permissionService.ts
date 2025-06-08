@@ -14,7 +14,7 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '../lib/firebase.ts';
 import { auditService } from './auditService';
 
 // Permission Definitions

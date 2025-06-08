@@ -776,6 +776,11 @@ export class EmailService {
   // SendGrid implementation
   private async sendWithSendGrid(template: EmailTemplate, options: EmailOptions): Promise<boolean> {
     try {
+      // Only import SendGrid on server-side to prevent fs module issues
+      if (typeof window !== 'undefined') {
+        throw new Error('SendGrid can only be used on server-side');
+      }
+      
       const sgMail = require('@sendgrid/mail');
       sgMail.setApiKey(this.apiKey);
 

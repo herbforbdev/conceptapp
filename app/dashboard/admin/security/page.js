@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Table, Button, Modal, Label, TextInput, Select, Alert, Badge, Tabs, Toggle } from 'flowbite-react';
+import { Card, Table, Button, Modal, Label, TextInput, Select, Alert, Badge, Tabs, ToggleSwitch } from 'flowbite-react';
 import { 
-  HiShieldCheck, HiExclamationTriangle, HiLockClosed, HiEye, HiRefresh,
+  HiShieldCheck, HiLockClosed, HiEye, HiRefresh,
   HiClock, HiGlobe, HiUser, HiKey, HiCog, HiChartBar, HiBan, HiCheckCircle
 } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
@@ -146,7 +146,7 @@ export default function SecurityDashboardPage() {
     switch (action) {
       case 'login_failed': return <HiBan className="h-4 w-4 text-red-600" />;
       case 'access_denied': return <HiLockClosed className="h-4 w-4 text-orange-600" />;
-      case 'suspicious_activity': return <HiExclamationTriangle className="h-4 w-4 text-red-600" />;
+      case 'suspicious_activity': return <HiBan className="h-4 w-4 text-red-600" />;
       case 'account_locked': return <HiBan className="h-4 w-4 text-red-600" />;
       default: return <HiShieldCheck className="h-4 w-4 text-blue-600" />;
     }
@@ -217,7 +217,7 @@ export default function SecurityDashboardPage() {
     return (
       <div className="p-6">
         <Alert color="failure">
-          <HiExclamationTriangle className="h-4 w-4" />
+          <HiBan className="h-4 w-4" />
           <span className="ml-2">Accès refusé. Cette page est réservée aux administrateurs.</span>
         </Alert>
       </div>
@@ -297,7 +297,7 @@ export default function SecurityDashboardPage() {
         <Tabs.Item 
           title={
             <span className="flex items-center gap-2">
-              <HiExclamationTriangle className="h-4 w-4" />
+              <HiBan className="h-4 w-4" />
               Événements de Sécurité
             </span>
           }

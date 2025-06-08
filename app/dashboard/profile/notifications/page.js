@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Button, Alert, Badge, Label, Toggle } from 'flowbite-react';
+import { Card, Button, Alert, Badge, Label, ToggleSwitch } from 'flowbite-react';
 import { HiBell, HiMail, HiCog, HiCheck, HiExclamation } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 import { notificationService } from '@/services/firestore/notificationService';
@@ -236,7 +236,7 @@ export default function NotificationPreferencesPage() {
                       </div>
                     </div>
                     <div className="flex items-center">
-                      <Toggle
+                      <ToggleSwitch
                         checked={preferences[item.key]}
                         onChange={(checked) => handlePreferenceChange(item.key, checked)}
                         disabled={!preferences.emailNotifications && item.key !== 'emailNotifications' && item.key !== 'pushNotifications'}

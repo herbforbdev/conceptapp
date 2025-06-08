@@ -65,7 +65,7 @@ import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
 import dynamic from 'next/dynamic';
 import CostsDashboard from '@/components/costs/CostsDashboard';
-import { getDefaultDateRange } from '@/lib/utils/dateUtils';
+// // import { getDefaultDateRange } from '@/lib/utils/dateUtils';
 import TableHeader from '@/components/shared/TableHeader';
 import ChartTitle from '@/components/shared/ChartTitle';
 import { getTranslatedChartOptions } from '@/components/shared/ChartTitle';
@@ -171,7 +171,7 @@ function CostsPage() {
     selectedMonth: '',
     selectedYear: new Date().getFullYear(),
     selectedTimePeriod: TIME_PERIODS.MONTH,
-    dateFilters: getDefaultDateRange(),
+    dateFilters: { startDate: new Date(), endDate: new Date() },
     selectedActivityType: '',
     selectedExpenseType: '',
     selectedStatus: ''
@@ -369,7 +369,12 @@ function CostsPage() {
 
   // Basic state
   const [selectedPeriod, setSelectedPeriod] = useState('MONTH');
-  const [dateRange, setDateRange] = useState(() => getDefaultDateRange('MONTH'));
+  const [dateRange, setDateRange] = useState(() => {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return { startDate, endDate };
+  });
 
   // Fetch master data
   const { 
@@ -613,7 +618,7 @@ function CostsPage() {
   // Handle period selection
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period);
-    setDateRange(getDefaultDateRange(period));
+    // setDateRange(getDefaultDateRange(period));
   };
 
   // Refresh handler

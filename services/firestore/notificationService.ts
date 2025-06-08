@@ -1,6 +1,6 @@
 import { firestore } from '@/lib/firebase';
 import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, where, orderBy, onSnapshot, Timestamp, writeBatch } from 'firebase/firestore';
-import { emailService } from '../emailService';
+// // import { emailService } from '../emailService'; // Server-only // Moved to dynamic import to prevent client-side issues
 
 export interface Notification {
   id?: string;
