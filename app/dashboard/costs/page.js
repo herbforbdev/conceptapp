@@ -36,6 +36,7 @@ import {
   HiRefresh,
 } from 'react-icons/hi';
 import TopCard from "@/components/shared/TopCard";
+import TableHeader from "@/components/shared/TableHeader";
 import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import dynamic from 'next/dynamic';
 import { getTranslatedChartOptions } from '@/components/shared/ChartTitle';

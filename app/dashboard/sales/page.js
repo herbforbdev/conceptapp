@@ -1060,7 +1060,7 @@ export default function SalesPage() {
               />
               <TopCard 
                 title={t('sales.metrics.bestSelling')}
-                value={metrics.bestSellingProduct.product?.productid || 'N/A'}
+                value={getTranslatedProductName(metrics.bestSellingProduct.product, t) || 'N/A'}
                 subValue={`${metrics.bestSellingProduct.quantity.toLocaleString()} ${t('sales.metrics.units')}`}
                 icon={<HiShoppingCart size={16} />}
                 type="Best Selling"
