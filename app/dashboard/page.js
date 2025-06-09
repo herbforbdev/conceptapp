@@ -1,10 +1,36 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Card } from "flowbite-react";
-import { firestore } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
 import dynamic from "next/dynamic";
+
+// Chart.js setup
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  BarElement
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  BarElement
+);
+
+// Dynamic imports for charts (avoiding SSR issues)
+const LineChart = dynamic(() => import("react-chartjs-2").then((mod) => mod.Line), { ssr: false });
 import { HiTrendingUp, HiTrendingDown } from "react-icons/hi";
 import { FaDollarSign, FaMoneyBillWave, FaIndustry, FaCubes, FaWarehouse, FaChartPie, FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -13,35 +39,13 @@ import { useMasterData } from "@/hooks/useMasterData";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { inventoryUtils } from "@/lib/inventory";
 import Link from "next/link";
-import { Chart, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
+
 import { fetchSales, fetchCosts, fetchProduction, fetchInventory } from '@/services/firestore/dashboardService';
 import { calculateGrowth, getTopProducts, getTopExpenses, calculateProductivity } from '@/lib/dashboard';
 
-// Register Chart.js components at the top level
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
-// Dynamic imports for charts (avoiding SSR issues)
-const BarChart = dynamic(() => import("react-chartjs-2").then((mod) => mod.Bar), { ssr: false });
-const PieChart = dynamic(() => import("react-chartjs-2").then((mod) => mod.Pie), { ssr: false });
-const LineChart = dynamic(() => import("react-chartjs-2").then((mod) => mod.Line), { ssr: false });
-const AreaChart = dynamic(() => import("recharts").then((mod) => mod.AreaChart), { ssr: false });
-const Area = dynamic(() => import("recharts").then((mod) => mod.Area), { ssr: false });
-const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), { ssr: false });
-const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), { ssr: false });
-const CartesianGrid = dynamic(() => import("recharts").then((mod) => mod.CartesianGrid), { ssr: false });
-const RechartsTooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), { ssr: false });
-const RechartsLegend = dynamic(() => import("recharts").then((mod) => mod.Legend), { ssr: false });
-const ResponsiveContainer = dynamic(() => import("recharts").then((mod) => mod.ResponsiveContainer), { ssr: false });
+
+
 
 // Add helper for product name translation
 const getTranslatedProductName = (product, t) => {

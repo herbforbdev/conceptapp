@@ -5,8 +5,7 @@ import { useFirestoreCollection } from "../../../hooks/useFirestoreCollection";
 import { firestore } from "@/lib/firebase";
 import { deleteDoc, doc, writeBatch } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Card, Button } from "flowbite-react";
+import { Card } from "flowbite-react";
 import { HiPencil, HiTrash, HiRefresh, HiPlus } from "react-icons/hi";
 
 export default function ProductsPage() {

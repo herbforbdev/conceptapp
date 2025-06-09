@@ -18,10 +18,7 @@ import {
   Filler,
   ArcElement
 } from 'chart.js';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import { Navigation } from 'swiper/modules';
+
 import { useMasterData } from "@/hooks/useMasterData";
 import Link from "next/link";
 import AdminOnly from '@/components/AdminOnly';
@@ -48,38 +45,7 @@ export default function SalesTrendsPage() {
   const { data: activityTypes } = useFirestoreCollection("ActivityTypes");
   const { data: costs } = useFirestoreCollection("Costs");
   const { t } = useLanguage();
-  const [monthlyData, setMonthlyData] = useState([]);
-  const [channelData, setChannelData] = useState([]);
-  const [performanceData, setPerformanceData] = useState({
-    totalSales: 0,
-    growth: 0,
-    avgMonthly: 0,
-    bestSellingProduct: { name: '', sales: 0 },
-    iceBlocsSales: 0,
-    cubesSales: 0,
-    bottlesSales: 0
-  });
-  const [trendChartData, setTrendChartData] = useState({
-    iceBlocks: {
-      labels: [],
-      datasets: []
-    },
-    iceCubes: {
-      labels: [],
-      datasets: []
-    },
-    iceBottles: {
-      labels: [],
-      datasets: []
-    }
-  });
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [yearlyDistribution, setYearlyDistribution] = useState({});
-  const [yearlyActivityType, setYearlyActivityType] = useState({});
-  const [bestSellingProduct, setBestSellingProduct] = useState(null);
-  const [iceBlocsSales, setIceBlocsSales] = useState(0);
-  const [cubesSales, setCubesSales] = useState(0);
-  const [bottlesSales, setBottlesSales] = useState(0);
   const [activeTab, setActiveTab] = useState("general");
 
   const { products: masterProducts, activityTypes: masterActivityTypes, expenseTypes, productMap, activityTypeMap, expenseTypeMap } = useMasterData();
@@ -429,19 +395,7 @@ export default function SalesTrendsPage() {
     }
   }, [sales, t]);
 
-  const channelChartData = {
-    labels: channelData.map(([channel]) => channel),
-    datasets: [{
-      data: channelData.map(([, amount]) => amount),
-      backgroundColor: [
-        '#fbbf24',
-        '#818cf8',
-        '#34d399',
-        '#f472b6',
-      ],
-      borderWidth: 0,
-    }]
-  };
+
 
   const chartOptions = {
     responsive: true,

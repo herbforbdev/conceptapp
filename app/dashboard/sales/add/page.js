@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Label, Select, TextInput, Checkbox } from "flowbite-react";
+import { Card, Button, Select, TextInput } from "flowbite-react";
 import { firestore } from "@/lib/firebase";
-import { collection, addDoc, writeBatch, doc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { useMasterData } from "@/hooks/useMasterData";
 import Link from "next/link";
@@ -29,13 +29,13 @@ export default function AddSalePage() {
     loading: masterDataLoading 
   } = useMasterData();
 
-  // Quick entry mode state
-  const [quickMode, setQuickMode] = useState(false);
-  const [lockedFields, setLockedFields] = useState({
+  // Quick entry mode settings (currently disabled)
+  const quickMode = false;
+  const lockedFields = {
     date: false,
     activityType: false,
     product: false
-  });
+  };
 
   // State for entries
   const [entries, setEntries] = useState([

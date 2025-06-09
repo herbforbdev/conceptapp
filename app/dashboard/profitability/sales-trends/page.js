@@ -4,7 +4,7 @@ import { Card, Select } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import dynamic from "next/dynamic";
-import { HiTrendingUp, HiTrendingDown, HiCurrencyDollar, HiChartPie, HiCalendar, HiArrowNarrowLeft } from "react-icons/hi";
+import { HiTrendingUp, HiCurrencyDollar, HiChartPie, HiCalendar, HiArrowNarrowLeft } from "react-icons/hi";
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Chart as ChartJS,
@@ -59,30 +59,13 @@ const formatDateFR = (dateStr) => {
   return `${d.getDate().toString().padStart(2, '0')}${months[d.getMonth()]}`;
 };
 
-// For chart data, aggregate by week if there are too many points
-const aggregateData = (data) => {
-  if (data.length <= 15) return data;
-  // Group by week
-  const grouped = [];
-  let weekSum = 0, weekCount = 0, weekLabel = '';
-  data.forEach((d, i) => {
-    weekSum += d.totalUSD;
-    weekCount++;
-    if (weekCount === 7 || i === data.length - 1) {
-      weekLabel = d.month + ' (sem.' + (Math.floor(i / 7) + 1) + ')';
-      grouped.push({ month: weekLabel, totalUSD: weekSum, count: weekCount, average: weekSum / weekCount });
-      weekSum = 0; weekCount = 0;
-    }
-  });
-  return grouped;
-};
+
 
 export default function SalesTrendsPage() {
   const { t } = useLanguage();
   const { data: sales } = useFirestoreCollection("Sales");
   const { data: products } = useFirestoreCollection("Products");
   const [monthlyData, setMonthlyData] = useState([]);
-  const [productData, setProductData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [availableYears, setAvailableYears] = useState([]);
@@ -137,7 +120,6 @@ export default function SalesTrendsPage() {
       productMap[product] = (productMap[product] || 0) + (sale.amountUSD || 0);
     });
     const productArr = Object.entries(productMap);
-    setProductData(productArr);
 
     const topProduct = productArr.sort((a, b) => b[1] - a[1])[0] || ['', 0];
     const topMonth = sorted.sort((a, b) => b.totalUSD - a.totalUSD)[0] || { month: '', totalUSD: 0 };
@@ -152,25 +134,7 @@ export default function SalesTrendsPage() {
     });
   }, [sales, products, selectedYear, selectedMonth]);
 
-  // Aggregate data
-  const aggregateData = (data) => {
-    if (data.length <= 15) return data;
-    // Group by week
-    const grouped = [];
-    let weekSum = 0, weekCount = 0, weekLabel = '';
-    data.forEach((d, i) => {
-      weekSum += d.totalUSD;
-      weekCount++;
-      if (weekCount === 7 || i === data.length - 1) {
-        weekLabel = d.month + ' (sem.' + (Math.floor(i / 7) + 1) + ')';
-        grouped.push({ month: weekLabel, totalUSD: weekSum, count: weekCount, average: weekSum / weekCount });
-        weekSum = 0; weekCount = 0;
-      }
-    });
-    return grouped;
-  };
-
-  const displayData = aggregateData(monthlyData);
+  const displayData = monthlyData;
   const monthlyChartData = {
     labels: displayData.map(d => d.month),
     datasets: [

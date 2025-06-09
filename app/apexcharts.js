@@ -36,7 +36,7 @@ const ApexChartComponent = dynamic(
 );
 
 // Client-side only wrapper for ApexCharts
-export default function Chart({ options, series, type, width, height }) {
+function Chart({ options, series, type, width, height }) {
   const [mounted, setMounted] = React.useState(false);
   
   React.useEffect(() => {
@@ -105,4 +105,8 @@ export default function Chart({ options, series, type, width, height }) {
       height={height || 350}
     />
   );
-} 
+}
+
+Chart.displayName = 'Chart';
+
+export default Chart; 

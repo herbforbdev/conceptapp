@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, Button, TextInput, FileInput, Label, Alert } from "flowbite-react";
+import Image from "next/image";
 import { useState } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import { HiOutlinePhotograph, HiKey, HiShieldCheck, HiLink } from "react-icons/hi";
@@ -149,9 +150,11 @@ export default function ProfilePage() {
               <div className="mb-4">
                 <div className="w-32 h-32 mx-auto rounded-full bg-gray-200 flex items-center justify-center">
                   {user?.photoURL ? (
-                    <img
+                    <Image
                       src={user.photoURL}
-                      alt={user.displayName}
+                      alt={user.displayName || 'Profile photo'}
+                      width={128}
+                      height={128}
                       className="w-32 h-32 rounded-full"
                     />
                   ) : (

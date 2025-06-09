@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card } from 'flowbite-react';
 
 interface PageLayoutProps {
   children: React.ReactNode;

@@ -7,7 +7,6 @@ import { useLanguage } from "@/context/LanguageContext";
 import dynamic from "next/dynamic";
 
 const BarChart = dynamic(() => import("react-chartjs-2").then((mod) => mod.Bar), { ssr: false });
-const PieChart = dynamic(() => import("react-chartjs-2").then((mod) => mod.Pie), { ssr: false });
 
 export default function ActivityTypesProfitabilityPage() {
   const { data: sales } = useFirestoreCollection("Sales");

@@ -14,7 +14,7 @@ import {
 import LanguageSelector from '@/components/shared/LanguageSelector';
 
 export default function SettingsPage() {
-  const { language, setLanguage, t: rawT } = useLanguage();
+  const { t: rawT } = useLanguage();
   // Safe t() to avoid rendering objects as React children
   const t = (key) => {
     const value = rawT(key);
@@ -60,11 +60,7 @@ export default function SettingsPage() {
     }
   ];
 
-  const handleLanguageChange = (e) => {
-    setLanguage(e.target.value);
-    // Store the language preference in localStorage
-    localStorage.setItem('preferredLanguage', e.target.value);
-  };
+
 
   return (
     <div className="min-h-screen p-8">

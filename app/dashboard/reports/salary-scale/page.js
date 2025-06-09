@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Button, Table, Spinner } from 'flowbite-react';
+import { Card, Button, Table } from 'flowbite-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
-import { useMasterData } from '@/hooks/useMasterData';
 import { ExchangeRateService } from '@/lib/exchangeRates.js';
 import AdminOnly from '@/components/AdminOnly';
 import { 
@@ -156,7 +155,7 @@ export default function SalaryScalePage() {
     });
 
     return { data, totalSalaries };
-  }, [salaryScale, monthlyData.profit]);
+  }, [salaryScale, monthlyData.profit, calculateBonuses]);
 
   // Handle editing
   const handleEdit = (position, currentValue) => {

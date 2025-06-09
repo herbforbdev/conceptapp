@@ -7,10 +7,7 @@ import {
   Modal,
   Label,
   TextInput,
-  Select,
-  Badge,
-  Tooltip,
-  Dropdown
+  Select
 } from "flowbite-react";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { firestore } from "@/lib/firebase";

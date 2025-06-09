@@ -37,17 +37,9 @@ import {
 } from 'react-icons/hi';
 import TopCard from "@/components/shared/TopCard";
 import { TIME_PERIODS } from '@/lib/constants/timePeriods';
-import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
 import dynamic from 'next/dynamic';
-import CostsDashboard from '@/components/costs/CostsDashboard';
-import TableHeader from '@/components/shared/TableHeader';
-import ChartTitle from '@/components/shared/ChartTitle';
 import { getTranslatedChartOptions } from '@/components/shared/ChartTitle';
-import ChartWrapper from '@/components/shared/ChartWrapper';
-import { ExchangeRateService } from '@/lib/exchangeRates.js';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
-import { userService } from '@/services/firestore/userService';
+
 
 // Dynamic import for ApexCharts
 const Chart = dynamic(() => import('../../../app/apexcharts'), { ssr: false });

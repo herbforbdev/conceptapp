@@ -40,6 +40,7 @@ export default function AuditDashboardPage() {
       loadAuditLogs();
       loadStatistics();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
   const loadAuditLogs = async () => {
@@ -199,7 +200,7 @@ export default function AuditDashboardPage() {
               <HiShieldCheck className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Journal d'Audit</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Journal d&apos;Audit</h1>
               <p className="text-gray-600">Surveillance et conformité du système</p>
             </div>
           </div>
@@ -222,7 +223,7 @@ export default function AuditDashboardPage() {
           title={
             <span className="flex items-center gap-2">
               <HiDocumentReport className="h-4 w-4" />
-              Journaux d'Audit
+              Journaux d&apos;Audit
             </span>
           }
         >
@@ -351,7 +352,7 @@ export default function AuditDashboardPage() {
                   ) : logs.length === 0 ? (
                     <Table.Row>
                       <Table.Cell colSpan={8} className="text-center py-8 text-gray-500">
-                        Aucun journal d'audit trouvé
+                        Aucun journal d&apos;audit trouvé
                       </Table.Cell>
                     </Table.Row>
                   ) : (
@@ -432,7 +433,7 @@ export default function AuditDashboardPage() {
                   setFilters(prev => ({ ...prev, limit: prev.limit + 50 }));
                   loadAuditLogs();
                 }}>
-                  Charger plus d'entrées
+                  Charger plus d&apos;entrées
                 </Button>
               </div>
             )}
@@ -488,7 +489,7 @@ export default function AuditDashboardPage() {
 
       {/* Details Modal */}
       <Modal show={showDetailsModal} onClose={() => setShowDetailsModal(false)} size="xl">
-        <Modal.Header>Détails de l'Événement d'Audit</Modal.Header>
+                    <Modal.Header>Détails de l&apos;Événement d&apos;Audit</Modal.Header>
         <Modal.Body>
           {selectedLog && (
             <div className="space-y-4">

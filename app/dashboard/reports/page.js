@@ -6,7 +6,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import AdminOnly from '@/components/AdminOnly';
 import { 
   HiDocumentReport, 
-  HiChartBar, 
   HiCurrencyDollar, 
   HiShoppingCart,
   HiTrendingUp,

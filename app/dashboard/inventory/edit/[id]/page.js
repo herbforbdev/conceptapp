@@ -17,10 +17,8 @@ export default function EditInventoryPage({ params }) {
   
   // Use the shared master data hook
   const { 
-    products,
     activityTypes,
     productMap,
-    activityTypeMap,
     loading: masterDataLoading 
   } = useMasterData();
 

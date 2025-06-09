@@ -2,22 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { Card, Button, TextInput, Label, Select, ToggleSwitch, Badge, Alert, Textarea } from 'flowbite-react';
-import { HiUser, HiMail, HiCalendar, HiShieldCheck, HiCog, HiLogout, HiUsers, HiPencil, HiCheck, HiX, HiLogin, HiPencilAlt, HiInformationCircle, HiRefresh, HiClock } from 'react-icons/hi';
+import { HiUser, HiShieldCheck, HiCog, HiLogout, HiUsers, HiLogin, HiPencilAlt, HiInformationCircle, HiRefresh, HiClock } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { userService } from '@/services/firestore/userService';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 export default function ProfilePage() {
   const { user, logout, updateUserProfile, userActivities, loadUserActivities, sessionId } = useAuth();
   const { t } = useLanguage();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({
-    displayName: '',
-    email: ''
-  });
-  const [saving, setSaving] = useState(false);
+
 
   // Phase 3: Enhanced profile fields
   const [enhancedProfile, setEnhancedProfile] = useState({
@@ -41,10 +37,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setEditData({
-        displayName: user.displayName || '',
-        email: user.email || ''
-      });
       setEnhancedProfile(prev => ({
         ...prev,
         phoneNumber: user.phoneNumber || '',
@@ -77,31 +69,7 @@ export default function ProfilePage() {
     loadActiveSessions();
   }, [user?.id]);
 
-  const handleSave = async () => {
-    if (!user?.id) return;
-    
-    setSaving(true);
-    try {
-      await userService.updateUser(user.id, {
-        displayName: editData.displayName,
-        email: editData.email
-      });
-      setIsEditing(false);
-      // You might want to refresh the auth context here
-    } catch (error) {
-      console.error('Error updating profile:', error);
-    } finally {
-      setSaving(false);
-    }
-  };
 
-  const handleCancel = () => {
-    setEditData({
-      displayName: user?.displayName || '',
-      email: user?.email || ''
-    });
-    setIsEditing(false);
-  };
 
   const formatDate = (date) => {
     if (!date) return 'N/A';
@@ -240,9 +208,11 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
                     {user?.photoURL ? (
-                      <img
+                      <Image
                         src={user.photoURL}
                         alt={user.displayName || 'Profile'}
+                        width={80}
+                        height={80}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -357,7 +327,7 @@ export default function ProfilePage() {
               <Card>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Historique d'Activité
+                    Historique d&apos;Activité
                   </h3>
                   <Button
                     size="sm"

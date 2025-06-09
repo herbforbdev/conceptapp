@@ -68,7 +68,7 @@ export default function Login() {
                   {authError.type === 'NOT_AUTHORIZED' && (
                     <div className="mt-2">
                       <Link href="/request-access" className="text-sm underline">
-                        Demander l'accès à l'application →
+                        Demander l&apos;accès à l&apos;application →
                       </Link>
                     </div>
                   )}
@@ -91,9 +91,9 @@ export default function Login() {
           {!authError && (
             <div className="mt-4 text-center">
               <p className="text-sm text-[#415A77]">
-                Pas encore d'accès?{' '}
+                Pas encore d&apos;accès?{' '}
                 <Link href="/request-access" className="text-[#385e82] hover:underline font-medium">
-                  Demander l'accès
+                                      Demander l&apos;accès
                 </Link>
               </p>
             </div>

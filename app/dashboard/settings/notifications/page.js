@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Button, ToggleSwitch, Select } from "flowbite-react";
+import { Card, ToggleSwitch, Select } from "flowbite-react";
 import { useState } from "react";
 import { HiBell, HiMail, HiPhone, HiDesktopComputer } from "react-icons/hi";
 import { useLanguage } from "@/context/LanguageContext";

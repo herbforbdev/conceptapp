@@ -1,9 +1,10 @@
 "use client";
 
 import { Card, Table, Button, Modal, Label, TextInput, Select, Alert, Badge, Tabs } from "flowbite-react";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useFirestoreCollection } from "../../../../hooks/useFirestoreCollection";
-import { HiOutlinePencilAlt, HiOutlineTrash, HiPlus, HiCheck, HiX, HiMail, HiClock, HiShieldCheck, HiUserAdd, HiEye, HiRefresh, HiSearch, HiDownload, HiUsers, HiLogin, HiLogout, HiInformationCircle } from "react-icons/hi";
+import { HiOutlinePencilAlt, HiOutlineTrash, HiCheck, HiX, HiMail, HiClock, HiShieldCheck, HiUserAdd, HiRefresh, HiSearch, HiDownload, HiUsers } from "react-icons/hi";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/firestore/userService";
@@ -205,7 +206,7 @@ export default function UsersPage() {
       console.error('Error performing bulk operation:', error);
       setResult({
         type: 'error',
-        message: 'Erreur lors de l\'opération en lot.'
+        message: 'Erreur lors de l&apos;opération en lot.'
       });
     } finally {
     setActionLoading(false);
@@ -222,7 +223,7 @@ export default function UsersPage() {
       console.error('Error exporting users:', error);
       setResult({
         type: 'error',
-        message: 'Erreur lors de l\'exportation des utilisateurs.'
+        message: 'Erreur lors de l&apos;exportation des utilisateurs.'
       });
     }
   };
@@ -720,9 +721,11 @@ export default function UsersPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                               {user.photoURL ? (
-                                <img
+                                <Image
                                   src={user.photoURL}
-                                  alt={user.displayName}
+                                  alt={user.displayName || 'User avatar'}
+                                  width={32}
+                                  height={32}
                                   className="w-8 h-8 rounded-full object-cover"
                                 />
                               ) : (
@@ -769,7 +772,7 @@ export default function UsersPage() {
                               size="xs"
                               color="gray"
                               onClick={() => handleViewUserActivities(user)}
-                              title="Voir l'activité"
+                              title="Voir l&apos;activité"
                             >
                               <HiClock className="h-3 w-3" />
                             </Button>
@@ -937,7 +940,7 @@ export default function UsersPage() {
                 <option value="">Sélectionnez une action</option>
                 <option value="update_role">Changer le rôle</option>
                 <option value="update_status">Changer le statut</option>
-                <option value="update_company">Changer l'entreprise</option>
+                                            <option value="update_company">Changer l&apos;entreprise</option>
                 <option value="update_department">Changer le département</option>
               </Select>
             </div>
@@ -983,7 +986,7 @@ export default function UsersPage() {
                   id="bulkCompany"
                   value={bulkUpdateData.company}
                   onChange={(e) => setBulkUpdateData(prev => ({ ...prev, company: e.target.value }))}
-                  placeholder="Nom de l'entreprise"
+                                              placeholder="Nom de l&apos;entreprise"
                   required
                 />
               </div>
@@ -1081,7 +1084,7 @@ export default function UsersPage() {
                 type="text"
                 value={inviteForm.displayName}
                 onChange={(e) => setInviteForm(prev => ({ ...prev, displayName: e.target.value }))}
-                placeholder="Nom de l'utilisateur"
+                                            placeholder="Nom de l&apos;utilisateur"
               />
             </div>
             <div>
@@ -1119,7 +1122,7 @@ export default function UsersPage() {
 
       {/* Edit User Modal */}
       <Modal show={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-        <Modal.Header>Modifier l'utilisateur</Modal.Header>
+                    <Modal.Header>Modifier l&apos;utilisateur</Modal.Header>
         <Modal.Body>
           {selectedUser && (
             <form onSubmit={handleEditUser} className="space-y-4">

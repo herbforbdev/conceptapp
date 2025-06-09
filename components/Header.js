@@ -3,16 +3,15 @@
 
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
-import { HiSun, HiMoon, HiUser, HiSearch, HiBell } from "react-icons/hi";
+import { HiSun, HiMoon, HiUser, HiSearch } from "react-icons/hi";
 import { useAuth } from "@/context/AuthContext";
-import { useLanguage } from "@/context/LanguageContext";
 import Notifications from './Notifications';
+import Image from 'next/image';
 import Link from 'next/link';
 
-export default function Header({ toggleSidebar }) {
+export default function Header() {
   const { theme, setTheme } = useTheme();
   const { user } = useAuth();
-  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
   // Wait for component to mount to avoid hydration mismatch
@@ -64,9 +63,11 @@ export default function Header({ toggleSidebar }) {
                 <button className="rounded-full p-1 hover:bg-[#e6eaf0] transition-colors">
                   <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#b4c3d0] bg-[#e6eaf0] flex items-center justify-center">
                     {user.photoURL ? (
-                      <img
+                      <Image
                         src={user.photoURL}
                         alt={user.displayName || 'User profile'}
+                        width={36}
+                        height={36}
                         className="w-full h-full object-cover"
                       />
                     ) : (

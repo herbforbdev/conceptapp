@@ -8,7 +8,7 @@ import {
 } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 import { auditService } from '@/services/auditService';
-import { permissionService } from '@/services/permissionService';
+
 
 export default function SecurityDashboardPage() {
   const { currentUser } = useAuth();
@@ -49,6 +49,7 @@ export default function SecurityDashboardPage() {
     if (isAdmin) {
       loadSecurityData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
   const loadSecurityData = async () => {
@@ -469,7 +470,7 @@ export default function SecurityDashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Authentication Settings */}
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Paramètres d'Authentification</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Paramètres d&apos;Authentification</h3>
               
               <div className="space-y-4">
                 <div>
@@ -546,7 +547,7 @@ export default function SecurityDashboardPage() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="auditLogRetention" value="Rétention des logs d'audit (jours)" />
+                  <Label htmlFor="auditLogRetention" value="Rétention des logs d&apos;audit (jours)" />
                   <TextInput
                     id="auditLogRetention"
                     type="number"
@@ -617,7 +618,7 @@ export default function SecurityDashboardPage() {
 
       {/* Event Details Modal */}
       <Modal show={showEventModal} onClose={() => setShowEventModal(false)} size="xl">
-        <Modal.Header>Détails de l'Événement de Sécurité</Modal.Header>
+                    <Modal.Header>Détails de l&apos;Événement de Sécurité</Modal.Header>
         <Modal.Body>
           {selectedEvent && (
             <div className="space-y-4">
@@ -627,7 +628,7 @@ export default function SecurityDashboardPage() {
                   <p className="text-sm text-gray-600">{formatTimestamp(selectedEvent.timestamp)}</p>
                 </div>
                 <div>
-                  <Label className="font-medium">Type d'Événement</Label>
+                  <Label className="font-medium">Type d&apos;Événement</Label>
                   <p className="text-sm text-gray-600">{selectedEvent.action}</p>
                 </div>
               </div>

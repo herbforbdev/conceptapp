@@ -25,6 +25,7 @@ export default function NotificationPreferencesPage() {
     if (currentUser) {
       loadPreferences();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const loadPreferences = async () => {
@@ -176,7 +177,7 @@ export default function NotificationPreferencesPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Préférences de Notification</h1>
-            <p className="text-gray-600">Gérez vos préférences de notification et d'email</p>
+            <p className="text-gray-600">Gérez vos préférences de notification et d&apos;email</p>
           </div>
         </div>
 
@@ -226,7 +227,7 @@ export default function NotificationPreferencesPage() {
 
               {/* Preference Items */}
               <div className="space-y-4">
-                {category.items.map((item, itemIndex) => (
+                                  {category.items.map((item) => (
                   <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-start gap-3">
                       {item.icon}

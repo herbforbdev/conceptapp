@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, memo, useCallback } from "react";
-import { Label, Card, Table, Button, TextInput, Select, Checkbox } from "flowbite-react";
+import { Label, Card, Button, TextInput, Select } from "flowbite-react";
 import { useFirestoreCollection } from "../../../hooks/useFirestoreCollection";
 import { firestore } from "../../../lib/firebase";
 import { deleteDoc, doc, writeBatch, serverTimestamp, updateDoc } from "firebase/firestore";
@@ -23,52 +23,18 @@ import {
   HiX
 } from "react-icons/hi";
 import { useLanguage } from "@/context/LanguageContext";
-import { 
-  createProductMap, 
-  createActivityTypeMap, 
-  getProduct, 
-  getActivityType,
-  getProductCategory 
-} from "../../../lib/firestore/mappings";
+
 import { saveSalesFilters, loadSalesFilters, STORAGE_KEYS } from "@/lib/utils/salesStateManagement";
 import { useMasterData } from "@/hooks/useMasterData";
 import TopCard from "@/components/shared/TopCard";
 import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
 
-// Dynamic imports for Chart.js
-const LineChart = dynamic(() => import('react-chartjs-2').then(mod => mod.Line), { ssr: false });
-const PieChart = dynamic(() => import('react-chartjs-2').then(mod => mod.Pie), { ssr: false });
-const BarChart = dynamic(() => import('react-chartjs-2').then(mod => mod.Bar), { ssr: false });
 
-// Register Chart.js components
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
-// Dynamic import for ApexCharts
-const Chart = dynamic(() => import('../../../app/apexcharts'), { ssr: false });
+
+
 
 // Client-side only wrapper
 const ClientOnly = ({ children }) => {
@@ -77,6 +43,7 @@ const ClientOnly = ({ children }) => {
   if (!mounted) return null;
   return children;
 };
+ClientOnly.displayName = 'ClientOnly';
 
 // Add style definitions
 const typeStyles = {
@@ -535,7 +502,7 @@ export default function SalesPage() {
 
   // Filter states
   const [filters, setFilters] = useState(() => {
-    const savedFilters = loadSalesFilters();
+    const savedFilters = typeof window !== 'undefined' ? loadSalesFilters() : {};
     return {
       searchTerm: "",
       selectedProductType: "",

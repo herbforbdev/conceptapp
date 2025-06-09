@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from 'next/dynamic';
 import { 
-  HiCalendar, HiFilter, HiRefresh, HiTrendingUp, HiTrendingDown, 
+  HiRefresh, HiTrendingUp, HiTrendingDown, 
   HiTrash, HiPencil, HiPlus, HiInbox, HiChevronDown, HiCube, HiClipboardList, HiArchive, HiCheck, HiX 
 } from "react-icons/hi";
 import { PiBeerBottleFill } from "react-icons/pi";
@@ -14,7 +14,7 @@ import { FaIndustry, FaCubes } from "react-icons/fa";
 import { SiCodeblocks } from "react-icons/si";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { firestore } from "@/lib/firebase";
-import { deleteDoc, doc, writeBatch, updateDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
+
 import { useMasterData } from "@/hooks/useMasterData";
 import { formatDateConsistent } from "@/lib/utils/dateUtils";
 import TopCard from "@/components/shared/TopCard";
@@ -41,8 +41,7 @@ import {
   Legend
 } from 'chart.js';
 
-// Add import for annotation plugin
-import annotationPlugin from 'chartjs-plugin-annotation';
+
 
 // Register Chart.js components
 ChartJS.register(
@@ -54,8 +53,7 @@ ChartJS.register(
   ArcElement,
   Title,
   Tooltip,
-  Legend,
-  annotationPlugin
+  Legend
 );
 
 // Client-only wrapper component

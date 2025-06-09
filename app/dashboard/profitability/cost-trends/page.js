@@ -5,7 +5,7 @@ import { Card, Select } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import dynamic from "next/dynamic";
-import { HiTrendingUp, HiTrendingDown, HiCurrencyDollar, HiChartPie, HiCalendar, HiArrowNarrowLeft } from "react-icons/hi";
+import { HiTrendingUp, HiCurrencyDollar, HiChartPie, HiCalendar, HiArrowNarrowLeft } from "react-icons/hi";
 import { useLanguage } from "@/context/LanguageContext";
 import Link from "next/link";
 import {
@@ -43,7 +43,6 @@ export default function CostTrendsPage() {
   const { data: costs } = useFirestoreCollection("Costs");
   const { data: expenseTypes } = useFirestoreCollection("ExpenseTypes");
   const [monthlyData, setMonthlyData] = useState([]);
-  const [expenseTypeData, setExpenseTypeData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [availableYears, setAvailableYears] = useState([]);
@@ -99,7 +98,6 @@ export default function CostTrendsPage() {
       expenseMap[type] = (expenseMap[type] || 0) + (cost.amountUSD || 0);
     });
     const expenseArr = Object.entries(expenseMap);
-    setExpenseTypeData(expenseArr);
 
     const topType = expenseArr.sort((a, b) => b[1] - a[1])[0] || ['', 0];
     const topMonth = sorted.sort((a, b) => b.totalUSD - a.totalUSD)[0] || { month: '', totalUSD: 0 };

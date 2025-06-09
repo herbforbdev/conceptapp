@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Card, Button, TextInput, Label, Textarea, Alert } from 'flowbite-react';
-import { HiMail, HiUser, HiChatAlt, HiCheckCircle, HiExclamationCircle } from 'react-icons/hi';
+import { HiMail, HiUser, HiCheckCircle, HiExclamationCircle } from 'react-icons/hi';
 import { userService } from '@/services/firestore/userService';
 import { notificationService } from '@/services/firestore/notificationService';
 import { motion } from 'framer-motion';
@@ -29,7 +29,7 @@ export default function RequestAccessPage() {
       if (existingUser) {
         setResult({
           type: 'info',
-          message: 'Un compte avec cette adresse email existe déjà. Veuillez contacter un administrateur si vous avez des problèmes d\'accès.'
+          message: 'Un compte avec cette adresse email existe déjà. Veuillez contacter un administrateur si vous avez des problèmes d&apos;accès.'
         });
         setLoading(false);
         return;
@@ -59,7 +59,7 @@ export default function RequestAccessPage() {
 
       setResult({
         type: 'success',
-        message: 'Votre demande d\'accès a été envoyée avec succès! Un administrateur examinera votre demande et vous contactera bientôt.'
+        message: 'Votre demande d&apos;accès a été envoyée avec succès! Un administrateur examinera votre demande et vous contactera bientôt.'
       });
 
       // Reset form
@@ -72,7 +72,7 @@ export default function RequestAccessPage() {
       console.error('Error creating access request:', error);
       setResult({
         type: 'error',
-        message: 'Erreur lors de l\'envoi de votre demande. Veuillez réessayer.'
+        message: 'Erreur lors de l&apos;envoi de votre demande. Veuillez réessayer.'
       });
     } finally {
       setLoading(false);
@@ -95,10 +95,10 @@ export default function RequestAccessPage() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Demander l'accès
+            Demander l&apos;accès
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Remplissez ce formulaire pour demander l'accès à l'application
+            Remplissez ce formulaire pour demander l&apos;accès à l&apos;application
           </p>
         </motion.div>
       </div>
@@ -150,7 +150,7 @@ export default function RequestAccessPage() {
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  placeholder="Expliquez brièvement pourquoi vous avez besoin d'accéder à cette application..."
+                  placeholder="Expliquez brièvement pourquoi vous avez besoin d&apos;accéder à cette application..."
                   rows={4}
                 />
               </div>

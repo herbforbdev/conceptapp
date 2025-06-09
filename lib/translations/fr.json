@@ -159,7 +159,8 @@
     "Set a time period when you don't want to receive notifications": "Définir une période pendant laquelle vous ne souhaitez pas recevoir de notifications",
     "Start Time": "Heure de début",
     "End Time": "Heure de fin",
-    "Back": "Retour"
+    "Back": "Retour",
+    "Push Notifications": "Notifications push"
   },
   "filters": {
     "allActivities": "Toutes les activités",

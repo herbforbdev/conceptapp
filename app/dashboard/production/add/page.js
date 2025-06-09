@@ -2,12 +2,12 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Label, Select, TextInput } from "flowbite-react";
+import { Card, Button, Select, TextInput } from "flowbite-react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { useMasterData } from '@/hooks/useMasterData';
 import Link from 'next/link';
-import { HiArrowLeft, HiPlus, HiTrash, HiDuplicate } from 'react-icons/hi';
+import { HiPlus, HiTrash, HiDuplicate } from 'react-icons/hi';
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';

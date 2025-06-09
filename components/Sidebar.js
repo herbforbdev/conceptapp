@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
+
 import { motion } from "framer-motion";
 import { FiSettings } from "react-icons/fi";
 import { SiMarketo } from "react-icons/si";
@@ -22,7 +22,6 @@ import { useLanguage } from "@/context/LanguageContext";
 const Sidebar = ({ children }) => {
   const { user } = useAuth();
   const pathname = usePathname();
-  const { theme } = useTheme();
   const { t } = useLanguage();
   
   // Add state to handle client-side rendering
@@ -55,16 +54,7 @@ const Sidebar = ({ children }) => {
     );
   };
 
-  // Only render tooltips on client side
-  const TooltipContent = ({ translationKey }) => {
-    if (!isClient) return null;
-    
-    return (
-      <div className="absolute hidden group-hover:block left-20 top-0 px-2 py-1 bg-white dark:bg-gray-700 text-sm rounded shadow-lg whitespace-nowrap">
-        {t(translationKey)}
-      </div>
-    );
-  };
+
 
   return (
     <div className="flex">

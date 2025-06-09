@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Table, Modal, Label, TextInput, Select } from 'flowbite-react';
+import { Card } from 'flowbite-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
 import AdminOnly from '@/components/AdminOnly';
 import { HiArrowNarrowLeft, HiPlus, HiCurrencyDollar, HiCalendar, HiClock } from 'react-icons/hi';
 import Link from 'next/link';

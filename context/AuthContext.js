@@ -1,12 +1,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, firestore } from "@/lib/firebase";
+import { auth, firestore, googleProvider } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { userService } from "@/services/firestore/userService";
 import { useRouter } from "next/navigation";
-import { GoogleAuthProvider } from "firebase/auth";
 
 // Export AuthContext as a named export
 export const AuthContext = createContext({ 
@@ -30,7 +29,6 @@ export function AuthProvider({ children }) {
   const [sessionId, setSessionId] = useState(null);
   const [userActivities, setUserActivities] = useState([]);
   const router = useRouter();
-  const googleProvider = new GoogleAuthProvider();
 
   useEffect(() => {
     // Listen for auth state changes

@@ -3,7 +3,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { Select } from 'flowbite-react';
 
 export default function LanguageSelector() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
 
   return (
     <div className="flex items-center gap-2">

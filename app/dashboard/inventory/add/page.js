@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Label, TextInput, Select } from "flowbite-react";
-import { addDoc, collection, serverTimestamp, writeBatch, doc } from "firebase/firestore";
+import { Card, Button, TextInput, Select } from "flowbite-react";
 import { firestore } from "@/lib/firebase";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { useMasterData } from "@/hooks/useMasterData";
 import Link from "next/link";
-import { HiArrowLeft, HiDuplicate, HiTrash } from "react-icons/hi";
+import { HiDuplicate, HiTrash } from "react-icons/hi";
 import { useLanguage } from "@/context/LanguageContext";
 import { motion } from 'framer-motion';
 import { ArrowLeft, AlertCircle } from "lucide-react";
@@ -211,7 +210,7 @@ export default function AddInventoryPage() {
 
     console.log('Sorted products:', sortedProducts);
     return sortedProducts;
-  }, [productMap, activityTypeMap, activityTypes, entries[0].activityTypeId]);
+  }, [productMap, activityTypeMap, activityTypes, entries]);
 
   // Group products by type for the dropdown
   const groupedProducts = useMemo(() => {
