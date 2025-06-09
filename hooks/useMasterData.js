@@ -17,6 +17,12 @@ export function useMasterData() {
 
   useEffect(() => {
     const fetchMasterData = async () => {
+      // Skip fetching if firestore is not available (SSR)
+      if (!firestore) {
+        setLoading(false);
+        return;
+      }
+      
       try {
         setLoading(true);
         

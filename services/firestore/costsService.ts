@@ -11,14 +11,20 @@ import {
 } from 'firebase/firestore';
 import { Cost } from '@/types';
 
-const costsCollection = collection(firestore, 'Costs');
-
 export async function getCosts(): Promise<Cost[]> {
+  if (!firestore) {
+    throw new Error('Firestore not initialized');
+  }
+  const costsCollection = collection(firestore, 'Costs');
   const snapshot = await getDocs(costsCollection);
   return snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as Cost));
 }
 
 export async function addCost(cost: Omit<Cost, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
+  if (!firestore) {
+    throw new Error('Firestore not initialized');
+  }
+  const costsCollection = collection(firestore, 'Costs');
   await addDoc(costsCollection, {
     ...cost,
     createdAt: serverTimestamp(),
@@ -27,6 +33,9 @@ export async function addCost(cost: Omit<Cost, 'id' | 'createdAt' | 'updatedAt'>
 }
 
 export async function updateCost(id: string, updates: Partial<Cost>): Promise<void> {
+  if (!firestore) {
+    throw new Error('Firestore not initialized');
+  }
   const ref = doc(firestore, 'Costs', id);
   await updateDoc(ref, {
     ...updates,
@@ -35,11 +44,17 @@ export async function updateCost(id: string, updates: Partial<Cost>): Promise<vo
 }
 
 export async function deleteCost(id: string): Promise<void> {
+  if (!firestore) {
+    throw new Error('Firestore not initialized');
+  }
   const ref = doc(firestore, 'Costs', id);
   await deleteDoc(ref);
 }
 
 export async function batchDeleteCosts(ids: string[]): Promise<void> {
+  if (!firestore) {
+    throw new Error('Firestore not initialized');
+  }
   const batch = writeBatch(firestore);
   ids.forEach(id => {
     const ref = doc(firestore, 'Costs', id);
@@ -52,6 +67,9 @@ export async function batchUpdateCosts(
   ids: string[],
   updates: Partial<Cost>
 ): Promise<void> {
+  if (!firestore) {
+    throw new Error('Firestore not initialized');
+  }
   const batch = writeBatch(firestore);
   ids.forEach(id => {
     const ref = doc(firestore, 'Costs', id);

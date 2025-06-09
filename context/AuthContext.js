@@ -31,6 +31,12 @@ export function AuthProvider({ children }) {
   const router = useRouter();
 
   useEffect(() => {
+    // Only set up auth listener on client side when auth is available
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+    
     // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setAuthError(null);
@@ -93,11 +99,20 @@ export function AuthProvider({ children }) {
     });
 
     // Cleanup subscription on unmount
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   // Phase 3: Enhanced login with session tracking
   const loginWithGoogle = async () => {
+    if (!auth || !googleProvider) {
+      setAuthError('Authentication service not available.');
+      return;
+    }
+    
     try {
       setLoading(true);
       setAuthError(null);
@@ -149,6 +164,10 @@ export function AuthProvider({ children }) {
 
   // Phase 3: Enhanced logout with session cleanup
   const logout = async () => {
+    if (!auth) {
+      return;
+    }
+    
     try {
       setLoading(true);
       
