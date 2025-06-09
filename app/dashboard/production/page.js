@@ -1564,7 +1564,7 @@ export default function ProductionPage() {
         />
         <TopCard 
           title={t('production.metrics.topProduct')} 
-          value={topCardsData.topProduct.name}
+          value={topCardsData.topProduct.name || 'N/A'}
           subValue={`${topCardsData.topProduct.quantity.toLocaleString()} ${t('production.metrics.units')}`}
           icon={<HiTrendingUp size={16} />}
           type="Production Rate"
@@ -1578,14 +1578,14 @@ export default function ProductionPage() {
         />
         <TopCard 
           title={t('production.metrics.mostUsedPackaging')} 
-          value={topCardsData.topPackaging.name}
+          value={topCardsData.topPackaging.name || 'N/A'}
           subValue={`${topCardsData.topPackaging.quantity.toLocaleString()} ${t('production.metrics.used')}`}
           icon={<HiArchive size={16} />}
           type="Stock Level"
         />
         <TopCard 
           title={t('production.metrics.activityDistribution')} 
-          value={topCardsData.activityDistribution.name}
+          value={getTranslatedActivityTypeName({ name: topCardsData.activityDistribution.name }, t) || 'N/A'}
           subValue={`${topCardsData.activityDistribution.percentage.toFixed(1)}% ${t('production.metrics.ofTotal')}`}
           icon={<HiFilter size={16} />}
           type="Production Rate"
@@ -1704,7 +1704,7 @@ export default function ProductionPage() {
                   <option value="">{t('production.filters.allActivityTypes')}</option>
                   {activityTypes?.map(type => (
                     <option key={type.id} value={type.id}>
-                      {t(`products.activities.${type.name?.toLowerCase().replace(/\s+/g, '_')}`) || type.name}
+                      {getTranslatedActivityTypeName(type, t)}
                     </option>
                   ))}
                 </Select>
