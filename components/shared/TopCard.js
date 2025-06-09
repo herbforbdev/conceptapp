@@ -10,7 +10,23 @@ export default function TopCard({
   trend,
   className = ''
 }) {
-  const { t } = useLanguage();
+  const { t: rawT } = useLanguage();
+  
+  // Safe t() to avoid rendering objects as React children
+  const safeTitle = (titleValue) => {
+    if (typeof titleValue === 'string') return titleValue;
+    if (typeof titleValue === 'number') return titleValue.toString();
+    if (typeof titleValue === 'object' && titleValue !== null) {
+      // If it's an object, try to extract a string value
+      if (titleValue.title) return titleValue.title;
+      if (titleValue.label) return titleValue.label;
+      if (titleValue.name) return titleValue.name;
+      if (titleValue.value) return titleValue.value;
+      // Fallback to empty string for objects
+      return '';
+    }
+    return titleValue || '';
+  };
 
   // Define styles based on type
   const typeStyles = {
@@ -45,7 +61,7 @@ export default function TopCard({
       <div className="flex justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600 mb-1">
-            {t(`metrics.${title.toLowerCase().replace(/\s+/g, '_')}`)}
+            {safeTitle(title)}
           </p>
           <p className={`text-2xl font-bold ${style.text}`}>
             {value}

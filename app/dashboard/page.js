@@ -887,7 +887,7 @@ export default function DashboardPage() {
                   }
                   return (
                     <li key={prodKey || idx} className="flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2">
-                      <span className="font-semibold">
+                      <span className="font-semibold text-gray-800">
                         {getTranslatedProductName(matchedProduct, t) || t('common.unknown')}
                       </span>
                       <span className="font-bold text-blue-700">{prod.usd?.toLocaleString() || 0} USD</span>
@@ -903,7 +903,7 @@ export default function DashboardPage() {
                   <li className="text-gray-400 italic">{t('dashboard.no_data')}</li>
                 ) : topExpenses.map((exp, idx) => (
                   <li key={exp.expenseType || idx} className="flex items-center justify-between bg-red-50 rounded-lg px-3 py-2">
-                    <span className="font-semibold">{exp.expenseType}</span>
+                    <span className="font-semibold text-gray-800">{exp.expenseType}</span>
                     <span className="font-bold text-red-700">{exp.usd?.toLocaleString() || 0} USD</span>
                   </li>
                 ))}
@@ -917,7 +917,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-3">
                 {stockOverview.map(item => (
                   <div key={item.key} className="flex flex-col items-center bg-white/10 rounded-lg p-3">
-                    <span className="text-xs text-gray-300 mb-1">{item.label}</span>
+                    <span className="text-xs text-gray-100 mb-1">{item.label}</span>
                     <span className="text-2xl font-extrabold">{item.value?.toLocaleString() ?? 0}</span>
                   </div>
                 ))}
