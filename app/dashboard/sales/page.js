@@ -268,7 +268,7 @@ const ActivitySection = memo(({ activityType, productsWithSales, filteredSales, 
     <React.Fragment>
       <tr className="bg-blue-50/50">
         <td colSpan={4} className="px-6 py-3 font-semibold text-blue-900">
-          {activityType.name}
+          {getTranslatedActivityTypeName(activityType, t)}
         </td>
       </tr>
       
@@ -1644,18 +1644,19 @@ export default function SalesPage() {
                   // Metrics for selected period
                   const metrics = calculateSalesMetrics(periodData);
                   const productSales = periodData.reduce((acc, sale) => {
-                    const product = productMap.get(sale.productId);
-                    const productName = product?.productid || 'Unknown Product';
-                    if (!acc[productName]) acc[productName] = { totalUSD: 0 };
-                    acc[productName].totalUSD += sale.amountUSD || 0;
+                    const productId = sale.productId || 'unknown';
+                    if (!acc[productId]) acc[productId] = { totalUSD: 0 };
+                    acc[productId].totalUSD += sale.amountUSD || 0;
                     return acc;
                   }, {});
 
                   const rows = Object.entries(productSales)
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
-                    .map(([productName, data]) => (
-                      <tr key={productName} className="hover:bg-blue-50">
-                        <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedProductName(productMap.get(productName), t)}</td>
+                    .map(([productId, data]) => {
+                      const product = productMap.get(productId);
+                      return (
+                        <tr key={productId} className="hover:bg-blue-50">
+                          <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedProductName(product, t)}</td>
                         <td className="px-6 py-4 font-semibold text-sm text-center">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
                             {data.totalUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
@@ -1667,7 +1668,8 @@ export default function SalesPage() {
                           </span>
                         </td>
                       </tr>
-                    ));
+                      );
+                    });
                   return (
                     <>
                       {rows}
