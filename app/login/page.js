@@ -1,7 +1,5 @@
 "use client";
 
-import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,7 +11,7 @@ import { motion } from "framer-motion";
 import Link from 'next/link';
 
 export default function Login() {
-  const { user, loading, authError, isAuthorized } = useAuth();
+  const { user, loading, authError, isAuthorized, loginWithGoogle } = useAuth();
   const router = useRouter();
   const [isSigningIn, setIsSigningIn] = useState(false);
 
@@ -28,7 +26,7 @@ export default function Login() {
     if (isSigningIn) return;
     setIsSigningIn(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      await loginWithGoogle();
     } catch (error) {
       console.error("Google sign in error:", error);
     } finally {

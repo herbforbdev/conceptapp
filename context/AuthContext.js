@@ -108,7 +108,9 @@ export function AuthProvider({ children }) {
 
   // Phase 3: Enhanced login with session tracking
   const loginWithGoogle = async () => {
+    console.log('🔑 LoginWithGoogle called. Auth available:', !!auth, 'GoogleProvider available:', !!googleProvider);
     if (!auth || !googleProvider) {
+      console.error('❌ Authentication service not available');
       setAuthError('Authentication service not available.');
       return;
     }
