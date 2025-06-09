@@ -526,7 +526,7 @@ export default function UsersPage() {
       {/* Search and Filters */}
       <Card>
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Recherche et Filtres</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">Recherche et Filtres</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search */}
@@ -759,7 +759,7 @@ export default function UsersPage() {
                           {user.company || '-'}
                         </Table.Cell>
                         <Table.Cell>
-                          <div className="text-sm">
+                          <div className="text-sm text-gray-900">
                             {formatTimestamp(user.lastLoginAt)}
                           </div>
                           <div className="text-xs text-gray-500">

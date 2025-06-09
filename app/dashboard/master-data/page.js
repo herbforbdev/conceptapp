@@ -652,7 +652,7 @@ export default function MasterDataPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-500 text-sm font-medium">{t(title)}</p>
-          <h3 className="text-2xl font-bold mt-2">{count}</h3>
+          <h3 className="text-2xl font-bold mt-2 text-gray-900">{count}</h3>
         </div>
         <div className={`p-3 rounded-full ${color.replace('border-', 'bg-').replace('-600', '-100')}`}>
           <Icon className={`h-6 w-6 ${color.replace('border-', 'text-')}`} />
@@ -812,7 +812,7 @@ export default function MasterDataPage() {
       return (
         <Modal show={editingItem !== null} onClose={handleEditCancel} size="lg">
           <Modal.Header>
-            <h3 className="text-xl font-semibold">{title}</h3>
+            <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
           </Modal.Header>
           <Modal.Body>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -1521,7 +1521,7 @@ export default function MasterDataPage() {
         });
       }} size="lg">
         <Modal.Header>
-          <h3 className="text-xl font-semibold">{t('masterData.actions.massEdit')}</h3>
+          <h3 className="text-xl font-semibold text-gray-900">{t('masterData.actions.massEdit')}</h3>
         </Modal.Header>
         <Modal.Body>
           <form onSubmit={handleMassEditSave} className="space-y-4">

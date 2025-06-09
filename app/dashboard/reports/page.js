@@ -69,7 +69,7 @@ export default function ReportsPage() {
                     {report.icon}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2">{report.title}</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-gray-900">{report.title}</h3>
                     <p className="text-gray-600 mb-4">{report.description}</p>
                     <div className="flex items-center text-blue-600">
                       <span className="text-sm">{t('reports.viewReport')}</span>
