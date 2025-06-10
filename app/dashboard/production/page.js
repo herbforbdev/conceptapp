@@ -2223,7 +2223,7 @@ export default function ProductionPage() {
             </div>
             <div className="h-[350px]">
               <ClientOnly>
-                {chartDataMemo?.productChart && (
+                {chartDataMemo?.productChart?.options && chartDataMemo?.productChart?.series && (
                   <Chart 
                     options={{
                       ...chartDataMemo.productChart.options,
@@ -2262,7 +2262,7 @@ export default function ProductionPage() {
             <h3 className="text-lg font-semibold mb-4 text-[#4c5c68] text-center">{t('production.charts.productionByActivity')}</h3>
             <div className="h-[350px]">
               <ClientOnly>
-                {chartDataMemo?.activityChart && (
+                {chartDataMemo?.activityChart?.options && chartDataMemo?.activityChart?.series && (
                   <Chart 
                     options={{
                       ...chartDataMemo.activityChart.options,
