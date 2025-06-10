@@ -46,7 +46,15 @@
     "adminRequired": "Cette section nécessite des privilèges d'administrateur.",
     "backToDashboard": "Retour au Tableau de Bord",
     "loadingData": "Chargement des données...",
-    "loadingFormData": "Chargement des données du formulaire..."
+    "loadingFormData": "Chargement des données du formulaire...",
+    "per_day": "par jour",
+    "vs_last_month": "vs mois dernier",
+    "amount_cdf": "Montant (CDF)",
+    "exchange_rate": "Taux de change",
+    "amount_usd": "Montant (USD)",
+    "summary": "Résumé",
+    "costs_by_type": "Coûts par type",
+    "Pourcentage": "Pourcentage"
   },
   "navigation": {
     "dashboard": "Tableau de bord",
@@ -175,7 +183,8 @@
     "to": "Au",
     "allMonths": "Tous les mois",
     "allExpenseTypes": "Tous les types de dépenses",
-    "allActivityTypes": "Tous les types d'activité"
+    "allActivityTypes": "Tous les types d'activité",
+    "activityType": "Type d'activité"
   },
   "timePeriods": {
     "all": "Toute la période",
@@ -898,6 +907,11 @@
         "miscellaneous_expenses": "Dépenses Diverses",
         "miscellaneousExpenses": "Dépenses Diverses",
         "staff": "Personnel",
+        "personnel": "Personnel",
+        "carburant_générateur": "Carburant Générateur",
+        "dépenses_diverses": "Dépenses Diverses",
+        "engagement_mensuel": "Engagement Mensuel",
+        "charges_sociales": "Charges Sociales",
         "unknown": "Inconnu",
         "construction": "Construction",
         "real_estate": "Immobilier",
@@ -933,7 +947,9 @@
     "activities": {
       "types": {
         "block_ice": "Bloc de Glace",
-        "cube_ice_water_bottling": "Glaçons & Eau en Bouteille"
+        "cube_ice_water_bottling": "Glaçons & Eau en Bouteille",
+        "cube_ice_&_water_bottling": "Glaçons et Eau en Bouteille",
+        "glace_en_bloc": "Glace en Bloc"
       },
       "descriptions": {
         "block_ice": "Production et gestion de bloc de glace.",

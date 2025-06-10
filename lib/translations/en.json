@@ -44,7 +44,15 @@
     "notAvailable": "Not available",
     "accessDenied": "Access Denied",
     "adminRequired": "This section requires administrator privileges.",
-    "backToDashboard": "Back to Dashboard"
+    "backToDashboard": "Back to Dashboard",
+    "per_day": "per day",
+    "vs_last_month": "vs last month",
+    "amount_cdf": "Amount (CDF)",
+    "exchange_rate": "Exchange rate",
+    "amount_usd": "Amount (USD)",
+    "summary": "Summary",
+    "costs_by_type": "Costs by type",
+    "Pourcentage": "Percentage"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -174,7 +182,8 @@
     "to": "To",
     "allMonths": "All months",
     "allExpenseTypes": "All expense types",
-    "allActivityTypes": "All activity types"
+    "allActivityTypes": "All activity types",
+    "activityType": "Activity type"
   },
   "timePeriods": {
     "all": "All time",
@@ -892,6 +901,11 @@
         "miscellaneous_expenses": "Miscellaneous Expenses",
         "miscellaneousExpenses": "Miscellaneous Expenses",
         "staff": "Staff",
+        "personnel": "Personnel",
+        "carburant_générateur": "Generator Fuel",
+        "dépenses_diverses": "Miscellaneous Expenses",
+        "engagement_mensuel": "Monthly Commitment",
+        "charges_sociales": "Social Charges",
         "unknown": "Unknown",
         "construction": "Construction",
         "real_estate": "Real Estate",
@@ -927,7 +941,9 @@
     "activities": {
       "types": {
         "block_ice": "Block Ice",
-        "cube_ice_water_bottling": "Ice Cubes & Bottled Water"
+        "cube_ice_water_bottling": "Ice Cubes & Bottled Water",
+        "cube_ice_&_water_bottling": "Ice Cubes & Bottled Water",
+        "glace_en_bloc": "Block Ice"
       },
       "descriptions": {
         "block_ice": "Block ice production and management.",
