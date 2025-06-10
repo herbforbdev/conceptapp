@@ -626,6 +626,13 @@ const renderCellValue = (value, t, type = 'unknown') => {
   return value;
 };
 
+// Add this function before the main component
+const safeT = (t, key, fallback) => {
+  const value = t(key);
+  if (typeof value === 'string' || typeof value === 'number') return value;
+  return fallback || key;
+};
+
 export default function ProductionPage() {
   // 1. Context hooks
   const router = useRouter();
@@ -931,16 +938,13 @@ export default function ProductionPage() {
           foundProduct = Array.from(productMap.values()).find(p => p.id?.trim() === prod.productId?.trim());
         }
         const productType = foundProduct?.producttype || 'Unknown';
-        // Translate product type
+        // Translate product type safely
         if (productType === 'Block Ice') {
-          const translated = t('products.types.blockIce');
-          dataKey = typeof translated === 'string' ? translated : 'Block Ice';
+          dataKey = safeT(t, 'products.types.blockIce', 'Block Ice');
         } else if (productType === 'Cube Ice') {
-          const translated = t('products.types.cubeIce');
-          dataKey = typeof translated === 'string' ? translated : 'Cube Ice';
+          dataKey = safeT(t, 'products.types.cubeIce', 'Cube Ice');
         } else if (productType === 'Water Bottling') {
-          const translated = t('products.types.waterBottling');
-          dataKey = typeof translated === 'string' ? translated : 'Water Bottling';
+          dataKey = safeT(t, 'products.types.waterBottling', 'Water Bottling');
         } else {
           dataKey = productType;
         }
@@ -963,11 +967,8 @@ export default function ProductionPage() {
     });
 
     // Convert to chart series format - with safe translation handling
-    const quantityProducedText = t('production.charts.quantityProduced');
-    const safeQuantityText = typeof quantityProducedText === 'string' ? quantityProducedText : 'Quantity Produced';
-    
-    const unitsText = t('production.charts.units');
-    const safeUnitsText = typeof unitsText === 'string' ? unitsText : 'units';
+    const safeQuantityText = safeT(t, 'production.charts.quantityProduced', 'Quantity Produced');
+    const safeUnitsText = safeT(t, 'production.charts.units', 'units');
     
     const productSeries = [{
       name: safeQuantityText,
@@ -1565,37 +1566,37 @@ export default function ProductionPage() {
       {/* Top Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <TopCard 
-          title={t('production.metrics.totalProduction')} 
-          value={`${topCardsData.totalProduction.month.toLocaleString()} ${t('production.metrics.units')}`}
-          subValue={`${t('common.today')}: ${topCardsData.totalProduction.today.toLocaleString()}`}
+          title={safeT(t, 'production.metrics.totalProduction', 'Total Production')} 
+          value={`${topCardsData.totalProduction.month.toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`}
+          subValue={`${safeT(t, 'common.today', 'Today')}: ${topCardsData.totalProduction.today.toLocaleString()}`}
           icon={<HiCube size={16} />}
           type="Total Production"
         />
         <TopCard 
-          title={t('production.metrics.topProduct')} 
+          title={safeT(t, 'production.metrics.topProduct', 'Top Product')} 
           value={topCardsData.topProduct.name || 'N/A'}
-          subValue={`${topCardsData.topProduct.quantity.toLocaleString()} ${t('production.metrics.units')}`}
+          subValue={`${topCardsData.topProduct.quantity.toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`}
           icon={<HiTrendingUp size={16} />}
           type="Production Rate"
         />
         <TopCard 
-          title={t('production.metrics.productionActivities')} 
-          value={`${topCardsData.productionActivities.week} ${t('production.metrics.entries')}`}
-          subValue={`${t('common.today')}: ${topCardsData.productionActivities.today}`}
+          title={safeT(t, 'production.metrics.productionActivities', 'Production Activities')} 
+          value={`${topCardsData.productionActivities.week} ${safeT(t, 'production.metrics.entries', 'entries')}`}
+          subValue={`${safeT(t, 'common.today', 'Today')}: ${topCardsData.productionActivities.today}`}
           icon={<HiClipboardList size={16} />}
           type="Efficiency"
         />
         <TopCard 
-          title={t('production.metrics.mostUsedPackaging')} 
+          title={safeT(t, 'production.metrics.mostUsedPackaging', 'Most Used Packaging')} 
           value={topCardsData.topPackaging.name || 'N/A'}
-          subValue={`${topCardsData.topPackaging.quantity.toLocaleString()} ${t('production.metrics.used')}`}
+          subValue={`${topCardsData.topPackaging.quantity.toLocaleString()} ${safeT(t, 'production.metrics.used', 'used')}`}
           icon={<HiArchive size={16} />}
           type="Stock Level"
         />
         <TopCard 
-          title={t('production.metrics.activityDistribution')} 
+          title={safeT(t, 'production.metrics.activityDistribution', 'Activity Distribution')} 
           value={getTranslatedActivityTypeName({ name: topCardsData.activityDistribution.name }, t) || 'N/A'}
-          subValue={`${topCardsData.activityDistribution.percentage.toFixed(1)}% ${t('production.metrics.ofTotal')}`}
+          subValue={`${topCardsData.activityDistribution.percentage.toFixed(1)}% ${safeT(t, 'production.metrics.ofTotal', 'of total')}`}
           icon={<HiFilter size={16} />}
           type="Production Rate"
         />
@@ -1694,14 +1695,14 @@ export default function ProductionPage() {
                   className="mt-1 w-full"
                   disabled={selectedTimePeriod === TIME_PERIODS.CUSTOM}
                 >
-                  <option value="">{t('production.filters.allMonths') || 'All Months'}</option>
+                  <option value="">{safeT(t, 'production.filters.allMonths', 'All Months')}</option>
                   {Array.from({ length: 12 }, (_, i) => {
                     const monthName = new Date(0, i).toLocaleString('default', { month: 'long' });
                     const translationKey = `months.${monthName.toLowerCase()}`;
-                    const translatedMonth = t(translationKey);
+                    const translatedMonth = safeT(t, translationKey, monthName);
                     return (
                       <option key={i + 1} value={i + 1}>
-                        {typeof translatedMonth === 'string' && translatedMonth !== translationKey ? translatedMonth : monthName}
+                        {translatedMonth}
                       </option>
                     );
                   })}
@@ -2115,14 +2116,14 @@ export default function ProductionPage() {
                   onChange={e => setSummaryMonth(Number(e.target.value))}
                   className="w-32 text-xs text-[#4c5c68] font-semibold"
                 >
-                  <option value="">{t('production.filters.allMonths')}</option>
+                  <option value="">{safeT(t, 'production.filters.allMonths', 'All Months')}</option>
                   {Array.from({ length: 12 }, (_, i) => {
                     const monthName = new Date(0, i).toLocaleString('default', { month: 'long' });
                     const translationKey = `months.${monthName.toLowerCase()}`;
-                    const translatedMonth = t(translationKey);
+                    const translatedMonth = safeT(t, translationKey, monthName);
                     return (
                       <option key={i + 1} value={i + 1}>
-                        {typeof translatedMonth === 'string' && translatedMonth !== translationKey ? translatedMonth : monthName}
+                        {translatedMonth}
                       </option>
                     );
                   })}

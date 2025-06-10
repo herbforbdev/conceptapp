@@ -54,6 +54,13 @@ const typeStyles = {
   default: { bg: "bg-blue-600", text: "text-blue-700", icon: <HiInbox /> }
 };
 
+// Add safeT function before the getChartOptions function
+const safeT = (t, key, fallback) => {
+  const value = t(key);
+  if (typeof value === 'string' || typeof value === 'number') return value;
+  return fallback || key;
+};
+
 // Update chart options to be functions that accept t
 const getChartOptions = (t) => ({
   chart: {
@@ -71,10 +78,7 @@ const getChartOptions = (t) => ({
   },
   yaxis: {
     title: {
-      text: (() => {
-        const amountText = t('sales.charts.amount_usd');
-        return typeof amountText === 'string' ? amountText : 'Amount (USD)';
-      })()
+      text: safeT(t, 'sales.charts.amount_usd', 'Amount (USD)')
     },
     labels: {
       formatter: (value) => formatCDF(value)
@@ -153,10 +157,7 @@ const getActivityTypeChartOptions = (t) => ({
       }
     },
     title: {
-      text: (() => {
-        const amountText = t('sales.charts.amount_usd');
-        return typeof amountText === 'string' ? amountText : 'Amount (USD)';
-      })(),
+      text: safeT(t, 'sales.charts.amount_usd', 'Amount (USD)'),
       style: { color: '#64748b', fontWeight: 600 }
     }
   },
@@ -1042,8 +1043,8 @@ export default function SalesPage() {
           return (
             <>
               <TopCard 
-                title={t('sales.metrics.totalSales')}
-                value={`${metrics.totalSales.count.toLocaleString()} ${t('sales.records')}`}
+                title={safeT(t, 'sales.metrics.totalSales', 'Total Sales')}
+                value={`${metrics.totalSales.count.toLocaleString()} ${safeT(t, 'sales.records', 'records')}`}
                 subValue={metrics.totalSales.amountUSD.toLocaleString('en-US', { 
                   style: 'currency', 
                   currency: 'USD',
@@ -1053,28 +1054,28 @@ export default function SalesPage() {
                 type="Total Sales"
               />
               <TopCard 
-                title={t('sales.metrics.averageSale')}
+                title={safeT(t, 'sales.metrics.averageSale', 'Average Sale')}
                 value={metrics.averageSale.amountUSD.toLocaleString('en-US', { 
                   style: 'currency', 
                   currency: 'USD',
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
-                subValue={t('sales.metrics.perDay')}
+                subValue={safeT(t, 'sales.metrics.perDay', 'per day')}
                 icon={<HiTrendingUp size={16} />}
                 type="Average Sale"
               />
               <TopCard 
-                title={t('sales.metrics.bestSelling')}
+                title={safeT(t, 'sales.metrics.bestSelling', 'Best Selling')}
                 value={getTranslatedProductName(metrics.bestSellingProduct.product, t) || 'N/A'}
-                subValue={`${metrics.bestSellingProduct.quantity.toLocaleString()} ${t('sales.metrics.units')}`}
+                subValue={`${metrics.bestSellingProduct.quantity.toLocaleString()} ${safeT(t, 'sales.metrics.units', 'units')}`}
                 icon={<HiShoppingCart size={16} />}
                 type="Best Selling"
               />
               <TopCard 
-                title={t('sales.metrics.salesGrowth')}
+                title={safeT(t, 'sales.metrics.salesGrowth', 'Sales Growth')}
                 value={`${Math.abs(metrics.salesGrowth.percentage).toFixed(1)}%`}
-                subValue={t('sales.metrics.vsLastMonth')}
+                subValue={safeT(t, 'sales.metrics.vsLastMonth', 'vs last month')}
                 icon={metrics.salesGrowth.trend === 'up' 
                   ? <HiTrendingUp size={16} />
                   : <HiTrendingDown size={16} />
@@ -1187,14 +1188,14 @@ export default function SalesPage() {
                   className="mt-1"
                   disabled={filters.selectedTimePeriod === TIME_PERIODS.CUSTOM}
                 >
-                  <option value="">{t('sales.filters.allMonths')}</option>
+                  <option value="">{safeT(t, 'sales.filters.allMonths', 'All Months')}</option>
                   {Array.from({ length: 12 }, (_, i) => {
                     const monthName = new Date(0, i).toLocaleString('default', { month: 'long' });
                     const translationKey = `months.${monthName.toLowerCase()}`;
-                    const translatedMonth = t(translationKey);
+                    const translatedMonth = safeT(t, translationKey, monthName);
                     return (
                       <option key={i + 1} value={i + 1}>
-                        {typeof translatedMonth === 'string' && translatedMonth !== translationKey ? translatedMonth : monthName}
+                        {translatedMonth}
                       </option>
                     );
                   })}

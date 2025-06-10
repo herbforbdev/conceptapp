@@ -784,13 +784,13 @@ function CostsPage() {
       {/* Top Cards - Single Row, Translated */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <TopCard 
-          title={t('metrics.total_costs')}
-          value={metrics.totalSales.amountUSD.toLocaleString(t('locale'), { 
+          title={safeT(t, 'dashboard.summary.total_costs', 'Total Costs')}
+          value={metrics.totalSales.amountUSD.toLocaleString('en-US', { 
             style: 'currency', 
             currency: 'USD',
             maximumFractionDigits: 0
           })}
-          subValue={metrics.totalSales.amountFC.toLocaleString(t('locale'), { 
+          subValue={metrics.totalSales.amountFC.toLocaleString('en-US', { 
             style: 'currency', 
             currency: 'CDF',
             maximumFractionDigits: 0
@@ -804,14 +804,14 @@ function CostsPage() {
           iconWrapperClassName={CARD_STYLES.totalCosts.iconWrapper}
         />
         <TopCard 
-          title={t('metrics.daily_average')}
-          value={metrics.averageSale.amountUSD.toLocaleString(t('locale'), { 
+          title={safeT(t, 'dashboard.summary.daily_costs', 'Daily Average')}
+          value={metrics.averageSale.amountUSD.toLocaleString('en-US', { 
             style: 'currency', 
             currency: 'USD',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           })}
-          subValue={t('metrics.per_day', 'per day')}
+          subValue={safeT(t, 'common.per_day', 'per day')}
           icon={CARD_STYLES.dailyAverage.icon}
           type="dailyAverage"
           className={`bg-white border-[#66b2b2]/20 border ${CARD_STYLES.dailyAverage.text} shadow-lg hover:shadow-xl transition-all duration-200 p-6 rounded-2xl`}
@@ -821,9 +821,9 @@ function CostsPage() {
           iconWrapperClassName={CARD_STYLES.dailyAverage.iconWrapper}
         />
         <TopCard 
-          title={t('metrics.top_expense')}
+          title={safeT(t, 'cost_trends.top_expense', 'Top Expense')}
           value={metrics.bestSellingProduct.type}
-          subValue={metrics.bestSellingProduct.amount.toLocaleString(t('locale'), {
+          subValue={metrics.bestSellingProduct.amount.toLocaleString('en-US', {
             style: 'currency',
             currency: 'USD',
             maximumFractionDigits: 0
@@ -837,9 +837,9 @@ function CostsPage() {
           iconWrapperClassName={CARD_STYLES.topExpense.iconWrapper}
         />
         <TopCard 
-          title={t('metrics.growth')}
+          title={safeT(t, 'dashboard.summary.growth', 'Growth')}
           value={`${Math.abs(metrics.salesGrowth.growth).toFixed(1)}%`}
-          subValue={t('metrics.vs_last_month', 'vs last month')}
+          subValue={safeT(t, 'common.vs_last_month', 'vs last month')}
           icon={metrics.salesGrowth.trend === 'up' 
             ? CARD_STYLES.growth.up.icon
             : CARD_STYLES.growth.down.icon
@@ -1010,13 +1010,13 @@ function CostsPage() {
                     className="h-4 w-4 text-green-600 border-green-300 rounded"
                   />
                 </th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('date')}>{t('costs.table.date')}</th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('activity')}>{t('costs.table.activity')}</th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('expense')}>{t('costs.table.expense')}</th>
-                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('amountFC')}>{t('costs.table.amount_cdf')}</th>
-                <th className="px-6 py-3 font-semibold text-center">{t('costs.table.exchange_rate')}</th>
-                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('amountUSD')}>{t('costs.table.amount_usd')}</th>
-                <th className="px-6 py-3 font-semibold text-center">{t('costs.table.actions')}</th>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('date')}>{safeT(t, 'common.date', 'Date')}</th>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('activity')}>{safeT(t, 'common.activity', 'Activity')}</th>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('expense')}>{safeT(t, 'common.expense', 'Expense')}</th>
+                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('amountFC')}>{safeT(t, 'common.amount_cdf', 'Amount (CDF)')}</th>
+                <th className="px-6 py-3 font-semibold text-center">{safeT(t, 'common.exchange_rate', 'Exchange Rate')}</th>
+                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('amountUSD')}>{safeT(t, 'common.amount_usd', 'Amount (USD)')}</th>
+                <th className="px-6 py-3 font-semibold text-center">{safeT(t, 'common.actions', 'Actions')}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-[#b2d8d8]">
@@ -1184,7 +1184,7 @@ function CostsPage() {
         <Card className="border border-[#66b2b2]/20 rounded-lg bg-white">
           <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg flex justify-between items-center">
             <h3 className="text-lg font-semibold text-white uppercase text-left">
-              {t('costs.summary')}
+              {safeT(t, 'common.summary', 'Summary')}
             </h3>
             <div className="flex items-center gap-4">
               <div>
@@ -1301,7 +1301,7 @@ function CostsPage() {
           <Card className="border border-[#66b2b2]/20">
             <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg">
               <h3 className="text-lg font-semibold text-center text-white">
-                {t('costs.charts.cost_trend')}
+                {safeT(t, 'cost_trends.title', 'Cost Trends')}
               </h3>
             </div>
             <div className="p-4">
@@ -1353,7 +1353,7 @@ function CostsPage() {
                           }
                         }}
                         series={[{
-                          name: t('charts.total'),
+                          name: safeT(t, 'common.total', 'Total'),
                           data: chartData.byType.series[0]?.data || []
                         }]}
                         type="area"
@@ -1370,7 +1370,7 @@ function CostsPage() {
           <Card className="border border-[#66b2b2]/20">
             <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] text-white">
               <h3 className="text-lg font-semibold text-center text-white">
-                {t('costs.charts.costs_by_type')}
+                {safeT(t, 'common.costs_by_type', 'Costs by Type')}
               </h3>
             </div>
             <div className="p-4">
@@ -1412,7 +1412,7 @@ function CostsPage() {
                       },
                       yaxis: {
                         title: {
-                          text: t('charts.amount_usd'),
+                          text: safeT(t, 'common.amount_usd', 'Amount (USD)'),
                           style: {
                             fontSize: '12px'
                           }
@@ -1443,7 +1443,7 @@ function CostsPage() {
                       }
                     }}
                     series={[{
-                      name: t('charts.costs_by_type'),
+                      name: safeT(t, 'common.costs_by_type', 'Costs by Type'),
                       data: costsByType.data
                     }]}
                     type="bar"
@@ -1451,7 +1451,7 @@ function CostsPage() {
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-400">
-                    {t('charts.no_data')}
+                    {safeT(t, 'common.no_data', 'No data available')}
                   </div>
                 )}
               </div>
