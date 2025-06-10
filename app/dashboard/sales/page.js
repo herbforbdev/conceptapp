@@ -71,7 +71,10 @@ const getChartOptions = (t) => ({
   },
   yaxis: {
     title: {
-      text: t('sales.charts.amount_usd')
+      text: (() => {
+        const amountText = t('sales.charts.amount_usd');
+        return typeof amountText === 'string' ? amountText : 'Amount (USD)';
+      })()
     },
     labels: {
       formatter: (value) => formatCDF(value)
@@ -150,7 +153,10 @@ const getActivityTypeChartOptions = (t) => ({
       }
     },
     title: {
-      text: t('sales.charts.amount_usd'),
+      text: (() => {
+        const amountText = t('sales.charts.amount_usd');
+        return typeof amountText === 'string' ? amountText : 'Amount (USD)';
+      })(),
       style: { color: '#64748b', fontWeight: 600 }
     }
   },

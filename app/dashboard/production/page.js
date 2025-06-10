@@ -933,11 +933,14 @@ export default function ProductionPage() {
         const productType = foundProduct?.producttype || 'Unknown';
         // Translate product type
         if (productType === 'Block Ice') {
-          dataKey = t('products.types.blockIce');
+          const translated = t('products.types.blockIce');
+          dataKey = typeof translated === 'string' ? translated : 'Block Ice';
         } else if (productType === 'Cube Ice') {
-          dataKey = t('products.types.cubeIce');
+          const translated = t('products.types.cubeIce');
+          dataKey = typeof translated === 'string' ? translated : 'Cube Ice';
         } else if (productType === 'Water Bottling') {
-          dataKey = t('products.types.waterBottling');
+          const translated = t('products.types.waterBottling');
+          dataKey = typeof translated === 'string' ? translated : 'Water Bottling';
         } else {
           dataKey = productType;
         }
@@ -959,14 +962,20 @@ export default function ProductionPage() {
       activityData.set(activityName, currentActivityData + (prod.quantityProduced || 0));
     });
 
-    // Convert to chart series format
+    // Convert to chart series format - with safe translation handling
+    const quantityProducedText = t('production.charts.quantityProduced');
+    const safeQuantityText = typeof quantityProducedText === 'string' ? quantityProducedText : 'Quantity Produced';
+    
+    const unitsText = t('production.charts.units');
+    const safeUnitsText = typeof unitsText === 'string' ? unitsText : 'units';
+    
     const productSeries = [{
-      name: t('production.charts.quantityProduced'),
+      name: safeQuantityText,
       data: Array.from(productData.values())
     }];
 
     const activitySeries = [{
-      name: t('production.charts.quantityProduced'),
+      name: safeQuantityText,
       data: Array.from(activityData.values())
     }];
 
@@ -1017,7 +1026,7 @@ export default function ProductionPage() {
           },
           yaxis: {
             title: {
-              text: t('production.charts.quantityProduced'),
+              text: safeQuantityText,
               style: {
                 color: '#64748b'
               }
@@ -1048,7 +1057,7 @@ export default function ProductionPage() {
           tooltip: {
             y: {
               formatter: function (val) {
-                return val.toLocaleString() + ' ' + t('production.charts.units')
+                return val.toLocaleString() + ' ' + safeUnitsText;
               }
             }
           },
@@ -1109,7 +1118,7 @@ export default function ProductionPage() {
           },
           yaxis: {
             title: {
-              text: t('production.charts.quantityProduced'),
+              text: safeQuantityText,
               style: {
                 color: '#64748b'
               }
@@ -1140,7 +1149,7 @@ export default function ProductionPage() {
           tooltip: {
             y: {
               formatter: function (val) {
-                return val.toLocaleString() + ' ' + t('production.charts.units')
+                return val.toLocaleString() + ' ' + safeUnitsText;
               }
             }
           },
