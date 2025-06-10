@@ -249,10 +249,15 @@ export default function CostTrendsPage() {
           onChange={e => setSelectedMonth(e.target.value === '' ? null : Number(e.target.value))}
           className="w-48"
         >
-          <option value="">{t('common:all_months')}</option>
+                          <option value="">{t('common.all_months')}</option>
           {[...Array(12)].map((_, i) => (
             <option key={i} value={i}>
-              {t(`months.${new Date(2000, i).toLocaleString('default', { month: 'long' }).toLowerCase()}`) || new Date(2000, i).toLocaleString('default', { month: 'long' })}
+                              {(() => {
+                  const monthName = new Date(2000, i).toLocaleString('default', { month: 'long' });
+                  const translationKey = `months.${monthName.toLowerCase()}`;
+                  const translatedMonth = t(translationKey);
+                  return typeof translatedMonth === 'string' && translatedMonth !== translationKey ? translatedMonth : monthName;
+                })()}
             </option>
           ))}
         </Select>

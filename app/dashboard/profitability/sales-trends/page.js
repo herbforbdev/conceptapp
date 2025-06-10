@@ -288,7 +288,12 @@ export default function SalesTrendsPage() {
             <option value="">{t('filters.allMonths')}</option>
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i} value={i}>
-                {new Date(2000, i).toLocaleString('default', { month: 'long' })}
+                {(() => {
+                  const monthName = new Date(2000, i).toLocaleString('default', { month: 'long' });
+                  const translationKey = `months.${monthName.toLowerCase()}`;
+                  const translatedMonth = t(translationKey);
+                  return typeof translatedMonth === 'string' && translatedMonth !== translationKey ? translatedMonth : monthName;
+                })()}
               </option>
             ))}
           </Select>

@@ -1686,11 +1686,16 @@ export default function ProductionPage() {
                   disabled={selectedTimePeriod === TIME_PERIODS.CUSTOM}
                 >
                   <option value="">{t('production.filters.allMonths') || 'All Months'}</option>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {t(`months.${new Date(0, i).toLocaleString('default', { month: 'long' }).toLowerCase()}`)}
-                    </option>
-                  ))}
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const monthName = new Date(0, i).toLocaleString('default', { month: 'long' });
+                    const translationKey = `months.${monthName.toLowerCase()}`;
+                    const translatedMonth = t(translationKey);
+                    return (
+                      <option key={i + 1} value={i + 1}>
+                        {typeof translatedMonth === 'string' && translatedMonth !== translationKey ? translatedMonth : monthName}
+                      </option>
+                    );
+                  })}
                 </Select>
               </div>
               <div className="w-full">
@@ -2102,11 +2107,16 @@ export default function ProductionPage() {
                   className="w-32 text-xs text-[#4c5c68] font-semibold"
                 >
                   <option value="">{t('production.filters.allMonths')}</option>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {new Date(0, i).toLocaleString('default', { month: 'long' })}
-                    </option>
-                  ))}
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const monthName = new Date(0, i).toLocaleString('default', { month: 'long' });
+                    const translationKey = `months.${monthName.toLowerCase()}`;
+                    const translatedMonth = t(translationKey);
+                    return (
+                      <option key={i + 1} value={i + 1}>
+                        {typeof translatedMonth === 'string' && translatedMonth !== translationKey ? translatedMonth : monthName}
+                      </option>
+                    );
+                  })}
                 </Select>
               </div>
             </div>  

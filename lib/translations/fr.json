@@ -159,6 +159,7 @@
     "Set a time period when you don't want to receive notifications": "Définir une période pendant laquelle vous ne souhaitez pas recevoir de notifications",
     "Start Time": "Heure de début",
     "End Time": "Heure de fin",
+    "Push Notifications": "Notifications Push",
     "Back": "Retour",
     "Push Notifications": "Notifications push"
   },
@@ -520,7 +521,8 @@
       "packagingQuantity": "Quantité d'emballage",
       "status": "Statut",
       "actions": "Actions",
-      "noPackagingRequired": "Aucun emballage requis"
+      "noPackagingRequired": "Aucun emballage requis",
+      "productAndQuantity": "Produit & Quantité"
     },
     "summary": {
       "title": "Résumé de la production",
@@ -641,7 +643,8 @@
       "salesGrowth": "Croissance des ventes",
       "perDay": "par jour",
       "vsLastMonth": "vs mois dernier",
-      "salesCount": "Ventes"
+      "salesCount": "Ventes",
+      "units": "Unités"
     },
     "add": {
       "title": "Ajouter des ventes",
@@ -680,7 +683,8 @@
       "amountFC": "Montant (FC)",
       "amountUSD": "Montant (USD)",
       "exchangeRate": "Taux de change",
-      "month": "Mois"
+      "month": "Mois",
+      "year": "Année"
     },
     "placeholders": {
       "selectActivityType": "Sélectionner le type d'activité",
@@ -712,6 +716,23 @@
       "sales": "Ventes",
       "costs": "Coûts",
       "profit": "Bénéfice"
+    },
+    "metrics": {
+      "sales": "Ventes",
+      "costs": "Coûts",
+      "profit": "Profit",
+      "margin": "Marge"
+    },
+    "activityTypes": {
+      "title": "Types d'activité",
+      "comparison": "Comparaison des activités",
+      "details": "Détails par activité",
+      "metrics": {
+        "totalSales": "Total des ventes"
+      }
+    },
+    "filters": {
+      "activity": "Activité"
     },
     "description": "Analyse complète des profits et des marges. Suivez la performance financière de vos activités."
   },

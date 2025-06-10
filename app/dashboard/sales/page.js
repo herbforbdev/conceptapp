@@ -1182,11 +1182,16 @@ export default function SalesPage() {
                   disabled={filters.selectedTimePeriod === TIME_PERIODS.CUSTOM}
                 >
                   <option value="">{t('sales.filters.allMonths')}</option>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {t(`months.${new Date(0, i).toLocaleString('default', { month: 'long' }).toLowerCase()}`)}
-                    </option>
-                  ))}
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const monthName = new Date(0, i).toLocaleString('default', { month: 'long' });
+                    const translationKey = `months.${monthName.toLowerCase()}`;
+                    const translatedMonth = t(translationKey);
+                    return (
+                      <option key={i + 1} value={i + 1}>
+                        {typeof translatedMonth === 'string' && translatedMonth !== translationKey ? translatedMonth : monthName}
+                      </option>
+                    );
+                  })}
                 </Select>
               </div>
               <div>

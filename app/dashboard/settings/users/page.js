@@ -270,6 +270,41 @@ export default function UsersPage() {
     }).format(date);
   };
 
+  // Helper functions for user activities
+  const getActionIcon = (action) => {
+    switch (action) {
+      case 'login':
+        return <HiShieldCheck className="h-4 w-4 text-green-500" />;
+      case 'logout':
+        return <HiX className="h-4 w-4 text-gray-500" />;
+      case 'profile_update':
+        return <HiOutlinePencilAlt className="h-4 w-4 text-blue-500" />;
+      case 'password_change':
+        return <HiShieldCheck className="h-4 w-4 text-orange-500" />;
+      case 'role_change':
+        return <HiUsers className="h-4 w-4 text-purple-500" />;
+      default:
+        return <HiClock className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getActionText = (action) => {
+    switch (action) {
+      case 'login':
+        return 'Connexion à l\'application';
+      case 'logout':
+        return 'Déconnexion de l\'application';
+      case 'profile_update':
+        return 'Mise à jour du profil';
+      case 'password_change':
+        return 'Modification du mot de passe';
+      case 'role_change':
+        return 'Changement de rôle';
+      default:
+        return 'Activité inconnue';
+    }
+  };
+
   // Handle invite user
   const handleInviteUser = async (e) => {
     e.preventDefault();
