@@ -14,6 +14,7 @@ import { FaIndustry, FaCubes } from "react-icons/fa";
 import { SiCodeblocks } from "react-icons/si";
 import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import { firestore } from "@/lib/firebase";
+import { doc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from "firebase/firestore";
 
 import { useMasterData } from "@/hooks/useMasterData";
 import { formatDateConsistent } from "@/lib/utils/dateUtils";
