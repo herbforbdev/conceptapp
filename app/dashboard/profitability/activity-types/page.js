@@ -116,21 +116,21 @@ export default function ActivityTypesProfitabilityPage() {
                 <tr key={index} className="hover:bg-teal-50/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
                   <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
                     <span className="w-2 h-2 rounded-full bg-teal-500 inline-block"></span>
-                    <span>{item.activityType}</span>
+                    <span>{String(item.activityType)}</span>
                   </td>
                   <td className="px-8 py-5 text-center font-semibold text-teal-700">
-                    ${item.sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${String(item.sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                   </td>
                   <td className="px-8 py-5 text-center font-semibold text-red-600">
-                    ${item.costs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${String(item.costs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                   </td>
                   <td className="px-8 py-5 text-center font-semibold text-green-600">
-                    ${item.profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${String(item.profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                   </td>
                   <td className="px-8 py-5 text-center">
                     <span className="bg-teal-100 text-teal-800 border border-teal-200 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
                       <span className="w-1 h-1 rounded-full bg-teal-500 mr-1"></span>
-                      {item.margin.toFixed(1)}%
+                      {String(item.margin.toFixed(1))}%
                     </span>
                   </td>
                 </tr>
@@ -141,18 +141,18 @@ export default function ActivityTypesProfitabilityPage() {
                   <span>{t('profitability.activityTypes.metrics.totalSales')}</span>
                 </td>
                 <td className="px-8 py-5 text-center text-teal-800">
-                  ${profitByActivity.reduce((sum, item) => sum + item.sales, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${String(profitByActivity.reduce((sum, item) => sum + item.sales, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                 </td>
                 <td className="px-8 py-5 text-center text-red-800">
-                  ${profitByActivity.reduce((sum, item) => sum + item.costs, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${String(profitByActivity.reduce((sum, item) => sum + item.costs, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                 </td>
                 <td className="px-8 py-5 text-center text-green-800">
-                  ${profitByActivity.reduce((sum, item) => sum + item.profit, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${String(profitByActivity.reduce((sum, item) => sum + item.profit, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                 </td>
                 <td className="px-8 py-5 text-center rounded-br-xl">
                   <span className="bg-teal-200 text-teal-800 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
                     <span className="w-1 h-1 rounded-full bg-teal-600 mr-1"></span>
-                    {(profitByActivity.reduce((sum, item) => sum + item.profit, 0) / profitByActivity.reduce((sum, item) => sum + item.sales, 0) * 100).toFixed(1)}%
+                    {String((profitByActivity.reduce((sum, item) => sum + item.profit, 0) / profitByActivity.reduce((sum, item) => sum + item.sales, 0) * 100).toFixed(1))}%
                   </span>
                 </td>
               </tr>
