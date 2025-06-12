@@ -30,11 +30,8 @@ import TopCard from "@/components/shared/TopCard";
 import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
 
-
-
-
-
-
+// Dynamic import for ApexCharts
+const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 // Client-side only wrapper
 const ClientOnly = ({ children }) => {
@@ -1508,11 +1505,11 @@ export default function SalesPage() {
                     ) : (
                       <>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {sale.date?.toDate().toLocaleDateString('en-GB', {
+                          {String(sale.date?.toDate().toLocaleDateString('en-GB', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric'
-                          })}
+                          }) || 'N/A')}
                         </td>
                         <td className="px-6 py-4">
                           {(() => {
@@ -1553,15 +1550,15 @@ export default function SalesPage() {
                           {formatCDF(sale.amountFC)}
                         </td>
                         <td className="px-6 py-4 text-center font-mono">
-                          {sale.exchangeRate || ''}
+                          {String(sale.exchangeRate || 'N/A')}
                         </td>
                         <td className="px-6 py-4 text-center font-semibold text-green-700 font-mono">
-                          {sale.amountUSD?.toLocaleString('en-US', { 
+                          {String(sale.amountUSD?.toLocaleString('en-US', { 
                             style: 'currency', 
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
-                          })}
+                          }) || '$0.00')}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center space-x-2">
@@ -1839,12 +1836,12 @@ export default function SalesPage() {
                         <td className="px-6 py-4 font-semibold text-sm text-blue-900">{t(`sales.channels.${channel}`, channel)}</td>
                         <td className="px-6 py-4 text-center font-semibold text-sm text-blue-900">
                           <span className="inline-block rounded-lg bg-green-50 px-3 py-2 font-semibold text-green-900 shadow-sm border border-green-100">
-                            {data.totalUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}
+                            {String(data.totalUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }))}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center font-semibold text-sm text-blue-900">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {((data.totalUSD / metrics.totalSales.amountUSD) * 100).toFixed(1)}%
+                            {String(((data.totalUSD / metrics.totalSales.amountUSD) * 100).toFixed(1))}%
                           </span>
                         </td>
                       </tr>
@@ -1856,7 +1853,7 @@ export default function SalesPage() {
                         <td className="px-6 py-4 text-base">Total</td>
                         <td className="px-6 py-4 text-base text-center">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {metrics.totalSales.amountUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
+                            {String(metrics.totalSales.amountUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}))}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-base text-center">100%</td>
