@@ -54,13 +54,6 @@ const typeStyles = {
   default: { bg: "bg-blue-600", text: "text-blue-700", icon: <HiInbox /> }
 };
 
-// Add safeT function before the getChartOptions function
-const safeT = (t, key, fallback) => {
-  const value = t(key);
-  if (typeof value === 'string' || typeof value === 'number') return value;
-  return fallback || key;
-};
-
 // Update chart options to be functions that accept t
 const getChartOptions = (t) => ({
   chart: {
@@ -78,7 +71,7 @@ const getChartOptions = (t) => ({
   },
   yaxis: {
     title: {
-      text: safeT(t, 'sales.charts.amount_usd', 'Amount (USD)')
+      text: t('sales.charts.amount_usd')
     },
     labels: {
       formatter: (value) => formatCDF(value)
@@ -157,7 +150,7 @@ const getActivityTypeChartOptions = (t) => ({
       }
     },
     title: {
-      text: safeT(t, 'sales.charts.amount_usd', 'Amount (USD)'),
+      text: t('sales.charts.amount_usd'),
       style: { color: '#64748b', fontWeight: 600 }
     }
   },
@@ -275,7 +268,7 @@ const ActivitySection = memo(({ activityType, productsWithSales, filteredSales, 
     <React.Fragment>
       <tr className="bg-blue-50/50">
         <td colSpan={4} className="px-6 py-3 font-semibold text-blue-900">
-          {getTranslatedActivityTypeName(activityType, t)}
+          {activityType.name}
         </td>
       </tr>
       
@@ -377,51 +370,46 @@ function getColorIdx(str, arr) {
 // Add this helper function after imports and before the main component
 const getTranslatedProductName = (product, t) => {
   if (!product) return 'N/A';
-  const name = product.productid;
+  const name = product.productid || product.name || 'Unknown';
   if (!name) return 'N/A';
   const lower = name.toLowerCase();
   const type = product.producttype?.toLowerCase();
   const includesAny = (str, terms) => terms.some(term => str.includes(term));
   try {
-    // Packaging Products (show as packaging, not as main product)
     if (type?.includes('packaging') || lower.includes('package') || lower.includes('emballage')) {
-      // Ice Cube Packaging
       if (includesAny(lower, ['cube ice', 'glaçons'])) {
-        if (lower.includes('1kg')) return t('products.items.packaging.cubeIce.1kg');
-        if (lower.includes('2kg')) return t('products.items.packaging.cubeIce.2kg');
-        if (lower.includes('5kg')) return t('products.items.packaging.cubeIce.5kg');
+        if (lower.includes('1kg')) return String(t('products.items.packaging.cubeIce.1kg') || name);
+        if (lower.includes('2kg')) return String(t('products.items.packaging.cubeIce.2kg') || name);
+        if (lower.includes('5kg')) return String(t('products.items.packaging.cubeIce.5kg') || name);
       }
-      // Water Bottle Packaging
       if (includesAny(lower, ['water', 'eau'])) {
-        if (lower.includes('600ml')) return t('products.items.packaging.waterBottling.600ml');
-        if (lower.includes('750ml')) return t('products.items.packaging.waterBottling.750ml');
-        if (lower.includes('1.5l') || lower.includes('1,5l')) return t('products.items.packaging.waterBottling.1_5L');
-        if (lower.includes('5l')) return t('products.items.packaging.waterBottling.5L');
+        if (lower.includes('600ml')) return String(t('products.items.packaging.waterBottling.600ml') || name);
+        if (lower.includes('750ml')) return String(t('products.items.packaging.waterBottling.750ml') || name);
+        if (lower.includes('1.5l') || lower.includes('1,5l')) return String(t('products.items.packaging.waterBottling.1_5L') || name);
+        if (lower.includes('5l')) return String(t('products.items.packaging.waterBottling.5L') || name);
       }
-      // Fallback for packaging
-      return name;
+      return String(name);
     }
-    // Main Products
     if (type === 'block ice' || includesAny(lower, ['bloc de glace', 'block ice'])) {
-      if (lower.includes('5kg')) return t('products.items.blockIce.5kg');
-      if (lower.includes('8kg')) return t('products.items.blockIce.8kg');
-      if (lower.includes('30kg')) return t('products.items.blockIce.30kg');
+      if (lower.includes('5kg')) return String(t('products.items.blockIce.5kg') || name);
+      if (lower.includes('8kg')) return String(t('products.items.blockIce.8kg') || name);
+      if (lower.includes('30kg')) return String(t('products.items.blockIce.30kg') || name);
     }
     if (type === 'cube ice' || includesAny(lower, ['glaçons', 'cube ice', 'ice cube'])) {
-      if (lower.includes('1kg')) return t('products.items.cubeIce.1kg');
-      if (lower.includes('2kg')) return t('products.items.cubeIce.2kg');
-      if (lower.includes('5kg')) return t('products.items.cubeIce.5kg');
+      if (lower.includes('1kg')) return String(t('products.items.cubeIce.1kg') || name);
+      if (lower.includes('2kg')) return String(t('products.items.cubeIce.2kg') || name);
+      if (lower.includes('5kg')) return String(t('products.items.cubeIce.5kg') || name);
     }
     if (type === 'water bottling' || includesAny(lower, ['eau en bouteille', 'bottled water', 'water bottle'])) {
-      if (lower.includes('600ml')) return t('products.items.waterBottling.600ml');
-      if (lower.includes('750ml')) return t('products.items.waterBottling.750ml');
-      if (lower.includes('1.5l') || lower.includes('1,5l')) return t('products.items.waterBottling.1_5L');
-      if (lower.includes('5l')) return t('products.items.waterBottling.5L');
+      if (lower.includes('600ml')) return String(t('products.items.waterBottling.600ml') || name);
+      if (lower.includes('750ml')) return String(t('products.items.waterBottling.750ml') || name);
+      if (lower.includes('1.5l') || lower.includes('1,5l')) return String(t('products.items.waterBottling.1_5L') || name);
+      if (lower.includes('5l')) return String(t('products.items.waterBottling.5L') || name);
     }
   } catch (error) {
     console.warn('Translation error for product:', name, error);
   }
-  return name;
+  return String(name);
 };
 
 // Improved normalization for translation keys
@@ -435,41 +423,79 @@ const normalizeActivityKey = (name) => {
 
 const getTranslatedActivityTypeName = (activityType, t) => {
   if (!activityType) return 'N/A';
-  const name = activityType.name || activityType;
+  const name = activityType.name || activityType.activityid || activityType;
   if (!name) return 'N/A';
+  
+  // Normalize the key
   const key = `products.activities.${normalizeActivityKey(name)}`;
+  
+  // Try to get translation
   const translated = t(key);
-  return translated && translated !== key ? translated : name;
+  
+  // Return translation if it exists, otherwise return original name
+  return String(translated && translated !== key ? translated : name);
 };
 
 const getTranslatedChartLabel = (label, t) => {
-  if (label == null) return '';
-  // If label is a number (timestamp), convert to date string
-  if (typeof label === 'number') {
-    const date = new Date(label);
-    // Format as e.g. '12 Jan' or your preferred format
-    return date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: '2-digit' });
+  if (!label) return 'N/A';
+  
+  try {
+    if (typeof label === 'number') {
+      // If it's a timestamp
+      const date = new Date(label);
+      if (!isNaN(date.getTime())) {
+        const month = date.toLocaleString('default', { month: 'short' });
+        const key = `months.${month.toLowerCase()}_short`;
+        
+        const translated = t(key);
+        if (translated && translated !== key) {
+          return String(translated);
+        }
+        
+        return String(month);
+      }
+    }
+    
+    // Try to translate directly
+    const key = `chart.labels.${String(label).toLowerCase().replace(/\s+/g, '_')}`;
+    const translated = t(key);
+    
+    return String(translated && translated !== key ? translated : label);
+  } catch (error) {
+    console.warn('Translation error for chart label:', label, error);
+    return String(label);
   }
-  label = String(label);
-  // Handle date formats (e.g., 12Jan)
-  if (label.match(/^[0-9]{1,2}[A-Za-z]{3}$/)) {
-    const day = label.slice(0, -3);
-    const month = label.slice(-3).toLowerCase();
-    const monthKey = `months.${month}`;
-    const translatedMonth = t(monthKey);
-    return `${day} ${translatedMonth}`;
+};
+
+// Add safeT function to ensure translations always return strings
+const safeT = (t, key, fallback) => {
+  try {
+    const value = t(key);
+    // Only return if it's a string or number, never an object
+    if (typeof value === 'string' || typeof value === 'number') {
+      return String(value);
+    }
+    // If translation returns an object or undefined, use fallback
+    return String(fallback || key);
+  } catch (error) {
+    console.warn(`Translation error for key "${key}":`, error);
+    return String(fallback || key);
   }
-  // Handle activity types
-  const key = `products.activities.${normalizeActivityKey(label)}`;
-  const translated = t(key);
-  return translated && translated !== key ? translated : label;
 };
 
 // Main component
 export default function SalesPage() {
+  // Setup navigation and context
   const router = useRouter();
   const { t } = useLanguage();
-  const { data: sales, loading: salesLoading } = useFirestoreCollection("Sales");
+
+  // CRITICAL FIX: Create stable date references to prevent hydration mismatches and infinite renders
+  const stableNow = useMemo(() => new Date(), []);
+  const stableCurrentYear = useMemo(() => stableNow.getFullYear(), [stableNow]);
+  const stableCurrentMonth = useMemo(() => stableNow.getMonth(), [stableNow]);
+
+  // Data fetching hooks
+  const { data: sales, loading: salesLoading, refetch: refetchSales } = useFirestoreCollection("Sales");
   const { 
     products,
     activityTypes,
@@ -507,23 +533,24 @@ export default function SalesPage() {
     };
   });
 
-  // Filter states
+  // Filter state
   const [filters, setFilters] = useState(() => {
-    const savedFilters = typeof window !== 'undefined' ? loadSalesFilters() : {};
+    const savedFilters = loadSalesFilters();
     return {
-      searchTerm: "",
-      selectedProductType: "",
-      selectedChannel: "",
-      selectedTimePeriod: savedFilters.selectedTimePeriod || TIME_PERIODS.MONTH,
-      selectedActivityType: savedFilters.selectedActivityType || "",
-      selectedProduct: savedFilters.selectedProduct || "",
-      dateFilters: {
-        year: new Date().getFullYear(),
-        month: new Date().getMonth(),
-        week: Math.ceil(new Date().getDate() / 7),
+      selectedYear: savedFilters.selectedYear || stableCurrentYear,
+      selectedMonth: savedFilters.selectedMonth || '',
+      selectedActivityType: savedFilters.selectedActivityType || '',
+      selectedProduct: savedFilters.selectedProduct || '',
+      selectedChannel: savedFilters.selectedChannel || '',
+      selectedStatus: savedFilters.selectedStatus || '',
+      dateFilters: savedFilters.dateFilters || {
+        year: stableCurrentYear,
+        month: stableCurrentMonth,
+        week: 0,
         startDate: null,
         endDate: null
-      }
+      },
+      selectedTimePeriod: savedFilters.selectedTimePeriod || TIME_PERIODS.MONTH
     };
   });
 
@@ -1017,22 +1044,24 @@ export default function SalesPage() {
           <div className="min-h-screen p-4 md:p-8">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-blue-900">{t('sales.title')}</h1>
+        <h1 className="text-2xl font-bold text-blue-900">{safeT(t, 'sales.title', 'Sales')}</h1>
         
         {/* Replace the old time period selector with the new component */}
-        <TimePeriodSelector
-          selectedPeriod={selectedTimePeriod}
-          onPeriodChange={setSelectedTimePeriod}
-          startDate={dateFilters.startDate}
-          endDate={dateFilters.endDate}
-          onDateRangeChange={(start, end) => {
-            setDateFilters(prev => ({
-              ...prev,
-              startDate: start,
-              endDate: end
-            }));
-          }}
-        />
+        <ClientOnly>
+          <TimePeriodSelector
+            selectedPeriod={selectedTimePeriod}
+            onPeriodChange={setSelectedTimePeriod}
+            startDate={dateFilters.startDate}
+            endDate={dateFilters.endDate}
+            onDateRangeChange={(start, end) => {
+              setDateFilters(prev => ({
+                ...prev,
+                startDate: start,
+                endDate: end
+              }));
+            }}
+          />
+        </ClientOnly>
       </div>
 
       {/* Top Cards */}
@@ -1044,38 +1073,38 @@ export default function SalesPage() {
             <>
               <TopCard 
                 title={safeT(t, 'sales.metrics.totalSales', 'Total Sales')}
-                value={`${metrics.totalSales.count.toLocaleString()} ${safeT(t, 'sales.records', 'records')}`}
-                subValue={metrics.totalSales.amountUSD.toLocaleString('en-US', { 
+                value={String(`${metrics.totalSales.count.toLocaleString()} ${safeT(t, 'sales.records', 'records')}`)}
+                subValue={String(metrics.totalSales.amountUSD.toLocaleString('en-US', { 
                   style: 'currency', 
                   currency: 'USD',
                   maximumFractionDigits: 0
-                })}
+                }))}
                 icon={<HiInbox size={16} />}
                 type="Total Sales"
               />
               <TopCard 
                 title={safeT(t, 'sales.metrics.averageSale', 'Average Sale')}
-                value={metrics.averageSale.amountUSD.toLocaleString('en-US', { 
+                value={String(metrics.averageSale.amountUSD.toLocaleString('en-US', { 
                   style: 'currency', 
                   currency: 'USD',
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
-                })}
-                subValue={safeT(t, 'sales.metrics.perDay', 'per day')}
+                }))}
+                subValue={String(safeT(t, 'sales.metrics.perDay', 'per day'))}
                 icon={<HiTrendingUp size={16} />}
                 type="Average Sale"
               />
               <TopCard 
                 title={safeT(t, 'sales.metrics.bestSelling', 'Best Selling')}
-                value={getTranslatedProductName(metrics.bestSellingProduct.product, t) || 'N/A'}
-                subValue={`${metrics.bestSellingProduct.quantity.toLocaleString()} ${safeT(t, 'sales.metrics.units', 'units')}`}
+                value={String(metrics.bestSellingProduct.product?.productid || 'N/A')}
+                subValue={String(`${metrics.bestSellingProduct.quantity.toLocaleString()} ${safeT(t, 'sales.metrics.units', 'units')}`)}
                 icon={<HiShoppingCart size={16} />}
                 type="Best Selling"
               />
               <TopCard 
                 title={safeT(t, 'sales.metrics.salesGrowth', 'Sales Growth')}
-                value={`${Math.abs(metrics.salesGrowth.percentage).toFixed(1)}%`}
-                subValue={safeT(t, 'sales.metrics.vsLastMonth', 'vs last month')}
+                value={String(`${Math.abs(metrics.salesGrowth.percentage).toFixed(1)}%`)}
+                subValue={String(safeT(t, 'sales.metrics.vsLastMonth', 'vs Last Month'))}
                 icon={metrics.salesGrowth.trend === 'up' 
                   ? <HiTrendingUp size={16} />
                   : <HiTrendingDown size={16} />
@@ -1138,7 +1167,7 @@ export default function SalesPage() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-2">
               {/* Year filter */}
               <div>
-                <Label htmlFor="yearSelect">{t('sales.fields.year')}</Label>
+                <Label htmlFor="yearSelect">{safeT(t, 'sales.fields.year', 'Year')}</Label>
                 <Select
                   id="yearSelect"
                   value={filters.selectedYear || ''}
@@ -1159,7 +1188,7 @@ export default function SalesPage() {
                   className="mt-1"
                   disabled={filters.selectedTimePeriod === TIME_PERIODS.CUSTOM}
                 >
-                  <option value="">{t('sales.filters.allYears') || 'All Years'}</option>
+                  <option value="">{safeT(t, 'sales.filters.allYears', 'All Years')}</option>
                   {availableRecordYears.map(year => (
                     <option key={year} value={year}>{year}</option>
                   ))}
@@ -1167,7 +1196,7 @@ export default function SalesPage() {
               </div>
               {/* Month filter */}
               <div>
-                <Label htmlFor="monthSelect">{t('sales.fields.month')}</Label>
+                <Label htmlFor="monthSelect">{safeT(t, 'sales.fields.month', 'Month')}</Label>
                 <Select
                   id="monthSelect"
                   value={filters.selectedMonth || ''}
@@ -1179,8 +1208,8 @@ export default function SalesPage() {
                       selectedTimePeriod: TIME_PERIODS.MONTH,
                       dateFilters: {
                         ...prev.dateFilters,
-                        month: month ? parseInt(month, 10) - 1 : new Date().getMonth(),
-                        year: prev.selectedYear || new Date().getFullYear()
+                        month: month ? parseInt(month, 10) - 1 : stableCurrentMonth,
+                        year: prev.selectedYear || stableCurrentYear
                       }
                     }));
                     setCurrentPage(1);
@@ -1189,30 +1218,25 @@ export default function SalesPage() {
                   disabled={filters.selectedTimePeriod === TIME_PERIODS.CUSTOM}
                 >
                   <option value="">{safeT(t, 'sales.filters.allMonths', 'All Months')}</option>
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const monthName = new Date(0, i).toLocaleString('default', { month: 'long' });
-                    const translationKey = `months.${monthName.toLowerCase()}`;
-                    const translatedMonth = safeT(t, translationKey, monthName);
-                    return (
-                      <option key={i + 1} value={i + 1}>
-                        {translatedMonth}
-                      </option>
-                    );
-                  })}
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {safeT(t, `months.${new Date(0, i).toLocaleString('default', { month: 'long' }).toLowerCase()}`, new Date(0, i).toLocaleString('default', { month: 'long' }))}
+                    </option>
+                  ))}
                 </Select>
               </div>
               <div>
-                <Label htmlFor="activityTypeSelect">{t('sales.fields.activityType')}</Label>
+                <Label htmlFor="activityTypeSelect">{safeT(t, 'sales.fields.activityType', 'Activity Type')}</Label>
                 <Select
                   id="activityTypeSelect"
                   value={filters.selectedActivityType}
                   onChange={(e) => handleFilterChange('selectedActivityType', e.target.value)}
                   className="mt-1"
                 >
-                  <option value="">{t('sales.filters.allActivityTypes')}</option>
+                  <option value="">{safeT(t, 'sales.filters.allActivityTypes', 'All Activity Types')}</option>
                   {activityTypes.map(type => (
                     <option key={type.id} value={type.id}>
-                      {t(`products.activities.${type.name?.toLowerCase().replace(/\s+|&/g, '_')}`) || type.name}
+                      {safeT(t, `products.activities.${(type.name || '').toLowerCase().replace(/\s+|&/g, '_')}`, type.name || 'Unknown')}
                     </option>
                   ))}
                 </Select>
@@ -1656,19 +1680,18 @@ export default function SalesPage() {
                   // Metrics for selected period
                   const metrics = calculateSalesMetrics(periodData);
                   const productSales = periodData.reduce((acc, sale) => {
-                    const productId = sale.productId || 'unknown';
-                    if (!acc[productId]) acc[productId] = { totalUSD: 0 };
-                    acc[productId].totalUSD += sale.amountUSD || 0;
+                    const product = productMap.get(sale.productId);
+                    const productName = product?.productid || 'Unknown Product';
+                    if (!acc[productName]) acc[productName] = { totalUSD: 0 };
+                    acc[productName].totalUSD += sale.amountUSD || 0;
                     return acc;
                   }, {});
 
                   const rows = Object.entries(productSales)
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
-                    .map(([productId, data]) => {
-                      const product = productMap.get(productId);
-                      return (
-                        <tr key={productId} className="hover:bg-blue-50">
-                          <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedProductName(product, t)}</td>
+                    .map(([productName, data]) => (
+                      <tr key={productName} className="hover:bg-blue-50">
+                        <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedProductName(productMap.get(productName), t)}</td>
                         <td className="px-6 py-4 font-semibold text-sm text-center">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
                             {data.totalUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
@@ -1680,8 +1703,7 @@ export default function SalesPage() {
                           </span>
                         </td>
                       </tr>
-                      );
-                    });
+                    ));
                   return (
                     <>
                       {rows}

@@ -18,6 +18,7 @@ import TopCard from "@/components/shared/TopCard";
 import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
 import { useTranslation } from '@/lib/utils/localizationUtils';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Dynamic import for ApexCharts
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
@@ -57,26 +58,26 @@ const formatDate = (timestamp) => {
   try {
     // Handle Firestore Timestamp
     if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString('en-GB', {
+      return String(timestamp.toDate().toLocaleDateString('en-GB', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
-      });
+      }));
     }
     // Handle Date objects
     if (timestamp instanceof Date) {
-      return timestamp.toLocaleDateString('en-GB', {
+      return String(timestamp.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
-      });
+      }));
     }
     // Handle string dates
-    return new Date(timestamp).toLocaleDateString('en-GB', {
+    return String(new Date(timestamp).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    });
+    }));
   } catch (error) {
     console.error("Error formatting date:", error, timestamp);
     return "Invalid Date";
@@ -561,46 +562,22 @@ const getPackagingForProduct = (productId, productMap) => {
 // Add these helpers after imports and before the main component
 const getTranslatedProductName = (product, t) => {
   if (!product) return 'N/A';
-  const name = product.productid;
-  if (!name) return 'N/A';
-  const lower = name.toLowerCase();
-  const type = product.producttype?.toLowerCase();
-  const includesAny = (str, terms) => terms.some(term => str.includes(term));
+  const name = product.productid || product.name || 'Unknown';
   try {
-    if (type?.includes('packaging') || lower.includes('package') || lower.includes('emballage')) {
-      if (includesAny(lower, ['cube ice', 'glaçons'])) {
-        if (lower.includes('1kg')) return t('products.items.packaging.cubeIce.1kg');
-        if (lower.includes('2kg')) return t('products.items.packaging.cubeIce.2kg');
-        if (lower.includes('5kg')) return t('products.items.packaging.cubeIce.5kg');
+    // Try to find a translation key based on product type and name
+    if (product.producttype) {
+      const key = `products.types.${product.producttype.toLowerCase()}`;
+      const translated = t(key);
+      if (translated && translated !== key) {
+        return String(translated);
       }
-      if (includesAny(lower, ['water', 'eau'])) {
-        if (lower.includes('600ml')) return t('products.items.packaging.waterBottling.600ml');
-        if (lower.includes('750ml')) return t('products.items.packaging.waterBottling.750ml');
-        if (lower.includes('1.5l') || lower.includes('1,5l')) return t('products.items.packaging.waterBottling.1_5L');
-        if (lower.includes('5l')) return t('products.items.packaging.waterBottling.5L');
-      }
-      return name;
     }
-    if (type === 'block ice' || includesAny(lower, ['bloc de glace', 'block ice'])) {
-      if (lower.includes('5kg')) return t('products.items.blockIce.5kg');
-      if (lower.includes('8kg')) return t('products.items.blockIce.8kg');
-      if (lower.includes('30kg')) return t('products.items.blockIce.30kg');
-    }
-    if (type === 'cube ice' || includesAny(lower, ['glaçons', 'cube ice', 'ice cube'])) {
-      if (lower.includes('1kg')) return t('products.items.cubeIce.1kg');
-      if (lower.includes('2kg')) return t('products.items.cubeIce.2kg');
-      if (lower.includes('5kg')) return t('products.items.cubeIce.5kg');
-    }
-    if (type === 'water bottling' || includesAny(lower, ['eau en bouteille', 'bottled water', 'water bottle'])) {
-      if (lower.includes('600ml')) return t('products.items.waterBottling.600ml');
-      if (lower.includes('750ml')) return t('products.items.waterBottling.750ml');
-      if (lower.includes('1.5l') || lower.includes('1,5l')) return t('products.items.waterBottling.1_5L');
-      if (lower.includes('5l')) return t('products.items.waterBottling.5L');
-    }
+    // Return the raw name if no translation found
+    return String(name);
   } catch (error) {
     console.warn('Translation error for product:', name, error);
   }
-  return name;
+  return String(name);
 };
 const getTranslatedActivityTypeName = (activityType, t) => {
   if (!activityType) return 'N/A';
@@ -608,29 +585,39 @@ const getTranslatedActivityTypeName = (activityType, t) => {
   if (!name) return 'N/A';
   const key = `products.activities.${name.toLowerCase().replace(/\s+/g, '_')}`;
   const translated = t(key);
-  return translated && translated !== key ? translated : name;
+  return String(translated && translated !== key ? translated : name);
 };
 
 // Add fallback translation for unknown and no packaging
-const getFallback = (t, key = 'common.unknown') => t(key) || 'N/A';
-const getNoPackaging = (t) => t('production.table.noPackagingRequired') || 'No packaging required';
+const getFallback = (t, key = 'common.unknown') => String(t(key) || 'N/A');
+const getNoPackaging = (t) => String(t('production.table.noPackagingRequired') || 'No packaging required');
 
 // Helper for robust fallback rendering
 const renderCellValue = (value, t, type = 'unknown') => {
   if (value === null || value === undefined || value === '') {
-    return t(type === 'notAvailable' ? 'common.notAvailable' : 'common.unknown');
+    return String(t(type === 'notAvailable' ? 'common.notAvailable' : 'common.unknown') || 'N/A');
   }
   if (typeof value === 'string' && value.trim().toLowerCase() === 'no packaging required') {
-    return t('production.table.noPackagingRequired');
+    return String(t('production.table.noPackagingRequired') || 'No packaging required');
   }
-  return value;
+  // Ensure we always return a string
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
 };
 
 // Add this function before the main component
 const safeT = (t, key, fallback) => {
-  const value = t(key);
-  if (typeof value === 'string' || typeof value === 'number') return value;
-  return fallback || key;
+  try {
+    const value = t(key);
+    // Only return if it's a string or number, never an object
+    if (typeof value === 'string' || typeof value === 'number') {
+      return String(value);
+    }
+    // If translation returns an object or undefined, use fallback
+    return String(fallback || key);
+  } catch (error) {
+    console.warn(`Translation error for key "${key}":`, error);
+    return String(fallback || key);
+  }
 };
 
 export default function ProductionPage() {
@@ -653,6 +640,11 @@ export default function ProductionPage() {
     data: productions, 
     loading: productionsLoading 
   } = useFirestoreCollection("Production");
+
+  // CRITICAL FIX: Stable date references to prevent hydration mismatches
+  const stableNow = useMemo(() => new Date(), []);
+  const stableCurrentYear = useMemo(() => stableNow.getFullYear(), [stableNow]);
+  const stableCurrentMonth = useMemo(() => stableNow.getMonth(), [stableNow]);
 
   // 3. State hooks - group all useState calls together
   const [mounted, setMounted] = useState(false);
@@ -704,16 +696,16 @@ export default function ProductionPage() {
   const [summaryMonth, setSummaryMonth] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('summary_selectedMonth');
-      return saved !== null ? Number(saved) : new Date().getMonth() + 1;
+      return saved !== null ? Number(saved) : stableCurrentMonth + 1;
     }
-    return new Date().getMonth() + 1;
+    return stableCurrentMonth + 1;
   });
   const [summaryYear, setSummaryYear] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('summary_selectedYear');
-      return saved !== null ? Number(saved) : new Date().getFullYear();
+      return saved !== null ? Number(saved) : stableCurrentYear;
     }
-    return new Date().getFullYear();
+    return stableCurrentYear;
   });
 
   // Chart view mode state
@@ -1515,7 +1507,7 @@ export default function ProductionPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-gray-600">{t('production.loading.data')}</p>
+          <p className="text-gray-600">{String(t('production.loading.data'))}</p>
         </div>
       </div>
     </div>
@@ -1531,72 +1523,75 @@ export default function ProductionPage() {
           className="mt-2"
         >
           <HiRefresh className="mr-2 h-4 w-4" />
-          {t('common.refresh')}
+                      {String(t('common.refresh'))}
         </Button>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen p-4 md:p-8 font-inter">
+    <ErrorBoundary>
+      <div className="min-h-screen p-4 md:p-8 font-inter">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-red-900">{t('production.overview')}</h1>
+        <h1 className="text-2xl font-bold text-red-900">{String(t('production.overview'))}</h1>
         
         {/* Replace the old time period selector with the new component */}
-        <TimePeriodSelector
-          selectedPeriod={filters.selectedTimePeriod}
-          onPeriodChange={setFilters}
-          startDate={filters.dateFilters.startDate}
-          endDate={filters.dateFilters.endDate}
-          onDateRangeChange={(start, end) => {
-            setFilters(prev => ({
-              ...prev,
-              dateFilters: {
-                ...prev.dateFilters,
-                startDate: start,
-                endDate: end
-              }
-            }));
-          }}
-          className="text-red-900"
-        />
+        <ClientOnly>
+          <TimePeriodSelector
+            selectedPeriod={filters.selectedTimePeriod}
+            onPeriodChange={setFilters}
+            startDate={filters.dateFilters.startDate}
+            endDate={filters.dateFilters.endDate}
+            onDateRangeChange={(start, end) => {
+              setFilters(prev => ({
+                ...prev,
+                dateFilters: {
+                  ...prev.dateFilters,
+                  startDate: start,
+                  endDate: end
+                }
+              }));
+            }}
+            className="text-red-900"
+          />
+        </ClientOnly>
       </div>
 
       {/* Top Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <TopCard 
           title={safeT(t, 'production.metrics.totalProduction', 'Total Production')} 
-          value={`${topCardsData.totalProduction.month.toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`}
-          subValue={`${safeT(t, 'common.today', 'Today')}: ${topCardsData.totalProduction.today.toLocaleString()}`}
+          value={String(`${(topCardsData?.totalProduction?.month || 0).toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`)}
+          subValue={String(`${safeT(t, 'common.today', 'Today')}: ${(topCardsData?.totalProduction?.today || 0).toLocaleString()}`)}
           icon={<HiCube size={16} />}
           type="Total Production"
         />
         <TopCard 
           title={safeT(t, 'production.metrics.topProduct', 'Top Product')} 
-          value={topCardsData.topProduct.name || 'N/A'}
-          subValue={`${topCardsData.topProduct.quantity.toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`}
+          value={String(topCardsData?.topProduct?.name || 'N/A')}
+          subValue={String(`${(topCardsData?.topProduct?.quantity || 0).toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`)}
           icon={<HiTrendingUp size={16} />}
           type="Production Rate"
         />
         <TopCard 
           title={safeT(t, 'production.metrics.productionActivities', 'Production Activities')} 
-          value={`${topCardsData.productionActivities.week} ${safeT(t, 'production.metrics.entries', 'entries')}`}
-          subValue={`${safeT(t, 'common.today', 'Today')}: ${topCardsData.productionActivities.today}`}
+          value={String(`${topCardsData?.productionActivities?.week || 0} ${safeT(t, 'production.metrics.entries', 'entries')}`)}
+          subValue={String(`${safeT(t, 'common.today', 'Today')}: ${topCardsData?.productionActivities?.today || 0}`)}
           icon={<HiClipboardList size={16} />}
           type="Efficiency"
         />
         <TopCard 
           title={safeT(t, 'production.metrics.mostUsedPackaging', 'Most Used Packaging')} 
-          value={topCardsData.topPackaging.name || 'N/A'}
-          subValue={`${topCardsData.topPackaging.quantity.toLocaleString()} ${safeT(t, 'production.metrics.used', 'used')}`}
+          value={String(topCardsData?.topPackaging?.name || 'N/A')}
+          subValue={String(`${(topCardsData?.topPackaging?.quantity || 0).toLocaleString()} ${safeT(t, 'production.metrics.used', 'used')}`)}
           icon={<HiArchive size={16} />}
           type="Stock Level"
         />
         <TopCard 
           title={safeT(t, 'production.metrics.activityDistribution', 'Activity Distribution')} 
-          value={getTranslatedActivityTypeName({ name: topCardsData.activityDistribution.name }, t) || 'N/A'}
-          subValue={`${topCardsData.activityDistribution.percentage.toFixed(1)}% ${safeT(t, 'production.metrics.ofTotal', 'of total')}`}
+          value={String(getTranslatedActivityTypeName({ name: topCardsData?.activityDistribution?.name || 'None' }, t) || 'N/A')}
+          subValue={String(`${(topCardsData?.activityDistribution?.percentage || 0).toFixed(1)}% ${safeT(t, 'production.metrics.ofTotal', 'of total')}`)}
           icon={<HiFilter size={16} />}
           type="Production Rate"
         />
@@ -1719,7 +1714,7 @@ export default function ProductionPage() {
                   <option value="">{t('production.filters.allActivityTypes')}</option>
                   {activityTypes?.map(type => (
                     <option key={type.id} value={type.id}>
-                      {getTranslatedActivityTypeName(type, t)}
+                                                  {String(getTranslatedActivityTypeName(type, t) || type.name || 'Unknown Activity')}
                     </option>
                   ))}
                 </Select>
@@ -1737,7 +1732,7 @@ export default function ProductionPage() {
                     .sort((a, b) => (a.productid || a.name || '').localeCompare(b.productid || b.name || ''))
                     .map(product => (
                       <option key={product.id} value={product.id}>
-                        {getTranslatedProductName(product, t)}
+                                                    {String(getTranslatedProductName(product, t) || 'Unknown Product')}
                       </option>
                     ))}
                 </Select>
@@ -1884,11 +1879,11 @@ export default function ProductionPage() {
                           onChange={e => setEditingData(prev => ({ ...prev, date: e.target.value }))}
                           className="w-full"
                         />
-                      ) : (
-                        formatDate(production.date)
-                      )}
+                                              ) : (
+                          String(formatDate(production.date))
+                        )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-gray-800">
                       {editingId === production.id ? (
                         <Select
                           value={editingData.activityTypeId}
@@ -1897,7 +1892,7 @@ export default function ProductionPage() {
                           <option value="">{t('production.filters.allActivityTypes')}</option>
                           {memoizedActivityTypes.map(type => (
                             <option key={type.id} value={type.id}>
-                              {getTranslatedActivityTypeName(type, t)}
+                              {String(getTranslatedActivityTypeName(type, t) || type.name || 'Unknown Activity')}
                             </option>
                           ))}
                         </Select>
@@ -1918,11 +1913,11 @@ export default function ProductionPage() {
                             if (activityName.includes('bidon') || activityName.includes('water can')) return 'bg-cyan-500';
                             return 'bg-gray-500';
                           })()}`}></span>
-                          {getTranslatedActivityTypeName(activityTypeMap.get(production.activityTypeId), t) || getFallback(t)}
+                          {String(getTranslatedActivityTypeName(activityTypeMap.get(production.activityTypeId), t) || getFallback(t))}
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-gray-800">
                       {editingId === production.id ? (
                         <div className="flex items-center gap-2">
                           <Select
@@ -1932,7 +1927,7 @@ export default function ProductionPage() {
                             <option value="">{t('production.filters.allProducts')}</option>
                             {memoizedProducts.map(product => (
                               <option key={product.id} value={product.id}>
-                                {getTranslatedProductName(productMap.get(product.id), t)}
+                                {String(getTranslatedProductName(productMap.get(product.id), t) || 'Unknown Product')}
                               </option>
                             ))}
                           </Select>
@@ -1970,9 +1965,9 @@ export default function ProductionPage() {
                               if (productType.includes('packaging') || productType.includes('emballage') || productName.includes('emballage')) return 'bg-amber-500';
                               return 'bg-slate-500';
                             })()}`}></span>
-                            {getTranslatedProductName(productMap.get(production.productId), t) || getFallback(t)}
+                            {String(getTranslatedProductName(productMap.get(production.productId), t) || getFallback(t))}
                           </div>
-                          <span className="font-mono font-semibold text-gray-700">{production.quantityProduced ?? getFallback(t)}</span>
+                                                      <span className="font-mono font-semibold text-gray-700">{String(production.quantityProduced ?? getFallback(t))}</span>
                         </div>
                       )}
                     </td>
@@ -1985,7 +1980,7 @@ export default function ProductionPage() {
                           <option value="">{getNoPackaging(t)}</option>
                           {memoizedPackagingProducts.map(p => (
                             <option key={p.id} value={p.productid}>
-                              {getTranslatedProductName(p, t)}
+                              {String(getTranslatedProductName(p, t) || p?.productid || 'Unknown Product')}
                             </option>
                           ))}
                         </Select>
@@ -2000,7 +1995,7 @@ export default function ProductionPage() {
                         })()
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-gray-800">
                       {editingId === production.id ? (
                         <TextInput
                           type="number"
@@ -2010,7 +2005,7 @@ export default function ProductionPage() {
                         />
                       ) : (
                         <span className="font-mono text-[#4c5c68] font-semibold">
-                          {production.packagingQuantity || '-'}
+                          {String(production.packagingQuantity) || '-'}
                         </span>
                       )}
                     </td>
@@ -2065,7 +2060,7 @@ export default function ProductionPage() {
           {filteredProductions.length > entriesPerPage && (
             <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-red-100">
               <span className="text-sm text-red-700">
-                {t('table.showing')} {paginationData.indexOfFirstEntry + 1} {t('table.to')} {Math.min(paginationData.indexOfLastEntry, filteredProductions.length)} {t('table.of')} {filteredProductions.length} {t('table.entries')}
+                {String(t('table.showing'))} {paginationData.indexOfFirstEntry + 1} {String(t('table.to'))} {Math.min(paginationData.indexOfLastEntry, filteredProductions.length)} {String(t('table.of'))} {filteredProductions.length} {String(t('table.entries'))}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -2075,7 +2070,7 @@ export default function ProductionPage() {
                   disabled={currentPage === 1}
                   className="bg-white hover:bg-red-50 text-red-600 border border-red-200 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 shadow-sm transition-colors duration-200"
                 >
-                  {t('common.previous')}
+                                      {String(t('common.previous'))}
                 </Button>
                 <Button
                   color="gray"
@@ -2084,7 +2079,7 @@ export default function ProductionPage() {
                   disabled={currentPage === paginationData.totalPages}
                   className="bg-white hover:bg-red-50 text-red-600 border border-red-200 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 shadow-sm transition-colors duration-200"
                 >
-                  {t('common.next')}
+                                      {String(t('common.next'))}
                 </Button>
               </div>
             </div>
@@ -2098,7 +2093,7 @@ export default function ProductionPage() {
         <div className="col-span-5">
           <Card className="border border-red-200 rounded-lg bg-white h-full">
             <div className="px-6 py-3 bg-red-50 border-b border-red-200 flex justify-between items-center rounded-t-2xl">
-              <h3 className="text-lg font-semibold text-red-900 rounded-t-2xl">{t('production.summary.title')}</h3>
+              <h3 className="text-lg font-semibold text-red-900 rounded-t-2xl">{safeT(t, 'production.summary.title', 'Production Summary')}</h3>
               <div className="flex gap-2">
                 <Select
                   id="summaryYear"
@@ -2134,9 +2129,9 @@ export default function ProductionPage() {
               <table className="w-full text-sm text-left text-gray-900 border border-red-100 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
                 <thead className="bg-red-50">
                   <tr>
-                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900">{t('production.summary.activityType')}</th>
-                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-center">{t('production.summary.quantity')}</th>
-                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-center">{t('production.summary.percentageTotal')}</th>
+                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900">{safeT(t, 'production.summary.activityType', 'Activity Type')}</th>
+                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-center">{safeT(t, 'production.summary.quantity', 'Quantity')}</th>
+                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-center">{safeT(t, 'production.summary.percentageTotal', 'Percentage')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-red-100/50">
@@ -2145,15 +2140,15 @@ export default function ProductionPage() {
                       <tr className="hover:bg-red-50/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
                         <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
                           <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
-{getTranslatedActivityTypeName(activityTypeMap.get(item.activityTypeId), t) || item.activityType}
+                          {String(safeT(t, `products.activities.${(activityTypeMap.get(item.activityTypeId)?.name || item.activityType || 'unknown').toLowerCase().replace(/\s+/g, '_')}`, String(getTranslatedActivityTypeName(activityTypeMap.get(item.activityTypeId), t) || item.activityType || 'Unknown')))}
                         </td>
                         <td className="px-8 py-5 text-center font-semibold text-red-700">
-                          {item.total.toLocaleString()}
+                          {String(item.total.toLocaleString())}
                         </td>
-                        <td className="px-8 py-5 text-center">
+                        <td className="px-8 py-5 text-center text-gray-800">
                           <span className="bg-red-100 text-red-800 border border-red-200 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
                             <span className="w-1 h-1 rounded-full bg-red-500 mr-1"></span>
-                            {item.percentage.toFixed(1)}%
+                            {String(item.percentage.toFixed(1))}%
                           </span>
                         </td>
                       </tr>
@@ -2161,7 +2156,7 @@ export default function ProductionPage() {
                       {item.products.map((product, prodIndex) => (
                         <tr key={`${index}-${prodIndex}`} className="bg-red-50/20">
                           <td className="px-12 py-3 text-[#4c5c68] font-semibold text-xs">
-                            {(() => {
+                            {String((() => {
                               // Try exact match first, then trimmed match for products with space issues
                               let foundProduct = productMap.get(product.productId);
                               if (!foundProduct) {
@@ -2169,14 +2164,14 @@ export default function ProductionPage() {
                                 foundProduct = Array.from(productMap.values()).find(p => p.id?.trim() === product.productId?.trim());
                               }
                               return getTranslatedProductName(foundProduct, t) || foundProduct?.productid || product.productId;
-                            })()}
+                            })())}
                           </td>
                           <td className="px-8 py-3 text-center text-gray-600">
-                            {product.quantity.toLocaleString()}
+                            {String(product.quantity.toLocaleString())}
                           </td>
                           <td className="px-8 py-3 text-center">
                             <span className="text-gray-500 text-xs">
-                              {product.percentage.toFixed(1)}%
+                              {String(product.percentage.toFixed(1))}%
                             </span>
                           </td>
                         </tr>
@@ -2186,12 +2181,12 @@ export default function ProductionPage() {
                   <tr className="bg-gradient-to-r from-red-100 via-red-50 to-red-100 font-bold text-red-900 border-t-2 border-red-200">
                     <td className="px-8 py-5 rounded-bl-xl flex items-center space-x-2">
                       <span className="w-2 h-2 rounded-full bg-red-600 inline-block"></span>
-                      <span>{t('production.summary.totalProduction')}</span>
+                      <span>{safeT(t, 'production.summary.totalProduction', 'Total Production')}</span>
                     </td>
                     <td className="px-8 py-5 text-center text-red-800">
-                      {summaryData.reduce((sum, item) => sum + item.total, 0).toLocaleString()}
+                      {String(summaryData.reduce((sum, item) => sum + item.total, 0).toLocaleString())}
                     </td>
-                    <td className="px-8 py-5 text-center rounded-br-xl">
+                    <td className="px-8 py-5 text-center rounded-br-xl text-gray-800">
                       <span className="bg-red-200 text-red-800 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
                         <span className="w-1 h-1 rounded-full bg-red-600 mr-1"></span>
                         100%
@@ -2208,16 +2203,16 @@ export default function ProductionPage() {
         <div className="col-span-7 flex flex-col gap-6">
           <Card className="p-6">
             <div className="flex flex-col items-center mb-4">
-              <h3 className="text-lg font-semibold text-[#4c5c68] mb-3 text-center">{t('production.charts.productionTrends')}</h3>
+              <h3 className="text-lg font-semibold text-[#4c5c68] mb-3 text-center">{String(t('production.charts.productionTrends'))}</h3>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">{t('production.charts.viewBy') || 'View by'}:</span>
+                <span className="text-sm text-gray-600">{String(t('production.charts.viewBy')) || 'View by'}:</span>
                 <Select
                   value={chartViewMode}
                   onChange={(e) => setChartViewMode(e.target.value)}
                   className="w-40 text-sm border-gray-300 rounded-md"
                 >
-                  <option value="individual">{t('production.charts.individualProducts') || 'Individual Products'}</option>
-                  <option value="grouped">{t('production.charts.productTypes') || 'Product Types'}</option>
+                  <option value="individual">{String(t('production.charts.individualProducts')) || 'Individual Products'}</option>
+                  <option value="grouped">{String(t('production.charts.productTypes')) || 'Product Types'}</option>
                 </Select>
               </div>
             </div>
@@ -2259,7 +2254,7 @@ export default function ProductionPage() {
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 text-[#4c5c68] text-center">{t('production.charts.productionByActivity')}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-[#4c5c68] text-center">{String(t('production.charts.productionByActivity'))}</h3>
             <div className="h-[350px]">
               <ClientOnly>
                 {chartDataMemo?.activityChart?.options && chartDataMemo?.activityChart?.series && (
@@ -2299,5 +2294,6 @@ export default function ProductionPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
