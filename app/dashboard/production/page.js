@@ -1976,7 +1976,7 @@ export default function ProductionPage() {
                           value={editingData.packagingName}
                           onChange={e => setEditingData(prev => ({ ...prev, packagingName: e.target.value }))}
                         >
-                          <option value="">{getNoPackaging(t)}</option>
+                          <option value="">{String(getNoPackaging(t))}</option>
                           {memoizedPackagingProducts.map(p => (
                             <option key={p.id} value={p.productid}>
                               {String(getTranslatedProductName(p, t) || p?.productid || 'Unknown Product')}
@@ -1984,14 +1984,14 @@ export default function ProductionPage() {
                           ))}
                         </Select>
                       ) : (
-                        (() => {
+                        String((() => {
                           if (!production.packagingName) {
                             return getNoPackaging(t);
                           }
                           // Find packaging product by name to get translated name
                           const packagingProduct = memoizedPackagingProducts.find(p => p.productid === production.packagingName);
                           return packagingProduct ? getTranslatedProductName(packagingProduct, t) : production.packagingName;
-                        })()
+                        })())
                       )}
                     </td>
                     <td className="px-6 py-4 text-gray-800">
@@ -2139,7 +2139,7 @@ export default function ProductionPage() {
                       <tr className="hover:bg-red-50/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
                         <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
                           <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
-                          {String(safeT(t, `products.activities.${(activityTypeMap.get(item.activityTypeId)?.name || item.activityType || 'unknown').toLowerCase().replace(/\s+/g, '_')}`, String(getTranslatedActivityTypeName(activityTypeMap.get(item.activityTypeId), t) || item.activityType || 'Unknown')))}
+                          {String(safeT(t, `products.activities.${(activityTypeMap.get(item.activityTypeId)?.name || item.activityType || 'unknown').toLowerCase().replace(/\s+/g, '_')}`, getTranslatedActivityTypeName(activityTypeMap.get(item.activityTypeId), t) || item.activityType || 'Unknown'))}
                         </td>
                         <td className="px-8 py-5 text-center font-semibold text-red-700">
                           {String(item.total.toLocaleString())}
