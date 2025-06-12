@@ -18,7 +18,7 @@ import TopCard from "@/components/shared/TopCard";
 import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
 import { useTranslation } from '@/lib/utils/localizationUtils';
-import ErrorBoundary from '@/components/ErrorBoundary';
+// import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Dynamic import for ApexCharts
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
@@ -1530,7 +1530,6 @@ export default function ProductionPage() {
   );
 
   return (
-    <ErrorBoundary>
       <div className="min-h-screen p-4 md:p-8 font-inter">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -2294,6 +2293,5 @@ export default function ProductionPage() {
         </div>
       </div>
     </div>
-    </ErrorBoundary>
   );
 }
