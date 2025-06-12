@@ -639,7 +639,7 @@ export default function UsersPage() {
               )}
               {filters.role && (
                 <Badge color="purple">
-                  Rôle: {roles.find(r => r.id === filters.role)?.name}
+                  Rôle: {String(roles.find(r => r.id === filters.role)?.name)}
                 </Badge>
               )}
               {filters.active && (
@@ -782,7 +782,7 @@ export default function UsersPage() {
                         <Table.Cell>{user.email}</Table.Cell>
                         <Table.Cell>
                           <Badge className={getRoleBadgeColor(user.role)}>
-                            {roles.find(r => r.id === user.role)?.name || user.role}
+                            {String(roles.find(r => r.id === user.role)?.name || user.role)}
                           </Badge>
                         </Table.Cell>
                         <Table.Cell>
@@ -1062,7 +1062,7 @@ export default function UsersPage() {
       {/* User Activities Modal */}
       <Modal show={showUserActivities} onClose={() => setShowUserActivities(false)} size="lg">
         <Modal.Header>
-          Activité de {selectedUserForActivities?.displayName || selectedUserForActivities?.email}
+          Activité de {String(selectedUserForActivities?.displayName || selectedUserForActivities?.email)}
         </Modal.Header>
         <Modal.Body>
           <div className="space-y-3 max-h-96 overflow-y-auto">

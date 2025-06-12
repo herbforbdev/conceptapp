@@ -65,7 +65,7 @@ export default function TableHeader({
         align === 'right' ? 'justify-end' : 
         'justify-start'
       }`}>
-        {t(getTranslation(label))}
+        {String(t(getTranslation(label)) || label)}
         {getSortIndicator() && (
           <span className="ml-2">{getSortIndicator()}</span>
         )}

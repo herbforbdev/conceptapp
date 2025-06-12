@@ -23,6 +23,23 @@ import { useMasterData } from "@/hooks/useMasterData";
 import Link from "next/link";
 import AdminOnly from '@/components/AdminOnly';
 
+// CRITICAL FIX: Add safeT function to prevent object rendering and infinite loops
+const safeT = (t, key, fallback) => {
+  try {
+    const value = t(key);
+    // Only return if it's a string or number, never an object
+    if (typeof value === 'string' || typeof value === 'number') {
+      return String(value);
+    }
+    // If translation returns an object or undefined, use fallback
+    return String(fallback || key);
+  }
+  catch (error) {
+    console.warn(`Translation error for key "${key}":`, error);
+    return String(fallback || key);
+  }
+};
+
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
@@ -45,10 +62,26 @@ export default function SalesTrendsPage() {
   const { data: activityTypes } = useFirestoreCollection("ActivityTypes");
   const { data: costs } = useFirestoreCollection("Costs");
   const { t } = useLanguage();
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  
+  // CRITICAL FIX: Create stable year reference to prevent hydration mismatch
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [activeTab, setActiveTab] = useState("general");
 
   const { products: masterProducts, activityTypes: masterActivityTypes, expenseTypes, productMap, activityTypeMap, expenseTypeMap } = useMasterData();
+
+  // CRITICAL FIX: Add missing state variables that were causing errors
+  const [yearlyActivityType, setYearlyActivityType] = useState({});
+  const [trendChartData, setTrendChartData] = useState({ labels: [], datasets: [] });
+  const [yearlyDistribution, setYearlyDistribution] = useState({});
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [performanceData, setPerformanceData] = useState({
+    totalSales: 0,
+    bestSellingProduct: null,
+    iceBlocsSales: 0,
+    cubesSales: 0,
+    bottlesSales: 0
+  });
 
   // Memoized product types for rows
   const productTypes = useMemo(() => {
@@ -123,12 +156,12 @@ export default function SalesTrendsPage() {
   // Compute profitability KPIs and chart data
   const [kpi, chartData] = useMemo(() => {
     if (!sales || !costs) return [{}, { labels: [], datasets: [] }];
-    // Group sales and costs by month
+    // CRITICAL FIX: Use safeT and stable month labels to prevent infinite renders
     const months = [
-      t('months.january_short'), t('months.february_short'), t('months.march_short'),
-      t('months.april_short'), t('months.may_short'), t('months.june_short'),
-      t('months.july_short'), t('months.august_short'), t('months.september_short'),
-      t('months.october_short'), t('months.november_short'), t('months.december_short')
+      safeT(t, 'months.january_short', 'Jan'), safeT(t, 'months.february_short', 'Feb'), safeT(t, 'months.march_short', 'Mar'),
+      safeT(t, 'months.april_short', 'Apr'), safeT(t, 'months.may_short', 'May'), safeT(t, 'months.june_short', 'Jun'),
+      safeT(t, 'months.july_short', 'Jul'), safeT(t, 'months.august_short', 'Aug'), safeT(t, 'months.september_short', 'Sep'),
+      safeT(t, 'months.october_short', 'Oct'), safeT(t, 'months.november_short', 'Nov'), safeT(t, 'months.december_short', 'Dec')
     ];
     const salesByMonth = Array(12).fill(0);
     const costsByMonth = Array(12).fill(0);
@@ -163,14 +196,14 @@ export default function SalesTrendsPage() {
         labels: months,
         datasets: [
           {
-            label: t('profitability.salesTrends.sales') || 'Sales',
+            label: safeT(t, 'profitability.salesTrends.sales', 'Sales'),
             data: salesByMonth,
             borderColor: 'rgba(59, 130, 246, 1)',
             backgroundColor: 'rgba(59, 130, 246, 0.12)',
             fill: true,
           },
           {
-            label: t('profitability.salesTrends.costs') || 'Costs',
+            label: safeT(t, 'profitability.salesTrends.costs', 'Costs'),
             data: costsByMonth,
             borderColor: 'rgba(239, 68, 68, 1)',
             backgroundColor: 'rgba(239, 68, 68, 0.12)',
@@ -179,7 +212,7 @@ export default function SalesTrendsPage() {
         ]
       }
     ];
-  }, [sales, costs, t]);
+  }, [sales, costs]); // CRITICAL FIX: Removed 't' from dependencies to prevent infinite renders
 
   useEffect(() => {
     if (sales && products && activityTypes) {
@@ -382,10 +415,13 @@ export default function SalesTrendsPage() {
       const sortedMonthlyData = Object.entries(monthlyData)
         .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB));
 
+      // CRITICAL FIX: Use safeT outside of dependency and in render
+      const tLabel = safeT(t, 'Sales Trend', 'Sales Trend');
+      
       setTrendChartData({
         labels: sortedMonthlyData.map(([month]) => month),
         datasets: [{
-          label: t('Sales Trend'),
+          label: tLabel,
           data: sortedMonthlyData.map(([, data]) => data.totalUSD),
           borderColor: 'rgba(75, 192, 192, 1)',
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -393,7 +429,7 @@ export default function SalesTrendsPage() {
         }]
       });
     }
-  }, [sales, t]);
+  }, [sales]); // CRITICAL FIX: Keep 't' out of dependencies
 
 
 
@@ -474,13 +510,13 @@ export default function SalesTrendsPage() {
     cutout: '65%'
   };
 
-  // General Profitability Table Data
+  // General Profitability Table Data - CRITICAL FIX: Use safeT and remove 't' dependency
   const months = useMemo(() => [
-    t('months.january_short'), t('months.february_short'), t('months.march_short'),
-    t('months.april_short'), t('months.may_short'), t('months.june_short'),
-    t('months.july_short'), t('months.august_short'), t('months.september_short'),
-    t('months.october_short'), t('months.november_short'), t('months.december_short')
-  ], [t]);
+    safeT(t, 'months.january_short', 'Jan'), safeT(t, 'months.february_short', 'Feb'), safeT(t, 'months.march_short', 'Mar'),
+    safeT(t, 'months.april_short', 'Apr'), safeT(t, 'months.may_short', 'May'), safeT(t, 'months.june_short', 'Jun'),
+    safeT(t, 'months.july_short', 'Jul'), safeT(t, 'months.august_short', 'Aug'), safeT(t, 'months.september_short', 'Sep'),
+    safeT(t, 'months.october_short', 'Oct'), safeT(t, 'months.november_short', 'Nov'), safeT(t, 'months.december_short', 'Dec')
+  ], []); // Empty dependency to prevent infinite renders with stable values
   const generalTable = useMemo(() => {
     // Group sales/costs by month for selected year
     const salesByMonth = Array(12).fill(0);
@@ -529,7 +565,7 @@ export default function SalesTrendsPage() {
         <div className="mb-4">
           <Link href="/dashboard/reports" className="inline-flex items-center text-purple-700 hover:underline font-medium">
             <HiArrowNarrowLeft className="mr-2 h-5 w-5" />
-            {t('reports.title')}
+            {safeT(t, 'reports.title', 'Reports')}
           </Link>
         </div>
         {/* Main Stats Card */}
@@ -537,11 +573,11 @@ export default function SalesTrendsPage() {
           <div className="flex flex-col" style={{ minHeight: '240px' }}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-black font-semibold text-base">{t('profitability.salesTrends.grossProfit')}</p>
-                <h2 className="text-5xl font-bold text-[#385e82]">${kpi.grossProfit?.toLocaleString() ?? 0}</h2>
+                <p className="text-black font-semibold text-base">{safeT(t, 'profitability.salesTrends.grossProfit', 'Gross Profit')}</p>
+                <h2 className="text-5xl font-bold text-[#385e82]">${String(kpi.grossProfit?.toLocaleString() ?? 0)}</h2>
                 <div className="flex items-center mt-2">
                   <span className="flex items-center rounded-full px-2 py-1 text-blue-700 bg-blue-100">
-                    {t('profitability.salesTrends.profitabilityOverview')}
+                    {safeT(t, 'profitability.salesTrends.profitabilityOverview', 'Profitability Overview')}
                   </span>
                 </div>
               </div>
@@ -556,24 +592,24 @@ export default function SalesTrendsPage() {
             {/* KPI Cards Row */}
             <div className="grid grid-cols-5 gap-4 mt-6">
               <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{t('profitability.salesTrends.totalRevenue')}</p>
-                <p className="text-2xl font-semibold text-blue-900">${kpi.totalRevenue?.toLocaleString() ?? 0}</p>
+                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.totalRevenue', 'Total Revenue')}</p>
+                <p className="text-2xl font-semibold text-blue-900">${String(kpi.totalRevenue?.toLocaleString() ?? 0)}</p>
               </div>
               <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{t('profitability.salesTrends.totalCosts')}</p>
-                <p className="text-2xl font-semibold text-blue-900">${kpi.totalCosts?.toLocaleString() ?? 0}</p>
+                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.totalCosts', 'Total Costs')}</p>
+                <p className="text-2xl font-semibold text-blue-900">${String(kpi.totalCosts?.toLocaleString() ?? 0)}</p>
               </div>
               <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{t('profitability.salesTrends.grossProfit')}</p>
-                <p className="text-2xl font-semibold text-[#385e82]">${kpi.grossProfit?.toLocaleString() ?? 0}</p>
+                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.grossProfit', 'Gross Profit')}</p>
+                <p className="text-2xl font-semibold text-[#385e82]">${String(kpi.grossProfit?.toLocaleString() ?? 0)}</p>
               </div>
               <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{t('profitability.salesTrends.profitMargin')}</p>
-                <p className="text-2xl font-semibold text-blue-900">{kpi.profitMargin?.toFixed(2) ?? '0.00'}%</p>
+                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.profitMargin', 'Profit Margin')}</p>
+                <p className="text-2xl font-semibold text-blue-900">{String(kpi.profitMargin?.toFixed(2) ?? '0.00')}%</p>
               </div>
               <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{t('profitability.salesTrends.avgProfitPerSale')}</p>
-                <p className="text-2xl font-semibold text-blue-900">${kpi.avgProfitPerSale?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? 0}</p>
+                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.avgProfitPerSale', 'Average Profit Per Sale')}</p>
+                <p className="text-2xl font-semibold text-blue-900">${String(kpi.avgProfitPerSale?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? 0)}</p>
               </div>
             </div>
           </div>
@@ -584,10 +620,10 @@ export default function SalesTrendsPage() {
           <div className="flex items-center justify-between border-b border-[#385e82] pb-2 px-2">
             <nav className="flex space-x-2" aria-label="Tabs">
               {[
-                { key: "general", label: t('profitability.tabs.general') || 'General' },
-                { key: "products", label: t('profitability.tabs.products') || 'Products' },
-                { key: "expenses", label: t('profitability.tabs.expenses') || 'Expenses' },
-                { key: "activities", label: t('profitability.tabs.activities') || 'Activities' },
+                { key: "general", label: safeT(t, 'profitability.tabs.general', 'General') },
+                { key: "products", label: safeT(t, 'profitability.tabs.products', 'Products') },
+                { key: "expenses", label: safeT(t, 'profitability.tabs.expenses', 'Expenses') },
+                { key: "activities", label: safeT(t, 'profitability.tabs.activities', 'Activities') },
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -599,7 +635,7 @@ export default function SalesTrendsPage() {
               ))}
             </nav>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-[#385e82]">{t('profitability.year') || 'Year'}:</span>
+              <span className="text-sm font-medium text-[#385e82]">{safeT(t, 'profitability.year', 'Year')}:</span>
               <select
                 className="rounded-lg border border-[#385e82] px-3 py-1 text-sm bg-white text-[#385e82] font-bold"
                 value={selectedYear}
@@ -616,7 +652,7 @@ export default function SalesTrendsPage() {
         {/* Tab Content */}
         {activeTab === "general" && (
           <Card className="rounded-2xl bg-gradient-to-br from-[#e6eaf0] to-[#f8fafc] border border-[#385e82] shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-bold text-[#385e82] mb-4">{t('profitability.tabs.general') || 'General Profitability'}</h3>
+            <h3 className="text-xl font-bold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.general', 'General Profitability')}</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-center rounded-xl overflow-hidden">
                 <thead className="bg-[#385e82] text-white">
@@ -629,9 +665,9 @@ export default function SalesTrendsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {[
-                    { label: t('profitability.rows.sales') || 'Sales', data: generalTable.salesByMonth, color: 'text-blue-700' },
-                    { label: t('profitability.rows.costs') || 'Costs', data: generalTable.costsByMonth, color: 'text-red-700' },
-                    { label: t('profitability.rows.profit') || 'Profit', data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
+                    { label: safeT(t, 'profitability.rows.sales', 'Sales'), data: generalTable.salesByMonth, color: 'text-blue-700' },
+                    { label: safeT(t, 'profitability.rows.costs', 'Costs'), data: generalTable.costsByMonth, color: 'text-red-700' },
+                    { label: safeT(t, 'profitability.rows.profit', 'Profit'), data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
                   ].map((row, idx) => (
                     <tr key={row.label} className="">
                       <td className={`w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-base ${row.color} truncate whitespace-normal break-words`}>{row.label}</td>
@@ -644,8 +680,8 @@ export default function SalesTrendsPage() {
                           else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
                         }
                         return (
-                          <td key={i} className="py-2 px-4 text-base font-mono">
-                            {val.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          <td key={i} className="py-2 px-4 text-base font-mono text-gray-800">
+                            {String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
                             {indicator}
                           </td>
                         );
@@ -659,7 +695,7 @@ export default function SalesTrendsPage() {
         )}
         {activeTab === "products" && (
           <Card className="rounded-2xl bg-gradient-to-br from-[#e6eaf0] to-[#f8fafc] border border-[#385e82] shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-bold text-[#385e82] mb-4">{t('profitability.tabs.products') || 'Product Sales by Month'}</h3>
+            <h3 className="text-xl font-bold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.products', 'Product Sales by Month')}</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-center rounded-xl overflow-hidden">
                 <thead className="bg-[#385e82] text-white">
@@ -674,7 +710,7 @@ export default function SalesTrendsPage() {
                   {productTypes.map((type, idx) => (
                     <tr key={type}>
                       <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-base text-blue-700">
-                        {t(`products.types.${type.replace(/\s+/g, '')}`) || t(`products.types.${type}`) || type}
+                        {safeT(t, `products.types.${type.replace(/\s+/g, '')}`, type)}
                       </td>
                       {productTypeTable[type].map((val, i) => {
                         let indicator = null;
@@ -684,7 +720,7 @@ export default function SalesTrendsPage() {
                           else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
                         }
                         return (
-                          <td key={i} className="py-2 px-4 text-base font-mono">{val.toLocaleString(undefined, { maximumFractionDigits: 0 })}{indicator}</td>
+                          <td key={i} className="py-2 px-4 text-base font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
                         );
                       })}
                     </tr>
@@ -696,7 +732,7 @@ export default function SalesTrendsPage() {
         )}
         {activeTab === "expenses" && (
           <Card className="rounded-2xl bg-gradient-to-br from-[#e6eaf0] to-[#f8fafc] border border-[#385e82] shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-bold text-[#385e82] mb-4">{t('profitability.tabs.expenses') || 'Expenses by Month'}</h3>
+            <h3 className="text-xl font-bold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.expenses', 'Expenses by Month')}</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-center rounded-xl overflow-hidden">
                 <thead className="bg-[#385e82] text-white">
@@ -711,7 +747,7 @@ export default function SalesTrendsPage() {
                   {expenseTypeRows.map((type, idx) => (
                     <tr key={type}>
                       <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-base text-red-700">
-                        {t(`masterData.expenses.types.${type.replace(/\s+/g, '_').toLowerCase()}`) || type}
+                        {safeT(t, `masterData.expenses.types.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
                       </td>
                       {expenseTypeTable[type].map((val, i) => {
                         let indicator = null;
@@ -721,7 +757,7 @@ export default function SalesTrendsPage() {
                           else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
                         }
                         return (
-                          <td key={i} className="py-2 px-4 text-base font-mono">{val.toLocaleString(undefined, { maximumFractionDigits: 0 })}{indicator}</td>
+                          <td key={i} className="py-2 px-4 text-base font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
                         );
                       })}
                     </tr>
@@ -733,7 +769,7 @@ export default function SalesTrendsPage() {
         )}
         {activeTab === "activities" && (
           <Card className="rounded-2xl bg-gradient-to-br from-[#e6eaf0] to-[#f8fafc] border border-[#385e82] shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-bold text-[#385e82] mb-4">{t('profitability.tabs.activities') || 'Activities by Month'}</h3>
+            <h3 className="text-xl font-bold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.activities', 'Activities by Month')}</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-center rounded-xl overflow-hidden">
                 <thead className="bg-[#385e82] text-white">
@@ -748,7 +784,7 @@ export default function SalesTrendsPage() {
                   {activityTypeRows.map((type, idx) => (
                     <tr key={type}>
                       <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-base text-[#385e82]">
-                        {t(`products.activities.${type.replace(/\s+/g, '_').toLowerCase()}`) || type}
+                        {safeT(t, `products.activities.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
                       </td>
                       {activityTypeTable[type].map((val, i) => {
                         let indicator = null;
@@ -758,7 +794,7 @@ export default function SalesTrendsPage() {
                           else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
                         }
                         return (
-                          <td key={i} className="py-2 px-4 text-base font-mono">{val.toLocaleString(undefined, { maximumFractionDigits: 0 })}{indicator}</td>
+                          <td key={i} className="py-2 px-4 text-base font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
                         );
                       })}
                     </tr>

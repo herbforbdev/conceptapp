@@ -58,7 +58,7 @@ export default function FilterSection({
             {showMonthFilter && (
               <div>
                 <Label htmlFor="monthSelect" className={`font-medium mb-1.5 block ${theme.text}`}>
-                  {t('common.month')}
+                  {String(t('common.month') || 'Month')}
                 </Label>
                 <Select
                   id="monthSelect"
@@ -66,10 +66,10 @@ export default function FilterSection({
                   onChange={(e) => onFilterChange('selectedMonth', e.target.value)}
                   className={`w-full bg-white rounded-lg ${theme.select}`}
                 >
-                  <option value="">{t('filters.allMonths')}</option>
+                  <option value="">{String(t('filters.allMonths') || 'All Months')}</option>
                   {Array.from({ length: 12 }, (_, i) => (
                     <option key={i + 1} value={i + 1}>
-                      {t(`months.${new Date(0, i).toLocaleString('default', { month: 'long' }).toLowerCase()}`)}
+                      {String(t(`months.${new Date(0, i).toLocaleString('default', { month: 'long' }).toLowerCase()}`) || new Date(0, i).toLocaleString('default', { month: 'long' }))}
                     </option>
                   ))}
                 </Select>
@@ -79,7 +79,7 @@ export default function FilterSection({
             {showActivityFilter && (
               <div>
                 <Label htmlFor="activityType" className={`font-medium mb-1.5 block ${theme.text}`}>
-                  {t('common.activityType')}
+                  {String(t('common.activityType') || 'Activity Type')}
                 </Label>
                 <Select
                   id="activityType"
@@ -87,7 +87,7 @@ export default function FilterSection({
                   onChange={(e) => onFilterChange('selectedActivityType', e.target.value)}
                   className={`w-full bg-white rounded-lg ${theme.select}`}
                 >
-                  <option value="">{t('filters.allActivityTypes')}</option>
+                  <option value="">{String(t('filters.allActivityTypes') || 'All Activity Types')}</option>
                   {activityTypes?.map((type) => (
                     <option key={type.id} value={type.id}>
                       {type.name}
@@ -100,7 +100,7 @@ export default function FilterSection({
             {showProductFilter && (
               <div>
                 <Label htmlFor="product" className={`font-medium mb-1.5 block ${theme.text}`}>
-                  {t('common.product')}
+                  {String(t('common.product') || 'Product')}
                 </Label>
                 <Select
                   id="product"
@@ -108,7 +108,7 @@ export default function FilterSection({
                   onChange={(e) => onFilterChange('selectedProduct', e.target.value)}
                   className={`w-full bg-white rounded-lg ${theme.select}`}
                 >
-                  <option value="">{t('filters.allProducts')}</option>
+                  <option value="">{String(t('filters.allProducts') || 'All Products')}</option>
                   {products?.map((product) => (
                     <option key={product.id} value={product.id}>
                       {product.productid || product.name}
@@ -121,7 +121,7 @@ export default function FilterSection({
             {showMovementFilter && (
               <div>
                 <Label htmlFor="movementType" className={`font-medium mb-1.5 block ${theme.text}`}>
-                  {t('inventory.filters.movementType')}
+                  {String(t('inventory.filters.movementType') || 'Movement Type')}
                 </Label>
                 <Select
                   id="movementType"
@@ -129,10 +129,10 @@ export default function FilterSection({
                   onChange={(e) => onFilterChange('selectedMovementType', e.target.value)}
                   className={`w-full bg-white rounded-lg ${theme.select}`}
                 >
-                  <option value="">{t('inventory.filters.allMovementTypes')}</option>
-                  <option value="IN">{t('inventory.table.stockIn')}</option>
-                  <option value="OUT">{t('inventory.table.stockOut')}</option>
-                  <option value="ADJUSTMENT">{t('inventory.table.adjustment')}</option>
+                  <option value="">{String(t('inventory.filters.allMovementTypes') || 'All Movement Types')}</option>
+                  <option value="IN">{String(t('inventory.table.stockIn') || 'Stock In')}</option>
+                  <option value="OUT">{String(t('inventory.table.stockOut') || 'Stock Out')}</option>
+                  <option value="ADJUSTMENT">{String(t('inventory.table.adjustment') || 'Adjustment')}</option>
                 </Select>
               </div>
             )}
@@ -140,7 +140,7 @@ export default function FilterSection({
             {showChannelFilter && (
               <div>
                 <Label htmlFor="channel" className={`font-medium mb-1.5 block ${theme.text}`}>
-                  {t('sales.filters.channel')}
+                  {String(t('sales.filters.channel') || 'Channel')}
                 </Label>
                 <Select
                   id="channel"
@@ -148,10 +148,10 @@ export default function FilterSection({
                   onChange={(e) => onFilterChange('selectedChannel', e.target.value)}
                   className={`w-full bg-white rounded-lg ${theme.select}`}
                 >
-                  <option value="">{t('filters.allChannels')}</option>
-                  <option value="OnSite">{t('sales.channels.onSite')}</option>
-                  <option value="Truck Delivery">{t('sales.channels.truckDelivery')}</option>
-                  <option value="Motorcycle Delivery">{t('sales.channels.motorcycleDelivery')}</option>
+                  <option value="">{String(t('filters.allChannels') || 'All Channels')}</option>
+                  <option value="OnSite">{String(t('sales.channels.onSite') || 'On-Site')}</option>
+                  <option value="Truck Delivery">{String(t('sales.channels.truckDelivery') || 'Truck Delivery')}</option>
+                  <option value="Motorcycle Delivery">{String(t('sales.channels.motorcycleDelivery') || 'Motorcycle Delivery')}</option>
                 </Select>
               </div>
             )}
@@ -159,7 +159,7 @@ export default function FilterSection({
             {showStatusFilter && (
               <div>
                 <Label htmlFor="status" className={`font-medium mb-1.5 block ${theme.text}`}>
-                  {t('common.status')}
+                  {String(t('common.status') || 'Status')}
                 </Label>
                 <Select
                   id="status"
@@ -167,10 +167,10 @@ export default function FilterSection({
                   onChange={(e) => onFilterChange('selectedStatus', e.target.value)}
                   className={`w-full bg-white rounded-lg ${theme.select}`}
                 >
-                  <option value="">{t('filters.allStatus')}</option>
-                  <option value="completed">{t('common.completed')}</option>
-                  <option value="pending">{t('common.pending')}</option>
-                  <option value="cancelled">{t('common.cancelled')}</option>
+                  <option value="">{String(t('filters.allStatus') || 'All Status')}</option>
+                  <option value="completed">{String(t('common.completed') || 'Completed')}</option>
+                  <option value="pending">{String(t('common.pending') || 'Pending')}</option>
+                  <option value="cancelled">{String(t('common.cancelled') || 'Cancelled')}</option>
                 </Select>
               </div>
             )}

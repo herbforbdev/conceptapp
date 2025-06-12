@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
     // your project has TypeScript errors.
     ignoreBuildErrors: true,
   },
+  // Temporary debugging configuration
+  compiler: {
+    removeConsole: false,
+  },
   images: {
     remotePatterns: [
       {

@@ -41,6 +41,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import annotationPlugin from 'chartjs-plugin-annotation';
 
 
 
@@ -54,7 +55,8 @@ ChartJS.register(
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  annotationPlugin
 );
 
 // Client-only wrapper component
@@ -1826,7 +1828,7 @@ export default function InventoryPage() {
                 >
                   <option value="">{t('inventory.filters.allProducts')}</option>
                   {filteredProducts
-                    .sort((a, b) => (a.productid || a.name || '').localeCompare(b.productid || b.name || ''))
+                    .sort((a, b) => String(a.productid || a.name || '').localeCompare(String(b.productid || b.name || '')))
                     .map(product => (
                       <option key={product.id} value={product.id}>
                         {getTranslatedProductName(product, t)}
@@ -2031,7 +2033,7 @@ export default function InventoryPage() {
                             const currentProduct = productMap.get(editingData.productId);
                             if (currentProduct) filteredProducts.push(currentProduct);
                           }
-                          filteredProducts = filteredProducts.sort((a, b) => (a.productid || a.name || '').localeCompare(b.productid || b.name || ''));
+                          filteredProducts = filteredProducts.sort((a, b) => String(a.productid || a.name || '').localeCompare(String(b.productid || b.name || '')));
                           return (
                             <Select
                               value={editingData.productId || ''}
@@ -2271,7 +2273,7 @@ export default function InventoryPage() {
                       type="number"
                       value={thresholds.iceCubes}
                       onChange={e => handleThresholdChange('iceCubes', e.target.value)}
-                      className="w-20 px-1 py-1 border border-purple-200 rounded text-sm text-center focus:ring-purple-500 focus:border-purple-500"
+                      className="w-20 px-1 py-1 border border-purple-200 rounded text-sm text-center text-gray-900 bg-white focus:ring-purple-500 focus:border-purple-500"
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -2280,7 +2282,7 @@ export default function InventoryPage() {
                       type="number"
                       value={thresholds.bottles}
                       onChange={e => handleThresholdChange('bottles', e.target.value)}
-                      className="w-20 px-1 py-1 border border-purple-200 rounded text-sm text-center focus:ring-purple-500 focus:border-purple-500"
+                      className="w-20 px-1 py-1 border border-purple-200 rounded text-sm text-center text-gray-900 bg-white focus:ring-purple-500 focus:border-purple-500"
                     />
                   </div>
                 </div>
@@ -2319,7 +2321,7 @@ export default function InventoryPage() {
                           }}
                           className="mr-2 accent-purple-600"
                         />
-                        <span>{t(`products.types.${type.replace(/\s/g, '')}`) || t(`products.types.${type}`) || type}</span>
+                        <span className="text-gray-900">{t(`products.types.${type.replace(/\s/g, '')}`) || t(`products.types.${type}`) || type}</span>
                       </label>
                     ))}
                   </div>

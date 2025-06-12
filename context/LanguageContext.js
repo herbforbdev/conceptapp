@@ -24,6 +24,15 @@ export function useLanguage() {
               return key;
             }
           }
+          // CRITICAL: Ensure we never return objects to prevent React Error #130
+          if (typeof translation === 'object' && translation !== null) {
+            console.warn(`Translation key "${key}" resolved to an object, returning key instead:`, translation);
+            return key;
+          }
+          // Ensure we always return a string or number, never undefined/null
+          if (translation === null || translation === undefined) {
+            return key;
+          }
           return translation;
         } catch (error) {
           console.warn(`Error translating key: ${key}`, error);
@@ -59,7 +68,7 @@ export function LanguageProvider({ children }) {
     }
   }, [language, isClient]);
 
-  // Translation function
+  // Translation function with object protection
   const t = useCallback((key) => {
     try {
       const keys = key.split('.');
@@ -79,6 +88,17 @@ export function LanguageProvider({ children }) {
           }
           break;
         }
+      }
+      
+      // CRITICAL: Ensure we never return objects to prevent React Error #130
+      if (typeof translation === 'object' && translation !== null) {
+        console.warn(`Translation key "${key}" resolved to an object, returning key instead:`, translation);
+        return key;
+      }
+      
+      // Ensure we always return a string or number, never undefined/null
+      if (translation === null || translation === undefined) {
+        return key;
       }
       
       return translation;

@@ -116,3 +116,24 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* TopCard Safeguard Classes - Ensures production build includes all necessary classes */
+@layer utilities {
+  .topcard-safeguard {
+    /* Background colors */
+    @apply bg-blue-500 bg-green-500 bg-yellow-500 bg-purple-500 bg-red-500 bg-orange-500 bg-pink-500;
+    @apply bg-indigo-500 bg-cyan-500 bg-teal-500 bg-emerald-500 bg-lime-500 bg-amber-500 bg-gray-500;
+    
+    /* Text colors */
+    @apply text-blue-700 text-green-700 text-yellow-700 text-purple-700 text-red-700 text-orange-700 text-pink-700;
+    @apply text-indigo-700 text-cyan-700 text-teal-700 text-emerald-700 text-lime-700 text-amber-700 text-gray-700;
+    
+    /* Border colors */
+    @apply border-blue-100 border-green-100 border-yellow-100 border-purple-100 border-red-100 border-orange-100 border-pink-100;
+    @apply border-indigo-100 border-cyan-100 border-teal-100 border-emerald-100 border-lime-100 border-amber-100 border-gray-100;
+    
+    /* Layout and effects */
+    @apply rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1;
+    @apply p-6 w-12 h-12 rounded-xl shadow-md text-white tracking-wide uppercase;
+  }
+}

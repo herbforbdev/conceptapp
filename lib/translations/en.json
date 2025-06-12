@@ -188,6 +188,10 @@
   "timePeriods": {
     "all": "All time",
     "today": "Today",
+    "month": "Month",
+    "year": "Year",
+    "week": "Week",
+    "day": "Day",
     "thisWeek": "This week",
     "thisMonth": "This month",
     "thisYear": "This year",
@@ -209,6 +213,10 @@
       "PackagingForCubeIce": "Packaging for Ice Cubes",
       "packagingForWaterBottling": "Packaging for Bottled Water",
       "PackagingForWaterBottling": "Packaging for Bottled Water",
+      "packagingForWaterCans": "Packaging for Water Cans",
+      "PackagingForWaterCans": "Packaging for Water Cans",
+      "EmballagepourBidond'eau": "Packaging for Water Cans",
+      "emballagepourBidond'eau": "Packaging for Water Cans",
       "Water Bottling": "Bottled Water",
       "WaterBottling": "Bottled Water",
       "WaterCans": "Water Cans",
@@ -401,10 +409,14 @@
       "product": "Product",
       "movementType": "Movement Type",
       "allMonths": "All months",
+      "fromMonth": "From month",
+      "toMonth": "To month",
       "allYears": "All years",
       "allActivityTypes": "All activity types",
       "allProducts": "All products",
-      "allMovementTypes": "All movement types"
+      "allMovementTypes": "All movement types",
+      "selectMonth": "Select month",
+      "selectYear": "Select year"
     },
     "table": {
       "date": "Date",

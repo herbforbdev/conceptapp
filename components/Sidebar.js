@@ -104,18 +104,18 @@ const Sidebar = ({ children }) => {
 
           {/* Sidebar Links with labels */}
           <div className="flex flex-col gap-1 mt-2 w-full">
-            <SidebarLink href="/dashboard/production" icon={<RiBuilding2Fill size={22} />} label={expanded ? t('navigation.production') : null} expanded={expanded} />
-            <SidebarLink href="/dashboard/inventory" icon={<RiStore3Fill size={22} />} label={expanded ? t('navigation.inventory') : null} expanded={expanded} />
-            <SidebarLink href="/dashboard/sales" icon={<RiShoppingCartFill size={22} />} label={expanded ? t('navigation.sales') : null} expanded={expanded} />
-            <SidebarLink href="/dashboard/costs" icon={<FaRegMoneyBill1 size={22} />} label={expanded ? t('navigation.costs') : null} expanded={expanded} />
-            <SidebarLink href="/dashboard/master-data" icon={<RiPantoneFill size={22} />} label={expanded ? t('navigation.masterData') : null} expanded={expanded} />
+            <SidebarLink href="/dashboard/production" icon={<RiBuilding2Fill size={22} />} label={expanded ? String(t('navigation.production') || 'Production') : null} expanded={expanded} />
+            <SidebarLink href="/dashboard/inventory" icon={<RiStore3Fill size={22} />} label={expanded ? String(t('navigation.inventory') || 'Inventory') : null} expanded={expanded} />
+            <SidebarLink href="/dashboard/sales" icon={<RiShoppingCartFill size={22} />} label={expanded ? String(t('navigation.sales') || 'Sales') : null} expanded={expanded} />
+            <SidebarLink href="/dashboard/costs" icon={<FaRegMoneyBill1 size={22} />} label={expanded ? String(t('navigation.costs') || 'Costs') : null} expanded={expanded} />
+            <SidebarLink href="/dashboard/master-data" icon={<RiPantoneFill size={22} />} label={expanded ? String(t('navigation.masterData') || 'Master Data') : null} expanded={expanded} />
             {user?.role === "admin" && (
-              <SidebarLink href="/dashboard/reports" icon={<RiBarChartBoxFill size={22} />} label={expanded ? t('navigation.reports') : null} expanded={expanded} />
+              <SidebarLink href="/dashboard/reports" icon={<RiBarChartBoxFill size={22} />} label={expanded ? String(t('navigation.reports') || 'Reports') : null} expanded={expanded} />
             )}
             {user?.role === "admin" && (
-              <SidebarLink href="/dashboard/profitability" icon={<RiStackFill size={22} />} label={expanded ? t('navigation.profitability') : null} expanded={expanded} />
+              <SidebarLink href="/dashboard/profitability" icon={<RiStackFill size={22} />} label={expanded ? String(t('navigation.profitability') || 'Profitability') : null} expanded={expanded} />
             )}
-            <SidebarLink href="/dashboard/settings" icon={<FiSettings size={22} />} label={expanded ? t('navigation.settings') : null} expanded={expanded} />
+            <SidebarLink href="/dashboard/settings" icon={<FiSettings size={22} />} label={expanded ? String(t('navigation.settings') || 'Settings') : null} expanded={expanded} />
           </div>
         </div>
       </motion.div>

@@ -18,7 +18,10 @@ export default function Login() {
   // Redirect to dashboard if already logged in and authorized
   useEffect(() => {
     if (user && !loading && isAuthorized) {
-      router.replace("/dashboard");
+      // Check if there's a redirect URL stored
+      const redirectTo = localStorage.getItem('redirectAfterLogin') || '/dashboard';
+      localStorage.removeItem('redirectAfterLogin');
+      router.replace(redirectTo);
     }
   }, [user, loading, isAuthorized, router]);
 

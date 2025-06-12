@@ -190,6 +190,9 @@
     "all": "Toute la période",
     "today": "Aujourd'hui",
     "month": "Mois",
+    "year": "Année",
+    "week": "Semaine",
+    "day": "Jour",
     "thisWeek": "Cette semaine",
     "thisMonth": "Ce mois",
     "thisYear": "Cette année",
@@ -211,6 +214,10 @@
       "PackagingForCubeIce": "Emballage pour Glaçons",
       "packagingForWaterBottling": "Emballage pour Eau en bouteille",
       "PackagingForWaterBottling": "Emballage pour Eau en bouteille",
+      "packagingForWaterCans": "Emballage pour Bidon d'eau",
+      "PackagingForWaterCans": "Emballage pour Bidon d'eau",
+      "EmballagepourBidond'eau": "Emballage pour Bidon d'eau",
+      "EmballagepourBidond'eau": "Emballage pour Bidon d'eau",
       "Water Bottling": "Eau en bouteille",
       "WaterBottling": "Eau en bouteille",
       "WaterCans": "Bidon D'Eau",
@@ -406,10 +413,14 @@
       "product": "Produit",
       "movementType": "Type de mouvement",
       "allMonths": "Tous les mois",
+      "fromMonth": "De mois",
+      "toMonth": "À mois",
       "allYears": "Toutes les années",
       "allActivityTypes": "Tous les types d'activité",
       "allProducts": "Tous les produits",
-      "allMovementTypes": "Tous les types de mouvement"
+      "allMovementTypes": "Tous les types de mouvement",
+      "selectMonth": "Sélectionner un mois",
+      "selectYear": "Sélectionner une année"
     },
     "table": {
       "date": "Date",
@@ -949,7 +960,7 @@
         "block_ice": "Bloc de Glace",
         "cube_ice_water_bottling": "Glaçons & Eau en Bouteille",
         "cube_ice_&_water_bottling": "Glaçons et Eau en Bouteille",
-        "glace_en_bloc": "Glace en Bloc"
+        "glace_en_bloc": "Bloc de Glace"
       },
       "descriptions": {
         "block_ice": "Production et gestion de bloc de glace.",

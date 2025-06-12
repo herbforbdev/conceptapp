@@ -133,8 +133,8 @@ export const userService = {
         timestamp: Timestamp.now(),
         ipAddress: await this.getClientIP(),
         userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
-        details,
-        performedBy
+        ...(details && { details }),
+        ...(performedBy && { performedBy })
       };
       
       await addDoc(collection(firestore, 'UserActivities'), activity);

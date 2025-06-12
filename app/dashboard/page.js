@@ -427,7 +427,15 @@ export default function DashboardPage() {
             }]
           },
           salesAndCosts: {
-            labels: [...new Set(salesDataArr.map(sale => sale.date.toDate().toLocaleDateString()))],
+            labels: [...new Set(salesDataArr.map(sale => {
+              try {
+                if (!sale.date) return 'Invalid date';
+                const date = sale.date.toDate ? sale.date.toDate() : new Date(sale.date);
+                return String(date.toLocaleDateString() || '');
+              } catch (error) {
+                return 'Invalid date';
+              }
+            }))],
             datasets: [
               {
                 label: 'Sales (USD)',
@@ -804,13 +812,13 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-6 lg:col-span-1">
             <div className="rounded-2xl bg-white/70 shadow p-6 flex flex-col items-start">
               <div className="text-2xl font-bold text-black mb-1">{t('dashboard.kpi.sales')}</div>
-              <div className="text-4xl font-extrabold text-blue-700 mb-2">{salesData.monthlySalesUSD?.toLocaleString() || 0} USD</div>
+              <div className="text-4xl font-extrabold text-blue-700 mb-2">{String(salesData.monthlySalesUSD?.toLocaleString() || 0)} USD</div>
               <div className="text-sm text-gray-500 mb-2">{t('dashboard.summary.total_sales')}</div>
               <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">+{salesData.salesGrowth || 0}%</span>
             </div>
             <div className="rounded-2xl bg-white/70 shadow p-6 flex flex-col items-start">
               <div className="text-2xl font-bold text-black mb-1">{t('dashboard.kpi.costs')}</div>
-              <div className="text-4xl font-extrabold text-black mb-2">{salesData.costsUSD?.toLocaleString() || 0} USD</div>
+              <div className="text-4xl font-extrabold text-black mb-2">{String(salesData.costsUSD?.toLocaleString() || 0)} USD</div>
               <div className="text-sm text-gray-500 mb-2">{t('dashboard.summary.total_costs')}</div>
               <span className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">{salesData.costsGrowth > 0 ? '+' : ''}{salesData.costsGrowth || 0}%</span>
             </div>
@@ -890,7 +898,7 @@ export default function DashboardPage() {
                       <span className="font-semibold text-gray-800">
                         {getTranslatedProductName(matchedProduct, t) || t('common.unknown')}
                       </span>
-                      <span className="font-bold text-blue-700">{prod.usd?.toLocaleString() || 0} USD</span>
+                      <span className="font-bold text-blue-700">{String(prod.usd?.toLocaleString() || 0)} USD</span>
                     </li>
                   );
                 })}
@@ -904,7 +912,7 @@ export default function DashboardPage() {
                 ) : topExpenses.map((exp, idx) => (
                   <li key={exp.expenseType || idx} className="flex items-center justify-between bg-red-50 rounded-lg px-3 py-2">
                     <span className="font-semibold text-gray-800">{exp.expenseType}</span>
-                    <span className="font-bold text-red-700">{exp.usd?.toLocaleString() || 0} USD</span>
+                    <span className="font-bold text-red-700">{String(exp.usd?.toLocaleString() || 0)} USD</span>
                   </li>
                 ))}
               </ul>
@@ -918,7 +926,7 @@ export default function DashboardPage() {
                 {stockOverview.map(item => (
                   <div key={item.key} className="flex flex-col items-center bg-white/10 rounded-lg p-3">
                     <span className="text-xs text-gray-100 mb-1">{item.label}</span>
-                    <span className="text-2xl font-extrabold">{item.value?.toLocaleString() ?? 0}</span>
+                    <span className="text-2xl font-extrabold">{String(item.value?.toLocaleString() ?? 0)}</span>
                   </div>
                 ))}
               </div>

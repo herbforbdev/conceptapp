@@ -458,12 +458,12 @@ function CostsPage() {
         case 'date':
           return direction * (toDateObj(a.date).getTime() - toDateObj(b.date).getTime());
         case 'activity':
-          const activityA = activityTypeMap.get(a.activityTypeId)?.name || '';
-          const activityB = activityTypeMap.get(b.activityTypeId)?.name || '';
+          const activityA = String(activityTypeMap.get(a.activityTypeId)?.name || '');
+          const activityB = String(activityTypeMap.get(b.activityTypeId)?.name || '');
           return direction * activityA.localeCompare(activityB);
         case 'expense':
-          const expenseA = expenseTypeMap.get(a.expenseTypeId)?.name || '';
-          const expenseB = expenseTypeMap.get(b.expenseTypeId)?.name || '';
+          const expenseA = String(expenseTypeMap.get(a.expenseTypeId)?.name || '');
+          const expenseB = String(expenseTypeMap.get(b.expenseTypeId)?.name || '');
           return direction * expenseA.localeCompare(expenseB);
         case 'amountFC':
           return direction * ((a.amountFC || 0) - (b.amountFC || 0));
@@ -919,7 +919,7 @@ function CostsPage() {
                   <select
                     value={filters.selectedActivityType || ''}
                     onChange={(e) => setFilters(prev => ({ ...prev, selectedActivityType: e.target.value }))}
-                    className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-gray-900 bg-white"
                   >
                     <option value="">{t('filters.allActivityTypes')}</option>
                     {activityTypes.map(type => (
@@ -938,7 +938,7 @@ function CostsPage() {
                   <select
                     value={filters.selectedExpenseType || ''}
                     onChange={(e) => setFilters(prev => ({ ...prev, selectedExpenseType: e.target.value }))}
-                    className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-gray-900 bg-white"
                   >
                     <option value="">{t('filters.allExpenseTypes')}</option>
                     {expenseTypes.map(type => (
@@ -957,7 +957,7 @@ function CostsPage() {
                   <select
                     value={filters.selectedMonth || ''}
                     onChange={handleMonthChange}
-                    className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-gray-900 bg-white"
                   >
                     <option value="">{t('costs.filters.allMonths')}</option>
                     {Array.from({ length: 12 }, (_, i) => (
@@ -976,7 +976,7 @@ function CostsPage() {
                   <select
                     value={filters.selectedYear || ''}
                     onChange={handleYearChange}
-                    className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-gray-900 bg-white"
                   >
                     <option value="">{t('costs.filters.allYears')}</option>
                     {availableRecordYears.map(year => (

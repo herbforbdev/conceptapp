@@ -9,14 +9,16 @@ import { userService } from '@/services/firestore/userService';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
   const { user, logout, updateUserProfile, userActivities, loadUserActivities, sessionId } = useAuth();
-  const { t } = useLanguage();
-
+  const { t, language, setLanguage } = useLanguage();
+  const router = useRouter();
 
   // Phase 3: Enhanced profile fields
   const [enhancedProfile, setEnhancedProfile] = useState({
+    displayName: '',
     phoneNumber: '',
     company: '',
     department: '',
@@ -32,13 +34,16 @@ export default function ProfilePage() {
   
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [activeSessions, setActiveSessions] = useState([]);
   const [message, setMessage] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (user) {
       setEnhancedProfile(prev => ({
         ...prev,
+        displayName: user.displayName || '',
         phoneNumber: user.phoneNumber || '',
         company: user.company || '',
         department: user.department || '',
@@ -48,11 +53,11 @@ export default function ProfilePage() {
         emailNotifications: user.emailNotifications ?? true,
         pushNotifications: user.pushNotifications ?? true,
         weeklyReports: user.weeklyReports ?? false,
-        language: user.language || 'fr',
+        language: user.language || language || 'fr',
         theme: user.theme || 'light'
       }));
     }
-  }, [user]);
+  }, [user, language]);
 
   useEffect(() => {
     const loadActiveSessions = async () => {
@@ -69,7 +74,28 @@ export default function ProfilePage() {
     loadActiveSessions();
   }, [user?.id]);
 
-
+  // Track changes to show save button
+  useEffect(() => {
+    if (user) {
+      const currentProfile = {
+        displayName: user.displayName || '',
+        phoneNumber: user.phoneNumber || '',
+        company: user.company || '',
+        department: user.department || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        timezone: user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        emailNotifications: user.emailNotifications ?? true,
+        pushNotifications: user.pushNotifications ?? true,
+        weeklyReports: user.weeklyReports ?? false,
+        language: user.language || language || 'fr',
+        theme: user.theme || 'light'
+      };
+      
+      const hasProfileChanges = JSON.stringify(currentProfile) !== JSON.stringify(enhancedProfile);
+      setHasChanges(hasProfileChanges);
+    }
+  }, [enhancedProfile, user, language]);
 
   const formatDate = (date) => {
     if (!date) return 'N/A';
@@ -95,17 +121,37 @@ export default function ProfilePage() {
 
   const handleEnhancedProfileUpdate = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
     
     try {
+      // Update language context if language changed
+      if (enhancedProfile.language !== language) {
+        setLanguage(enhancedProfile.language);
+      }
+      
       const success = await updateUserProfile(enhancedProfile);
       if (success) {
         setMessage({ type: 'success', text: 'Profil mis à jour avec succès!' });
+        setHasChanges(false);
       } else {
         setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du profil.' });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du profil.' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setIsLoading(true);
+    try {
+      await logout();
+      // Force redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      setMessage({ type: 'error', text: 'Erreur lors de la déconnexion.' });
     } finally {
       setIsLoading(false);
     }
@@ -237,7 +283,7 @@ export default function ProfilePage() {
                       <Label htmlFor="displayName" value="Nom complet" />
                       <TextInput
                         id="displayName"
-                        value={enhancedProfile.displayName || user?.displayName || ''}
+                        value={enhancedProfile.displayName}
                         onChange={(e) => setEnhancedProfile(prev => ({ ...prev, displayName: e.target.value }))}
                         placeholder="Votre nom complet"
                       />
@@ -304,14 +350,17 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  <div className="flex justify-end pt-4">
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Enregistrement...' : 'Enregistrer les modifications'}
-                    </Button>
-                  </div>
+                  {hasChanges && (
+                    <div className="flex justify-end pt-4 border-t">
+                      <Button
+                        type="submit"
+                        disabled={isSaving}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                      </Button>
+                    </div>
+                  )}
                 </form>
               </Card>
             </motion.div>
@@ -387,7 +436,7 @@ export default function ProfilePage() {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center py-3 border-b">
                     <div>
-                      <div className="font-medium">Dernière connexion</div>
+                      <div className="font-medium text-gray-900">Dernière connexion</div>
                       <div className="text-sm text-gray-600">
                         {formatTimestamp(user?.lastLoginAt)}
                       </div>
@@ -396,7 +445,7 @@ export default function ProfilePage() {
                   
                   <div className="flex justify-between items-center py-3 border-b">
                     <div>
-                      <div className="font-medium">Nombre total de connexions</div>
+                      <div className="font-medium text-gray-900">Nombre total de connexions</div>
                       <div className="text-sm text-gray-600">
                         {user?.totalLogins || 0} connexions
                       </div>
@@ -405,7 +454,7 @@ export default function ProfilePage() {
                   
                   <div className="flex justify-between items-center py-3 border-b">
                     <div>
-                      <div className="font-medium">Session actuelle</div>
+                      <div className="font-medium text-gray-900">Session actuelle</div>
                       <div className="text-sm text-gray-600">
                         {sessionId ? 'Active' : 'Inactive'}
                       </div>
@@ -421,7 +470,7 @@ export default function ProfilePage() {
                       {activeSessions.map((session, index) => (
                         <div key={session.id || index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                           <div>
-                            <div className="font-medium">
+                            <div className="font-medium text-gray-900">
                               {session.sessionId === sessionId ? 'Session actuelle' : 'Autre session'}
                             </div>
                             <div className="text-sm text-gray-600">
@@ -463,37 +512,40 @@ export default function ProfilePage() {
                   {/* Notification Preferences */}
                   <div>
                     <h4 className="font-medium text-gray-900 mb-3">Notifications</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div>
-                          <div className="font-medium">Notifications par email</div>
+                          <div className="font-medium text-gray-900">Notifications par email</div>
                           <div className="text-sm text-gray-600">Recevoir des notifications importantes par email</div>
                         </div>
                         <ToggleSwitch
                           checked={enhancedProfile.emailNotifications}
                           onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, emailNotifications: checked }))}
+                          className="[&>span]:bg-slate-600 [&>span]:border-slate-700 [&>span[aria-checked='true']]:bg-blue-600 [&>span[aria-checked='true']]:border-blue-700"
                         />
                       </div>
                       
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div>
-                          <div className="font-medium">Notifications push</div>
+                          <div className="font-medium text-gray-900">Notifications push</div>
                           <div className="text-sm text-gray-600">Recevoir des notifications dans le navigateur</div>
                         </div>
                         <ToggleSwitch
                           checked={enhancedProfile.pushNotifications}
                           onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, pushNotifications: checked }))}
+                          className="[&>span]:bg-slate-600 [&>span]:border-slate-700 [&>span[aria-checked='true']]:bg-blue-600 [&>span[aria-checked='true']]:border-blue-700"
                         />
                       </div>
                       
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div>
-                          <div className="font-medium">Rapports hebdomadaires</div>
+                          <div className="font-medium text-gray-900">Rapports hebdomadaires</div>
                           <div className="text-sm text-gray-600">Recevoir un résumé hebdomadaire des activités</div>
                         </div>
                         <ToggleSwitch
                           checked={enhancedProfile.weeklyReports}
                           onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, weeklyReports: checked }))}
+                          className="[&>span]:bg-slate-600 [&>span]:border-slate-700 [&>span[aria-checked='true']]:bg-blue-600 [&>span[aria-checked='true']]:border-blue-700"
                         />
                       </div>
                     </div>
@@ -527,14 +579,17 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end pt-4">
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Enregistrement...' : 'Enregistrer les préférences'}
-                    </Button>
-                  </div>
+                  {hasChanges && (
+                    <div className="flex justify-end pt-4 border-t">
+                      <Button
+                        type="submit"
+                        disabled={isSaving}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {isSaving ? 'Enregistrement...' : 'Enregistrer les préférences'}
+                      </Button>
+                    </div>
+                  )}
                 </form>
               </Card>
             </motion.div>
@@ -555,22 +610,22 @@ export default function ProfilePage() {
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Connexions totales</span>
-                  <span className="font-semibold">{user?.totalLogins || 0}</span>
+                  <span className="text-gray-700 font-medium">Connexions totales</span>
+                  <span className="font-semibold text-gray-900">{user?.totalLogins || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Compte créé</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-700 font-medium">Compte créé</span>
+                  <span className="font-semibold text-gray-900">
                     {user?.createdAt ? formatTimestamp(user.createdAt) : 'Inconnu'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Sessions actives</span>
-                  <span className="font-semibold">{activeSessions?.length || 0}</span>
+                  <span className="text-gray-700 font-medium">Sessions actives</span>
+                  <span className="font-semibold text-gray-900">{activeSessions?.length || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Dernière activité</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-700 font-medium">Dernière activité</span>
+                  <span className="font-semibold text-gray-900">
                     {user?.lastActiveAt ? formatTimestamp(user.lastActiveAt) : 'Maintenant'}
                   </span>
                 </div>
@@ -581,32 +636,33 @@ export default function ProfilePage() {
           {/* Quick Actions */}
           <Card>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {t('profile.quickActions') || 'Quick Actions'}
+              {t('profile.quickActions') || 'Actions Rapides'}
             </h3>
             <div className="space-y-3">
               {user.role === 'admin' && (
                 <Link href="/dashboard/settings/users">
-                  <Button color="light" className="w-full justify-start">
+                  <Button color="light" className="w-full justify-start text-gray-700 border-gray-300 hover:bg-gray-50">
                     <HiUsers className="h-5 w-5 mr-3" />
-                    {t('settings.users') || 'Manage Users'}
+                    {t('settings.users') || 'Gérer les utilisateurs'}
                   </Button>
                 </Link>
               )}
               
               <Link href="/dashboard/settings">
-                <Button color="light" className="w-full justify-start">
+                <Button color="light" className="w-full justify-start text-gray-700 border-gray-300 hover:bg-gray-50">
                   <HiCog className="h-5 w-5 mr-3" />
-                  {t('settings.title') || 'Settings'}
+                  {t('settings.title') || 'Paramètres'}
                 </Button>
               </Link>
               
               <Button 
                 color="failure" 
-                className="w-full justify-start"
-                onClick={logout}
+                className="w-full justify-start bg-red-600 hover:bg-red-700 text-white border-red-600"
+                onClick={handleLogout}
+                disabled={isLoading}
               >
                 <HiLogout className="h-5 w-5 mr-3" />
-                {t('auth.logout') || 'Sign Out'}
+                {isLoading ? 'Déconnexion...' : (t('auth.logout') || 'Se déconnecter')}
               </Button>
             </div>
           </Card>

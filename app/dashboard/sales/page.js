@@ -223,20 +223,20 @@ const ProductRow = memo(({ product, productSales, activityType }) => {
   return (
     <tr className="hover:bg-blue-50">
       <td className="px-6 py-4 pl-10">{product.productid}</td>
-      <td className="px-6 py-4 text-right">{totalQty.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right">{String(totalQty.toLocaleString())}</td>
       <td className="px-6 py-4 text-right">
-        {totalCDF.toLocaleString('fr-CD', { 
+        {String(totalCDF.toLocaleString('fr-CD', { 
           style: 'currency', 
           currency: 'CDF',
           maximumFractionDigits: 0 
-        })}
+        }))}
       </td>
       <td className="px-6 py-4 text-right">
-        {totalUSD.toLocaleString('en-US', { 
+        {String(totalUSD.toLocaleString('en-US', { 
           style: 'currency', 
           currency: 'USD',
           maximumFractionDigits: 2 
-        })}
+        }))}
       </td>
     </tr>
   );
@@ -286,20 +286,20 @@ const ActivitySection = memo(({ activityType, productsWithSales, filteredSales, 
 
       <tr className="bg-blue-50/30 font-semibold">
         <td className="px-6 py-4">Subtotal</td>
-        <td className="px-6 py-4 text-right">{totals.qty.toLocaleString()}</td>
+        <td className="px-6 py-4 text-right">{String(totals.qty.toLocaleString())}</td>
         <td className="px-6 py-4 text-right">
-          {totals.cdf.toLocaleString('fr-CD', { 
+          {String(totals.cdf.toLocaleString('fr-CD', { 
             style: 'currency', 
             currency: 'CDF',
             maximumFractionDigits: 0 
-          })}
+          }))}
         </td>
         <td className="px-6 py-4 text-right">
-          {totals.usd.toLocaleString('en-US', { 
+          {String(totals.usd.toLocaleString('en-US', { 
             style: 'currency', 
             currency: 'USD',
             maximumFractionDigits: 2 
-          })}
+          }))}
         </td>
       </tr>
     </React.Fragment>

@@ -18,7 +18,7 @@ import TopCard from "@/components/shared/TopCard";
 import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
 import { useTranslation } from '@/lib/utils/localizationUtils';
-// import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Dynamic import for ApexCharts
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
@@ -58,26 +58,26 @@ const formatDate = (timestamp) => {
   try {
     // Handle Firestore Timestamp
     if (timestamp.toDate) {
-      return String(timestamp.toDate().toLocaleDateString('en-GB', {
+      return timestamp.toDate().toLocaleDateString('en-GB', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
-      }));
+      });
     }
     // Handle Date objects
     if (timestamp instanceof Date) {
-      return String(timestamp.toLocaleDateString('en-GB', {
+      return timestamp.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
-      }));
+      });
     }
     // Handle string dates
-    return String(new Date(timestamp).toLocaleDateString('en-GB', {
+    return new Date(timestamp).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    }));
+    });
   } catch (error) {
     console.error("Error formatting date:", error, timestamp);
     return "Invalid Date";
@@ -342,7 +342,7 @@ const typeStyles = {
 
 // Update the calculateTopCards function
 const calculateTopCards = (productions) => {
-  if (!productions || !Array.isArray(productions) || productions.length === 0) return {
+  if (!productions || !Array.isArray(productions)) return {
     totalProduction: { today: 0, month: 0, allTime: 0 },
     topProduct: { name: 'None', quantity: 0 },
     productionActivities: { today: 0, week: 0, month: 0 },
@@ -362,24 +362,14 @@ const calculateTopCards = (productions) => {
   const totalProduction = {
     today: productions
       .filter(p => {
-        try {
-          if (!p.date) return false;
-          const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-          return prodDate >= today;
-        } catch (error) {
-          return false;
-        }
+        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+        return prodDate >= today;
       })
       .reduce((sum, p) => sum + (Number(p.quantityProduced) || 0), 0),
     month: productions
       .filter(p => {
-        try {
-          if (!p.date) return false;
-          const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-          return prodDate >= startOfMonth;
-        } catch (error) {
-          return false;
-        }
+        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+        return prodDate >= startOfMonth;
       })
       .reduce((sum, p) => sum + (Number(p.quantityProduced) || 0), 0),
     allTime: productions
@@ -401,31 +391,16 @@ const calculateTopCards = (productions) => {
   // 3. Number of Production Activities
   const productionActivities = {
     today: productions.filter(p => {
-      try {
-        if (!p.date) return false;
-        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-        return prodDate >= today;
-      } catch (error) {
-        return false;
-      }
+      const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+      return prodDate >= today;
     }).length,
     week: productions.filter(p => {
-      try {
-        if (!p.date) return false;
-        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-        return prodDate >= startOfWeek;
-      } catch (error) {
-        return false;
-      }
+      const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+      return prodDate >= startOfWeek;
     }).length,
     month: productions.filter(p => {
-      try {
-        if (!p.date) return false;
-        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-        return prodDate >= startOfMonth;
-      } catch (error) {
-        return false;
-      }
+      const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+      return prodDate >= startOfMonth;
     }).length
   };
 
@@ -587,22 +562,46 @@ const getPackagingForProduct = (productId, productMap) => {
 // Add these helpers after imports and before the main component
 const getTranslatedProductName = (product, t) => {
   if (!product) return 'N/A';
-  const name = product.productid || product.name || 'Unknown';
+  const name = product.productid;
+  if (!name) return 'N/A';
+  const lower = name.toLowerCase();
+  const type = product.producttype?.toLowerCase();
+  const includesAny = (str, terms) => terms.some(term => str.includes(term));
   try {
-    // Try to find a translation key based on product type and name
-    if (product.producttype) {
-      const key = `products.types.${product.producttype.toLowerCase()}`;
-      const translated = t(key);
-      if (translated && translated !== key) {
-        return String(translated);
+    if (type?.includes('packaging') || lower.includes('package') || lower.includes('emballage')) {
+      if (includesAny(lower, ['cube ice', 'glaçons'])) {
+        if (lower.includes('1kg')) return t('products.items.packaging.cubeIce.1kg');
+        if (lower.includes('2kg')) return t('products.items.packaging.cubeIce.2kg');
+        if (lower.includes('5kg')) return t('products.items.packaging.cubeIce.5kg');
       }
+      if (includesAny(lower, ['water', 'eau'])) {
+        if (lower.includes('600ml')) return t('products.items.packaging.waterBottling.600ml');
+        if (lower.includes('750ml')) return t('products.items.packaging.waterBottling.750ml');
+        if (lower.includes('1.5l') || lower.includes('1,5l')) return t('products.items.packaging.waterBottling.1_5L');
+        if (lower.includes('5l')) return t('products.items.packaging.waterBottling.5L');
+      }
+      return name;
     }
-    // Return the raw name if no translation found
-    return String(name);
+    if (type === 'block ice' || includesAny(lower, ['bloc de glace', 'block ice'])) {
+      if (lower.includes('5kg')) return t('products.items.blockIce.5kg');
+      if (lower.includes('8kg')) return t('products.items.blockIce.8kg');
+      if (lower.includes('30kg')) return t('products.items.blockIce.30kg');
+    }
+    if (type === 'cube ice' || includesAny(lower, ['glaçons', 'cube ice', 'ice cube'])) {
+      if (lower.includes('1kg')) return t('products.items.cubeIce.1kg');
+      if (lower.includes('2kg')) return t('products.items.cubeIce.2kg');
+      if (lower.includes('5kg')) return t('products.items.cubeIce.5kg');
+    }
+    if (type === 'water bottling' || includesAny(lower, ['eau en bouteille', 'bottled water', 'water bottle'])) {
+      if (lower.includes('600ml')) return t('products.items.waterBottling.600ml');
+      if (lower.includes('750ml')) return t('products.items.waterBottling.750ml');
+      if (lower.includes('1.5l') || lower.includes('1,5l')) return t('products.items.waterBottling.1_5L');
+      if (lower.includes('5l')) return t('products.items.waterBottling.5L');
+    }
   } catch (error) {
     console.warn('Translation error for product:', name, error);
   }
-  return String(name);
+  return name;
 };
 const getTranslatedActivityTypeName = (activityType, t) => {
   if (!activityType) return 'N/A';
@@ -610,39 +609,29 @@ const getTranslatedActivityTypeName = (activityType, t) => {
   if (!name) return 'N/A';
   const key = `products.activities.${name.toLowerCase().replace(/\s+/g, '_')}`;
   const translated = t(key);
-  return String(translated && translated !== key ? translated : name);
+  return translated && translated !== key ? translated : name;
 };
 
 // Add fallback translation for unknown and no packaging
-const getFallback = (t, key = 'common.unknown') => String(t(key) || 'N/A');
-const getNoPackaging = (t) => String(t('production.table.noPackagingRequired') || 'No packaging required');
+const getFallback = (t, key = 'common.unknown') => String(t(key)) || 'N/A';
+const getNoPackaging = (t) => t('production.table.noPackagingRequired') || 'No packaging required';
 
 // Helper for robust fallback rendering
 const renderCellValue = (value, t, type = 'unknown') => {
   if (value === null || value === undefined || value === '') {
-    return String(t(type === 'notAvailable' ? 'common.notAvailable' : 'common.unknown') || 'N/A');
+    return String(t(type === 'notAvailable' ? 'common.notAvailable' : 'common.unknown'));
   }
   if (typeof value === 'string' && value.trim().toLowerCase() === 'no packaging required') {
-    return String(t('production.table.noPackagingRequired') || 'No packaging required');
+    return String(t('production.table.noPackagingRequired'));
   }
-  // Ensure we always return a string
-  return typeof value === 'object' ? JSON.stringify(value) : String(value);
+  return String(value);
 };
 
 // Add this function before the main component
 const safeT = (t, key, fallback) => {
-  try {
-    const value = t(key);
-    // Only return if it's a string or number, never an object
-    if (typeof value === 'string' || typeof value === 'number') {
-      return String(value);
-    }
-    // If translation returns an object or undefined, use fallback
-    return String(fallback || key);
-  } catch (error) {
-    console.warn(`Translation error for key "${key}":`, error);
-    return String(fallback || key);
-  }
+  const value = t(key);
+  if (typeof value === 'string' || typeof value === 'number') return value;
+  return fallback || key;
 };
 
 export default function ProductionPage() {
@@ -665,11 +654,6 @@ export default function ProductionPage() {
     data: productions, 
     loading: productionsLoading 
   } = useFirestoreCollection("Production");
-
-  // CRITICAL FIX: Stable date references to prevent hydration mismatches
-  const stableNow = useMemo(() => new Date(), []);
-  const stableCurrentYear = useMemo(() => stableNow.getFullYear(), [stableNow]);
-  const stableCurrentMonth = useMemo(() => stableNow.getMonth(), [stableNow]);
 
   // 3. State hooks - group all useState calls together
   const [mounted, setMounted] = useState(false);
@@ -721,16 +705,16 @@ export default function ProductionPage() {
   const [summaryMonth, setSummaryMonth] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('summary_selectedMonth');
-      return saved !== null ? Number(saved) : stableCurrentMonth + 1;
+      return saved !== null ? Number(saved) : new Date().getMonth() + 1;
     }
-    return stableCurrentMonth + 1;
+    return new Date().getMonth() + 1;
   });
   const [summaryYear, setSummaryYear] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('summary_selectedYear');
-      return saved !== null ? Number(saved) : stableCurrentYear;
+      return saved !== null ? Number(saved) : new Date().getFullYear();
     }
-    return stableCurrentYear;
+    return new Date().getFullYear();
   });
 
   // Chart view mode state
@@ -857,9 +841,11 @@ export default function ProductionPage() {
       });
   }, [productMap]);
 
-  // TOP CARDS DATA: Filtered by time period selector only
-  const topCardsFilteredData = useMemo(() => {
-    if (!productions) return [];
+  // Memoize filtered production data
+  const filteredProductionData = useMemo(() => {
+    if (!productions || !filterMaps) return [];
+    
+    const { dateMap } = filterMaps;
     
     return productions.filter(prod => {
       // Skip if no date
@@ -867,19 +853,20 @@ export default function ProductionPage() {
       
       const date = prod.date.toDate ? prod.date.toDate() : new Date(prod.date);
       
-      // Time period filter ONLY for top cards
+      // Time period filter
       let matchesTimePeriod = true;
       switch (selectedTimePeriod) {
-        case TIME_PERIODS.ALL:
-          // Show all data for "All Time"
-          matchesTimePeriod = true;
-          break;
         case TIME_PERIODS.YEAR:
           matchesTimePeriod = date.getFullYear() === dateFilters.year;
           break;
         case TIME_PERIODS.MONTH:
-          matchesTimePeriod = date.getMonth() === dateFilters.month && 
-                             date.getFullYear() === dateFilters.year;
+          if (filters.selectedMonth) {
+            matchesTimePeriod = date.getMonth() === (parseInt(filters.selectedMonth) - 1) &&
+                               date.getFullYear() === dateFilters.year;
+          } else {
+            // When no specific month is selected (allMonths), show all months for the year
+            matchesTimePeriod = date.getFullYear() === dateFilters.year;
+          }
           break;
         case TIME_PERIODS.WEEK: {
           const firstDayOfMonth = new Date(dateFilters.year, dateFilters.month, 1);
@@ -893,102 +880,30 @@ export default function ProductionPage() {
         }
         case TIME_PERIODS.CUSTOM:
           if (dateFilters.startDate && dateFilters.endDate) {
-            try {
-              // Handle month-based custom selection
-              const startMonth = parseInt(dateFilters.startDate) - 1; // Convert to 0-based
-              const endMonth = parseInt(dateFilters.endDate) - 1; // Convert to 0-based
-              const prodMonth = date.getMonth();
-              const prodYear = date.getFullYear();
-              const currentYear = dateFilters.year || new Date().getFullYear();
-              
-              // Check if the production is in the current year and within the selected month range
-              if (prodYear === currentYear) {
-                if (startMonth <= endMonth) {
-                  // Normal range (e.g., March to September)
-                  matchesTimePeriod = prodMonth >= startMonth && prodMonth <= endMonth;
-                } else {
-                  // Cross-year range (e.g., October to February)
-                  matchesTimePeriod = prodMonth >= startMonth || prodMonth <= endMonth;
-                }
-              } else {
-                matchesTimePeriod = false;
-              }
-            } catch (error) {
-              console.error('Error parsing custom month range:', error);
-              matchesTimePeriod = false;
-            }
-          } else {
-            matchesTimePeriod = false;
+            const startDate = new Date(dateFilters.startDate);
+            const endDate = new Date(dateFilters.endDate);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+            matchesTimePeriod = date >= startDate && date <= endDate;
           }
           break;
-        default:
-          matchesTimePeriod = true;
       }
-      
-      return matchesTimePeriod;
-    });
-  }, [productions, selectedTimePeriod, dateFilters]);
 
-  // TABLE FILTERED DATA: Filtered by both time period selector AND table controls
-  const tableFilteredData = useMemo(() => {
-    if (!productions) return [];
-    
-    return productions.filter(prod => {
-      // Skip if no date
-      if (!prod.date) return false;
-      
-      const date = prod.date.toDate ? prod.date.toDate() : new Date(prod.date);
-      
-      // Table-specific filters (year, month, activity type, product) - independent of time period selector
-      let matchesFilters = true;
-      
-      // Year filter
-      if (dateFilters.year) {
-        matchesFilters = matchesFilters && date.getFullYear() === dateFilters.year;
-      }
-      
-      // Month filter (only if selectedMonth is set)
-      if (selectedMonth) {
-        const monthIndex = parseInt(selectedMonth, 10) - 1;
-        matchesFilters = matchesFilters && date.getMonth() === monthIndex;
-      }
-      
+      if (!matchesTimePeriod) return false;
+
       // Activity type filter
-      if (selectedActivityType) {
-        matchesFilters = matchesFilters && prod.activityTypeId === selectedActivityType;
+      if (filters.selectedActivityType && prod.activityTypeId !== filters.selectedActivityType) {
+        return false;
       }
-      
+
       // Product filter
-      if (selectedProduct) {
-        matchesFilters = matchesFilters && prod.productId === selectedProduct;
+      if (filters.selectedProduct && prod.productId !== filters.selectedProduct) {
+        return false;
       }
-      
-      return matchesFilters;
+
+      return true;
     });
-  }, [productions, dateFilters.year, selectedMonth, selectedActivityType, selectedProduct]);
-
-  // Get unique years from the productions data for the year filter
-  const availableRecordYears = useMemo(() => {
-    if (!productions || !Array.isArray(productions)) return [];
-    
-    const years = new Set();
-    productions.forEach(prod => {
-      if (prod.date) {
-        try {
-          const date = prod.date.toDate ? prod.date.toDate() : new Date(prod.date);
-          if (!isNaN(date.getTime())) {
-            years.add(date.getFullYear());
-          }
-        } catch (error) {
-          console.error('Error parsing date:', error);
-        }
-      }
-    });
-    
-    return Array.from(years).sort((a, b) => b - a);
-  }, [productions]);
-
-
+  }, [productions, filterMaps, filters]);
 
   // Filter productions for summary/charts by summary selectors
   const summaryFilteredProductions = useMemo(() => {
@@ -1258,8 +1173,8 @@ export default function ProductionPage() {
   const paginationData = useMemo(() => {
     const indexOfLastEntry = currentPage * entriesPerPage;
     const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-    const currentEntries = tableFilteredData.slice(indexOfFirstEntry, indexOfLastEntry);
-    const totalPages = Math.ceil(tableFilteredData.length / entriesPerPage);
+    const currentEntries = filteredProductions.slice(indexOfFirstEntry, indexOfLastEntry);
+    const totalPages = Math.ceil(filteredProductions.length / entriesPerPage);
 
     return {
       indexOfLastEntry,
@@ -1456,8 +1371,8 @@ export default function ProductionPage() {
   }, [productionsLoading, productions]);
 
   useEffect(() => {
-    setFilteredProductions(tableFilteredData);
-  }, [tableFilteredData]);
+    setFilteredProductions(filteredProductionData);
+  }, [filteredProductionData]);
 
   useEffect(() => {
     if (selectAll) {
@@ -1472,11 +1387,10 @@ export default function ProductionPage() {
     setSelectAll(false);
   }, [currentPage]);
 
-  // Update the top cards calculation to use filtered data based on time period selector
+  // Update the top cards calculation to use summary data
   const topCardsData = useMemo(() => {
-    // Use the TOP CARDS filtered data (time period selector only)
-    return calculateTopCards(topCardsFilteredData);
-  }, [topCardsFilteredData]);
+    return calculateTopCards(summaryFilteredProductions);
+  }, [summaryFilteredProductions]);
 
   // Update the summary data calculation with null checks
   const summaryData = useMemo(() => {
@@ -1576,7 +1490,16 @@ export default function ProductionPage() {
     filters.selectedMonth
   ]);
 
-
+  // Compute available years for the records filter bar (from production data)
+  const availableRecordYears = useMemo(() => {
+    if (!productions) return [];
+    const yearsSet = new Set();
+    productions.forEach(prod => {
+      const date = prod.date?.toDate ? prod.date.toDate() : new Date(prod.date);
+      yearsSet.add(date.getFullYear());
+    });
+    return Array.from(yearsSet).sort((a, b) => b - a);
+  }, [productions]);
 
   // Persist summary selectors
   useEffect(() => {
@@ -1616,85 +1539,66 @@ export default function ProductionPage() {
   );
 
   return (
+    <ErrorBoundary>
       <div className="min-h-screen p-4 md:p-8 font-inter">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold text-red-900">{String(t('production.overview'))}</h1>
         
         {/* Replace the old time period selector with the new component */}
-        <ClientOnly>
-          <TimePeriodSelector
-            selectedPeriod={filters.selectedTimePeriod}
-            onPeriodChange={(period) => {
-              setFilters(prev => ({
-                ...prev,
-                selectedTimePeriod: period,
-                dateFilters: {
-                  ...prev.dateFilters,
-                  // Reset custom dates when switching away from custom
-                  ...(period !== TIME_PERIODS.CUSTOM && {
-                    startDate: null,
-                    endDate: null
-                  })
-                }
-              }));
-            }}
-            startDate={filters.dateFilters.startDate || ''}
-            endDate={filters.dateFilters.endDate || ''}
-            onDateRangeChange={(start, end) => {
-              setFilters(prev => ({
-                ...prev,
-                dateFilters: {
-                  ...prev.dateFilters,
-                  startDate: start,
-                  endDate: end
-                }
-              }));
-            }}
-            className="text-red-900"
-          />
-        </ClientOnly>
+        <TimePeriodSelector
+          selectedPeriod={filters.selectedTimePeriod}
+          onPeriodChange={setFilters}
+          startDate={filters.dateFilters.startDate}
+          endDate={filters.dateFilters.endDate}
+          onDateRangeChange={(start, end) => {
+            setFilters(prev => ({
+              ...prev,
+              dateFilters: {
+                ...prev.dateFilters,
+                startDate: start,
+                endDate: end
+              }
+            }));
+          }}
+          className="text-red-900"
+        />
       </div>
 
       {/* Top Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <TopCard 
           title={safeT(t, 'production.metrics.totalProduction', 'Total Production')} 
-          value={String(`${(() => {
-            // For "All Time", calculate total from filtered data which should be all data
-            // For other periods, use filtered data total
-            const filteredTotal = topCardsFilteredData?.reduce((sum, p) => sum + (Number(p.quantityProduced) || 0), 0) || 0;
-            return filteredTotal.toLocaleString();
-          })()} ${safeT(t, 'production.metrics.units', 'units')}`)}
-          subValue={String(`${safeT(t, 'common.today', 'Today')}: ${(topCardsData?.totalProduction?.today || 0).toLocaleString()}`)}
+          value={`${(topCardsData?.totalProduction?.month || 0).toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`}
+          subValue={`${safeT(t, 'common.today', 'Today')}: ${(topCardsData?.totalProduction?.today || 0).toLocaleString()}`}
           icon={<HiCube size={16} />}
           type="Total Production"
         />
         <TopCard 
           title={safeT(t, 'production.metrics.topProduct', 'Top Product')} 
-          value={String(topCardsData?.topProduct?.name || 'N/A')}
-          subValue={String(`${(topCardsData?.topProduct?.quantity || 0).toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`)}
+          value={topCardsData?.topProduct?.name || 'N/A'}
+          subValue={`${(topCardsData?.topProduct?.quantity || 0).toLocaleString()} ${safeT(t, 'production.metrics.units', 'units')}`}
           icon={<HiTrendingUp size={16} />}
           type="Production Rate"
         />
         <TopCard 
           title={safeT(t, 'production.metrics.productionActivities', 'Production Activities')} 
-          value={String(`${topCardsData?.productionActivities?.week || 0} ${safeT(t, 'production.metrics.entries', 'entries')}`)}
-          subValue={String(`${safeT(t, 'common.today', 'Today')}: ${topCardsData?.productionActivities?.today || 0}`)}
+          value={`${topCardsData?.productionActivities?.week || 0} ${safeT(t, 'production.metrics.entries', 'entries')}`}
+          subValue={`${safeT(t, 'common.today', 'Today')}: ${topCardsData?.productionActivities?.today || 0}`}
           icon={<HiClipboardList size={16} />}
           type="Efficiency"
         />
         <TopCard 
           title={safeT(t, 'production.metrics.mostUsedPackaging', 'Most Used Packaging')} 
-          value={String(topCardsData?.topPackaging?.name || 'N/A')}
-          subValue={String(`${(topCardsData?.topPackaging?.quantity || 0).toLocaleString()} ${safeT(t, 'production.metrics.used', 'used')}`)}
+          value={topCardsData?.topPackaging?.name || 'N/A'}
+          subValue={`${(topCardsData?.topPackaging?.quantity || 0).toLocaleString()} ${safeT(t, 'production.metrics.used', 'used')}`}
           icon={<HiArchive size={16} />}
           type="Stock Level"
         />
         <TopCard 
           title={safeT(t, 'production.metrics.activityDistribution', 'Activity Distribution')} 
           value={String(getTranslatedActivityTypeName({ name: topCardsData?.activityDistribution?.name || 'None' }, t) || 'N/A')}
-          subValue={String(`${(topCardsData?.activityDistribution?.percentage || 0).toFixed(1)}% ${safeT(t, 'production.metrics.ofTotal', 'of total')}`)}
+          subValue={`${(topCardsData?.activityDistribution?.percentage || 0).toFixed(1)}% ${safeT(t, 'production.metrics.ofTotal', 'of total')}`}
           icon={<HiFilter size={16} />}
           type="Production Rate"
         />
@@ -1842,7 +1746,35 @@ export default function ProductionPage() {
               </div>
             </div>
 
-
+            {/* Custom Date Range */}
+            {filters.selectedTimePeriod === TIME_PERIODS.CUSTOM && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <Label htmlFor="startDate" className="text-red-900 font-medium mb-1.5 block">
+                    {t('common.startDate')}
+                  </Label>
+                  <TextInput
+                    type="date"
+                    id="startDate"
+                    value={filters.dateFilters.startDate}
+                    onChange={(e) => setFilters(prev => ({ ...prev, dateFilters: { ...prev.dateFilters, startDate: e.target.value } }))}
+                    className="w-full bg-white border-red-200 text-gray-900 focus:ring-red-500 focus:border-red-500 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="endDate" className="text-red-900 font-medium mb-1.5 block">
+                    {t('common.endDate')}
+                  </Label>
+                  <TextInput
+                    type="date"
+                    id="endDate"
+                    value={filters.dateFilters.endDate}
+                    onChange={(e) => setFilters(prev => ({ ...prev, dateFilters: { ...prev.dateFilters, endDate: e.target.value } }))}
+                    className="w-full bg-white border-red-200 text-gray-900 focus:ring-red-500 focus:border-red-500 rounded-lg"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1958,7 +1890,7 @@ export default function ProductionPage() {
                           String(formatDate(production.date))
                         )}
                     </td>
-                    <td className="px-6 py-4 text-gray-800">
+                    <td className="px-6 py-4">
                       {editingId === production.id ? (
                         <Select
                           value={editingData.activityTypeId}
@@ -1992,7 +1924,7 @@ export default function ProductionPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-gray-800">
+                    <td className="px-6 py-4">
                       {editingId === production.id ? (
                         <div className="flex items-center gap-2">
                           <Select
@@ -2052,7 +1984,7 @@ export default function ProductionPage() {
                           value={editingData.packagingName}
                           onChange={e => setEditingData(prev => ({ ...prev, packagingName: e.target.value }))}
                         >
-                          <option value="">{String(getNoPackaging(t))}</option>
+                          <option value="">{getNoPackaging(t)}</option>
                           {memoizedPackagingProducts.map(p => (
                             <option key={p.id} value={p.productid}>
                               {String(getTranslatedProductName(p, t) || p?.productid || 'Unknown Product')}
@@ -2060,17 +1992,17 @@ export default function ProductionPage() {
                           ))}
                         </Select>
                       ) : (
-                        String((() => {
+                        (() => {
                           if (!production.packagingName) {
                             return getNoPackaging(t);
                           }
                           // Find packaging product by name to get translated name
                           const packagingProduct = memoizedPackagingProducts.find(p => p.productid === production.packagingName);
                           return packagingProduct ? getTranslatedProductName(packagingProduct, t) : production.packagingName;
-                        })())
+                        })()
                       )}
                     </td>
-                    <td className="px-6 py-4 text-gray-800">
+                    <td className="px-6 py-4">
                       {editingId === production.id ? (
                         <TextInput
                           type="number"
@@ -2215,12 +2147,12 @@ export default function ProductionPage() {
                       <tr className="hover:bg-red-50/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
                         <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
                           <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
-                          {String(safeT(t, `products.activities.${(activityTypeMap.get(item.activityTypeId)?.name || item.activityType || 'unknown').toLowerCase().replace(/\s+/g, '_')}`, getTranslatedActivityTypeName(activityTypeMap.get(item.activityTypeId), t) || item.activityType || 'Unknown'))}
+                          {String(safeT(t, `products.activities.${(activityTypeMap.get(item.activityTypeId)?.name || item.activityType || 'unknown').toLowerCase().replace(/\s+/g, '_')}`, String(getTranslatedActivityTypeName(activityTypeMap.get(item.activityTypeId), t) || item.activityType || 'Unknown')))}
                         </td>
                         <td className="px-8 py-5 text-center font-semibold text-red-700">
                           {String(item.total.toLocaleString())}
                         </td>
-                        <td className="px-8 py-5 text-center text-gray-800">
+                        <td className="px-8 py-5 text-center">
                           <span className="bg-red-100 text-red-800 border border-red-200 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
                             <span className="w-1 h-1 rounded-full bg-red-500 mr-1"></span>
                             {String(item.percentage.toFixed(1))}%
@@ -2261,7 +2193,7 @@ export default function ProductionPage() {
                     <td className="px-8 py-5 text-center text-red-800">
                       {String(summaryData.reduce((sum, item) => sum + item.total, 0).toLocaleString())}
                     </td>
-                    <td className="px-8 py-5 text-center rounded-br-xl text-gray-800">
+                    <td className="px-8 py-5 text-center rounded-br-xl">
                       <span className="bg-red-200 text-red-800 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
                         <span className="w-1 h-1 rounded-full bg-red-600 mr-1"></span>
                         100%
@@ -2369,5 +2301,6 @@ export default function ProductionPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

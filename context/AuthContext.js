@@ -56,8 +56,24 @@ export function AuthProvider({ children }) {
               role: firestoreUser.role || 'user',
               active: firestoreUser.active,
               invited: firestoreUser.invited,
+              displayName: currentUser.displayName || firestoreUser.displayName,
+              photoURL: currentUser.photoURL || firestoreUser.photoURL,
               firestoreData: firestoreUser
             };
+            
+            // Update user photo if it changed from Google
+            if (currentUser.photoURL && currentUser.photoURL !== firestoreUser.photoURL) {
+              try {
+                await userService.updateUserProfile(firestoreUser.id, {
+                  photoURL: currentUser.photoURL,
+                  displayName: currentUser.displayName
+                });
+                mergedUser.photoURL = currentUser.photoURL;
+                mergedUser.displayName = currentUser.displayName;
+              } catch (error) {
+                console.error('Error updating user photo in auth state:', error);
+              }
+            }
             
             console.log("✅ User authorized and active:", mergedUser);
             setUser(mergedUser);
@@ -140,7 +156,29 @@ export function AuthProvider({ children }) {
       
       // User is authorized, proceed with login
       setIsAuthorized(true);
-      setUser(authCheck.user);
+      
+      // Always update user profile with latest Google info (especially photo)
+      const updatedUserData = {
+        ...authCheck.user,
+        displayName: authUser.displayName || authCheck.user.displayName,
+        photoURL: authUser.photoURL || authCheck.user.photoURL
+      };
+      
+      // Update user in Firestore with latest Google photo
+      if (authUser.photoURL && authUser.photoURL !== authCheck.user.photoURL) {
+        try {
+          await userService.updateUserProfile(authCheck.user.id, {
+            photoURL: authUser.photoURL,
+            displayName: authUser.displayName
+          });
+          updatedUserData.photoURL = authUser.photoURL;
+          updatedUserData.displayName = authUser.displayName;
+        } catch (error) {
+          console.error('Error updating user photo:', error);
+        }
+      }
+      
+      setUser(updatedUserData);
       
       // Phase 3: Create user session and track activity
       try {
@@ -185,6 +223,7 @@ export function AuthProvider({ children }) {
       // Clear session from localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userSessionId');
+        localStorage.removeItem('redirectAfterLogin');
       }
       
       await auth.signOut();
