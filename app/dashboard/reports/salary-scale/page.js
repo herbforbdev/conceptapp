@@ -16,8 +16,10 @@ import {
   HiCalculator,
   HiPencil,
   HiCheck,
-  HiX
+  HiX,
+  HiArrowNarrowLeft
 } from 'react-icons/hi';
+import Link from 'next/link';
 
 // Salary scale configuration
 const SALARY_SCALE = {
@@ -210,8 +212,16 @@ export default function SalaryScalePage() {
   return (
     <AdminOnly>
       <div className="p-4 space-y-6">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Link href="/dashboard/reports" className="inline-flex items-center text-purple-700 hover:underline font-medium">
+            <HiArrowNarrowLeft className="mr-2 h-5 w-5" />
+            {t('reports.title')}
+          </Link>
+        </div>
+
         {/* Header Card */}
-        <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
+        <Card className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-4 md:mb-0">
               <h1 className="text-3xl font-bold flex items-center gap-3">

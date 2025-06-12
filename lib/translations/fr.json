@@ -53,6 +53,7 @@
     "exchange_rate": "Taux de change",
     "amount_usd": "Montant (USD)",
     "summary": "Résumé",
+    "transactions": "Transactions",
     "costs_by_type": "Coûts par type",
     "Pourcentage": "Pourcentage"
   },
@@ -649,7 +650,7 @@
       "activityType": "Type d'activité",
       "product": "Produit",
       "channel": "Canal",
-      "showing": "Affichage de",
+      "showing": "Affichage de {{start}} à {{end}} sur {{total}} entrées",
       "previous": "Précédent",
       "next": "Suivant",
       "of": "sur",
@@ -1340,5 +1341,14 @@
     "accountType": "Type de compte",
     "verified": "Vérifié",
     "uid": "ID utilisateur"
+  },
+  "cost_trends": {
+    "title": "Tendances des coûts",
+    "total_costs": "Coûts totaux",
+    "avg_monthly": "Moyenne mensuelle",
+    "top_expense": "Dépense principale",
+    "highest_month": "Mois le plus élevé",
+    "monthly_trends": "Tendances mensuelles",
+    "monthly_distribution": "Distribution mensuelle"
   }
 }

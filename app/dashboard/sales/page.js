@@ -607,30 +607,41 @@ export default function SalesPage() {
       // If changing time period, update date filters accordingly
       if (key === 'selectedTimePeriod') {
         const now = new Date();
+        console.log('Changing time period to:', value); // Debug log
+        
         switch (value) {
           case TIME_PERIODS.YEAR:
             updated.dateFilters = {
-              ...prev.dateFilters,
               year: now.getFullYear(),
+              month: null,
+              week: null,
               startDate: null,
               endDate: null
             };
             break;
           case TIME_PERIODS.MONTH:
             updated.dateFilters = {
-              ...prev.dateFilters,
               year: now.getFullYear(),
               month: now.getMonth(),
+              week: null,
               startDate: null,
               endDate: null
             };
             break;
           case TIME_PERIODS.WEEK:
             updated.dateFilters = {
-              ...prev.dateFilters,
               year: now.getFullYear(),
               month: now.getMonth(),
               week: Math.ceil(now.getDate() / 7),
+              startDate: null,
+              endDate: null
+            };
+            break;
+          case TIME_PERIODS.ALL:
+            updated.dateFilters = {
+              year: null,
+              month: null,
+              week: null,
               startDate: null,
               endDate: null
             };
@@ -642,7 +653,7 @@ export default function SalesPage() {
             updated.dateFilters = {
               year: now.getFullYear(),
               month: now.getMonth(),
-              week: Math.ceil(now.getDate() / 7),
+              week: null,
               startDate: null,
               endDate: null
             };

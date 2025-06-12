@@ -364,8 +364,8 @@ const calculateTopCards = (productions) => {
       .filter(p => {
         try {
           if (!p.date) return false;
-          const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-          return prodDate >= today;
+        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+        return prodDate >= today;
         } catch (error) {
           return false;
         }
@@ -375,8 +375,8 @@ const calculateTopCards = (productions) => {
       .filter(p => {
         try {
           if (!p.date) return false;
-          const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-          return prodDate >= startOfMonth;
+        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+        return prodDate >= startOfMonth;
         } catch (error) {
           return false;
         }
@@ -403,8 +403,8 @@ const calculateTopCards = (productions) => {
     today: productions.filter(p => {
       try {
         if (!p.date) return false;
-        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-        return prodDate >= today;
+      const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+      return prodDate >= today;
       } catch (error) {
         return false;
       }
@@ -412,8 +412,8 @@ const calculateTopCards = (productions) => {
     week: productions.filter(p => {
       try {
         if (!p.date) return false;
-        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-        return prodDate >= startOfWeek;
+      const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+      return prodDate >= startOfWeek;
       } catch (error) {
         return false;
       }
@@ -421,8 +421,8 @@ const calculateTopCards = (productions) => {
     month: productions.filter(p => {
       try {
         if (!p.date) return false;
-        const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
-        return prodDate >= startOfMonth;
+      const prodDate = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+      return prodDate >= startOfMonth;
       } catch (error) {
         return false;
       }
@@ -879,7 +879,7 @@ export default function ProductionPage() {
           break;
         case TIME_PERIODS.MONTH:
           matchesTimePeriod = date.getMonth() === dateFilters.month && 
-                             date.getFullYear() === dateFilters.year;
+                               date.getFullYear() === dateFilters.year;
           break;
         case TIME_PERIODS.WEEK: {
           const firstDayOfMonth = new Date(dateFilters.year, dateFilters.month, 1);
@@ -952,12 +952,12 @@ export default function ProductionPage() {
         const monthIndex = parseInt(selectedMonth, 10) - 1;
         matchesFilters = matchesFilters && date.getMonth() === monthIndex;
       }
-      
+
       // Activity type filter
       if (selectedActivityType) {
         matchesFilters = matchesFilters && prod.activityTypeId === selectedActivityType;
       }
-      
+
       // Product filter
       if (selectedProduct) {
         matchesFilters = matchesFilters && prod.productId === selectedProduct;

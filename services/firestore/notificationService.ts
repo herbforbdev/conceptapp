@@ -473,6 +473,51 @@ class NotificationService {
       console.error('Error creating bulk admin alerts:', error);
     }
   }
+
+  async notifyAdminsOfAccessRequest(
+    userEmail: string,
+    userName: string,
+    adminIds: string[]
+  ): Promise<void> {
+    try {
+      const title = 'Nouvelle demande d\'accès';
+      const message = `${userName} (${userEmail}) a demandé l'accès à l'application.`;
+      
+      const batch = writeBatch(firestore);
+      
+      for (const adminId of adminIds) {
+        const notification: Omit<Notification, 'id'> = {
+          recipientId: adminId,
+          type: 'access_request',
+          title,
+          message,
+          data: { userEmail, userName },
+          read: false,
+          emailSent: false,
+          createdAt: Timestamp.now(),
+        };
+        
+        const notifRef = doc(collection(firestore, this.collectionName));
+        batch.set(notifRef, notification);
+      }
+      
+      await batch.commit();
+      
+      // Send emails to admins
+      for (const adminId of adminIds) {
+        await this.sendEmailNotification(
+          '', // notification ID will be generated
+          adminId,
+          'access_request',
+          title,
+          message,
+          { userEmail, userName }
+        );
+      }
+    } catch (error) {
+      console.error('Error notifying admins of access request:', error);
+    }
+  }
 }
 
 export const notificationService = new NotificationService(); 

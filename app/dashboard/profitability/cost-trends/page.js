@@ -73,13 +73,17 @@ export default function CostTrendsPage() {
     const monthly = filtered.reduce((acc, cost) => {
       const d = new Date(cost.date.seconds * 1000);
       const label = d.toLocaleString("default", { month: "short", year: "numeric" });
-      if (!acc[label]) acc[label] = { totalUSD: 0, count: 0 };
+      if (!acc[label]) acc[label] = { 
+        totalUSD: 0, 
+        count: 0,
+        timestamp: d.getTime() // Add timestamp for proper sorting
+      };
       acc[label].totalUSD += cost.amountUSD || 0;
       acc[label].count += 1;
       return acc;
     }, {});
     const sorted = Object.entries(monthly)
-      .sort(([a], [b]) => new Date(a) - new Date(b))
+      .sort(([, a], [, b]) => a.timestamp - b.timestamp)
       .map(([month, data]) => ({
         month,
         totalUSD: data.totalUSD,
@@ -285,24 +289,24 @@ export default function CostTrendsPage() {
 
       <Card className="!rounded-2xl">
         <div className="p-4">
-          <h2 className="text-lg font-semibold text-red-700 mb-4">{t('cost_trends.monthly_trends')}</h2>
+          <h2 className="text-lg font-semibold text-red-700 mb-4">{t('cost_trends.monthly_details')}</h2>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-red-700 text-white">
+            <table className="w-full text-sm text-left text-gray-900">
+              <thead className="bg-red-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">{t('cost_trends.monthly_trends')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">{t('cost_trends.total_costs')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">{t('cost_trends.top_expense')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">{t('cost_trends.avg_monthly')}</th>
+                  <th className="px-6 py-3 font-semibold">{t('common.month')}</th>
+                  <th className="px-6 py-3 font-semibold text-center">{t('cost_trends.total_costs')}</th>
+                  <th className="px-6 py-3 font-semibold text-center">{t('common.transactions')}</th>
+                  <th className="px-6 py-3 font-semibold text-center">{t('common.average')}</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-red-100">
                 {monthlyData.map((data, i) => (
-                  <tr key={i}>
+                  <tr key={i} className="hover:bg-red-50">
                     <td className="px-6 py-4">{data.month}</td>
-                    <td className="px-6 py-4">${data.totalUSD.toFixed(2)}</td>
-                    <td className="px-6 py-4">{data.count}</td>
-                    <td className="px-6 py-4">${data.average.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-center">${data.totalUSD.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-center">{data.count}</td>
+                    <td className="px-6 py-4 text-center">${data.average.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

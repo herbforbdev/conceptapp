@@ -52,6 +52,7 @@
     "amount_usd": "Amount (USD)",
     "summary": "Summary",
     "costs_by_type": "Costs by type",
+    "transactions": "Transactions",
     "Pourcentage": "Percentage"
   },
   "navigation": {
@@ -1378,5 +1379,14 @@
     "signInWithGoogle": "Sign In with Google",
     "signInWithEmail": "Sign In with Email",
     "logout": "Logout"
+  },
+  "cost_trends": {
+    "title": "Cost Trends",
+    "total_costs": "Total costs",
+    "avg_monthly": "Monthly average",
+    "top_expense": "Top expense",
+    "highest_month": "Highest month",
+    "monthly_trends": "Monthly trends",
+    "monthly_distribution": "Monthly distribution"
   }
 }

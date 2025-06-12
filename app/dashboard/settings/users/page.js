@@ -71,26 +71,10 @@ export default function UsersPage() {
   // Check admin access
   const isAdmin = currentUser?.role === 'admin';
 
-  // Fetch access requests
-  useEffect(() => {
-    const fetchAccessRequests = async () => {
-      if (!isAdmin) return;
-      
-      try {
-        const requests = await userService.getAccessRequests();
-        setAccessRequests(requests);
-      } catch (error) {
-        console.error('Error fetching access requests:', error);
-      } finally {
-        setLoadingRequests(false);
-      }
-    };
-
-    fetchAccessRequests();
-  }, [isAdmin]);
-
   // Phase 3: Filter users based on search and filters
   useEffect(() => {
+    let isSubscribed = true;
+    
     if (!users) return;
     
     let filtered = users.map(user => {
@@ -123,8 +107,42 @@ export default function UsersPage() {
       filtered = filtered.filter(user => user.department === filters.department);
     }
 
-    setFilteredUsers(filtered);
+    if (isSubscribed) {
+      setFilteredUsers(filtered);
+    }
+
+    return () => {
+      isSubscribed = false;
+    };
   }, [users, searchTerm, filters]);
+
+  // Fetch access requests
+  useEffect(() => {
+    let isSubscribed = true;
+    
+    const fetchAccessRequests = async () => {
+      if (!isAdmin) return;
+      
+      try {
+        const requests = await userService.getAccessRequests();
+        if (isSubscribed) {
+          setAccessRequests(requests);
+          setLoadingRequests(false);
+        }
+      } catch (error) {
+        console.error('Error fetching access requests:', error);
+        if (isSubscribed) {
+          setLoadingRequests(false);
+        }
+      }
+    };
+
+    fetchAccessRequests();
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [isAdmin]);
 
   // Get unique companies and departments for filter dropdowns
   const companies = [...new Set(users?.map(user => {
@@ -157,6 +175,7 @@ export default function UsersPage() {
   const handleBulkOperation = async () => {
     if (!selectedUserIds.length || !bulkAction) return;
 
+    let isSubscribed = true;
     setActionLoading(true);
     setResult(null);
 
@@ -192,25 +211,28 @@ export default function UsersPage() {
           break;
       }
 
-      setResult({
-        type: 'success',
-        message: `${selectedUserIds.length} utilisateurs mis à jour avec succès!`
-      });
-
-      setSelectedUserIds([]);
-      setBulkAction('');
-      setIsBulkModalOpen(false);
-      refetchUsers();
-
+      if (isSubscribed) {
+        setResult({
+          type: 'success',
+          message: `${selectedUserIds.length} utilisateurs mis à jour avec succès!`
+        });
+        setSelectedUserIds([]);
+        setActionLoading(false);
+      }
     } catch (error) {
-      console.error('Error performing bulk operation:', error);
-      setResult({
-        type: 'error',
-        message: 'Erreur lors de l&apos;opération en lot.'
-      });
-    } finally {
-    setActionLoading(false);
+      console.error('Error in bulk operation:', error);
+      if (isSubscribed) {
+        setResult({
+          type: 'error',
+          message: 'Une erreur est survenue lors de la mise à jour des utilisateurs.'
+        });
+        setActionLoading(false);
+      }
     }
+
+    return () => {
+      isSubscribed = false;
+    };
   };
 
   // Phase 3: Export users
@@ -228,20 +250,29 @@ export default function UsersPage() {
     }
   };
 
-  // Phase 3: View user activities
+  // Handle view user activities
   const handleViewUserActivities = async (user) => {
-    setSelectedUserForActivities(user);
+    let isSubscribed = true;
+    setActionLoading(true);
+    
     try {
-      const activities = await userService.getUserActivities(user.id, 50);
-      setSelectedUserActivities(activities);
-      setShowUserActivities(true);
+      const activities = await userService.getUserActivities(user.id);
+      if (isSubscribed) {
+        setSelectedUserActivities(activities);
+        setSelectedUserForActivities(user);
+        setShowUserActivities(true);
+        setActionLoading(false);
+      }
     } catch (error) {
-      console.error('Error loading user activities:', error);
-      setResult({
-        type: 'error',
-        message: 'Erreur lors du chargement des activités utilisateur.'
-      });
+      console.error('Error fetching user activities:', error);
+      if (isSubscribed) {
+        setActionLoading(false);
+      }
     }
+
+    return () => {
+      isSubscribed = false;
+    };
   };
 
   // Utility functions
@@ -466,6 +497,37 @@ export default function UsersPage() {
     }
   };
 
+  // Handle access request deletion
+  const handleDeleteAccessRequest = async (requestId) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette demande d\'accès?')) return;
+    
+    setActionLoading(true);
+    setResult(null);
+
+    try {
+      await userService.deleteAccessRequest(requestId);
+      
+      setResult({
+        type: 'success',
+        message: 'Demande d\'accès supprimée avec succès!'
+      });
+
+      // Refresh access requests
+      const requests = await userService.getAccessRequests();
+      setAccessRequests(requests);
+
+      setTimeout(() => setResult(null), 3000);
+    } catch (error) {
+      console.error('Error deleting access request:', error);
+      setResult({
+        type: 'error',
+        message: 'Erreur lors de la suppression de la demande.'
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Open edit modal
   const openEditModal = (user) => {
     setSelectedUser(user);
@@ -507,7 +569,7 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
           <p className="text-gray-600">Gérer les utilisateurs et les demandes d'accès</p>
-      </div>
+        </div>
         <div className="flex gap-3">
           <Button
             onClick={handleExportUsers}
@@ -535,11 +597,11 @@ export default function UsersPage() {
           <Button
             onClick={() => setIsInviteModalOpen(true)}
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-800 hover:bg-blue-900 text-white"
           >
             <HiUserAdd className="h-4 w-4 mr-2" />
             Inviter un utilisateur
-        </Button>
+          </Button>
         </div>
       </div>
 
@@ -561,7 +623,7 @@ export default function UsersPage() {
       {/* Search and Filters */}
       <Card>
         <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Recherche et Filtres</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Recherche et Filtres</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search */}
@@ -626,7 +688,7 @@ export default function UsersPage() {
                 ))}
               </Select>
             </div>
-      </div>
+          </div>
 
           {/* Active filters display */}
           {(searchTerm || Object.values(filters).some(f => f)) && (
@@ -695,135 +757,243 @@ export default function UsersPage() {
       )}
 
       {/* Users Table */}
-      <Tabs>
+      <Tabs
+        className="border-b border-gray-200"
+      >
         <Tabs.Item
           active
           title={
-            <span className="flex items-center gap-2">
-              <HiShieldCheck className="h-4 w-4" />
-              Utilisateurs ({filteredUsers.length})
-            </span>
+            <div className="flex items-center gap-2">
+              <HiUsers className="h-5 w-5" />
+              <span className="font-medium">Utilisateurs</span>
+              <Badge color="blue" className="ml-2 bg-blue-800 text-white">{filteredUsers.length}</Badge>
+            </div>
           }
         >
-          <Card>
-        <div className="overflow-x-auto">
+          <Card className="overflow-x-auto">
+            <Table hoverable>
+              <Table.Head>
+                <Table.HeadCell>
+                <input
+                    type="checkbox"
+                    checked={selectedUserIds.length === filteredUsers.length && filteredUsers.length > 0}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                </Table.HeadCell>
+                <Table.HeadCell>Utilisateur</Table.HeadCell>
+                <Table.HeadCell>Email</Table.HeadCell>
+                <Table.HeadCell>Rôle</Table.HeadCell>
+                <Table.HeadCell>Statut</Table.HeadCell>
+                <Table.HeadCell>Entreprise</Table.HeadCell>
+                <Table.HeadCell>Dernière connexion</Table.HeadCell>
+                <Table.HeadCell>Actions</Table.HeadCell>
+              </Table.Head>
+              <Table.Body>
+                {usersLoading ? (
+                  <Table.Row>
+                    <Table.Cell colSpan={8} className="text-center py-8">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        Chargement...
+                      </div>
+                    </Table.Cell>
+                  </Table.Row>
+                ) : filteredUsers.length === 0 ? (
+                  <Table.Row>
+                    <Table.Cell colSpan={8} className="text-center py-8 text-gray-500">
+                      Aucun utilisateur trouvé
+                    </Table.Cell>
+                  </Table.Row>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <Table.Row key={user.id} className="bg-white">
+                      <Table.Cell>
+                <input
+                          type="checkbox"
+                          checked={selectedUserIds.includes(user.id)}
+                          onChange={(e) => handleSelectUser(user.id, e.target.checked)}
+                          className="rounded border-gray-300"
+                        />
+                      </Table.Cell>
+                      <Table.Cell className="whitespace-nowrap font-medium text-gray-900">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            {user.photoURL ? (
+                              <Image
+                                src={user.photoURL}
+                                alt={user.displayName || 'User avatar'}
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-sm font-medium text-gray-600">
+                                {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {user.displayName || 'Nom non défini'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {user.invited ? 'Invité' : 'Inscrit'}
+                            </div>
+                          </div>
+                        </div>
+                      </Table.Cell>
+                      <Table.Cell>{user.email}</Table.Cell>
+                      <Table.Cell>
+                        <Badge className={getRoleBadgeColor(user.role)}>
+                          {String(roles.find(r => r.id === user.role)?.name || user.role)}
+                        </Badge>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Badge color={user.active ? 'success' : 'failure'}>
+                          {user.active ? 'Actif' : 'Inactif'}
+                        </Badge>
+                      </Table.Cell>
+                      <Table.Cell>
+                        {user.company || '-'}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <div className="text-sm text-gray-900">
+                          {formatTimestamp(user.lastLoginAt)}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {user.totalLogins || 0} connexions
+                        </div>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="xs"
+                            color="gray"
+                            onClick={() => handleViewUserActivities(user)}
+                            title="Voir l&apos;activité"
+                          >
+                            <HiClock className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="xs"
+                            color="gray"
+                            onClick={() => openEditModal(user)}
+                            title="Modifier"
+                          >
+                            <HiOutlinePencilAlt className="h-3 w-3" />
+                          </Button>
+                          {user.role !== 'admin' && (
+                            <Button
+                              size="xs"
+                              color="failure"
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={actionLoading}
+                              title="Supprimer"
+                            >
+                              <HiOutlineTrash className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))
+                )}
+              </Table.Body>
+            </Table>
+          </Card>
+        </Tabs.Item>
+
+        {/* Access Requests Tab */}
+        <Tabs.Item
+          title={
+            <div className="flex items-center gap-2">
+              <HiMail className="h-5 w-5" />
+              <span className="font-medium">Demandes d'accès</span>
+              <Badge color="blue" className="ml-2">{accessRequests.filter(r => r.status === 'pending').length}</Badge>
+            </div>
+          }
+        >
+          <div className="mt-4">
+            <Card className="overflow-x-auto">
               <Table hoverable>
                 <Table.Head>
-                  <Table.HeadCell>
-                  <input
-                      type="checkbox"
-                      checked={selectedUserIds.length === filteredUsers.length && filteredUsers.length > 0}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="rounded border-gray-300"
-                    />
-                  </Table.HeadCell>
-                  <Table.HeadCell>Utilisateur</Table.HeadCell>
+                  <Table.HeadCell>Demandeur</Table.HeadCell>
                   <Table.HeadCell>Email</Table.HeadCell>
-                  <Table.HeadCell>Rôle</Table.HeadCell>
+                  <Table.HeadCell>Message</Table.HeadCell>
+                  <Table.HeadCell>Date</Table.HeadCell>
                   <Table.HeadCell>Statut</Table.HeadCell>
-                  <Table.HeadCell>Entreprise</Table.HeadCell>
-                  <Table.HeadCell>Dernière connexion</Table.HeadCell>
                   <Table.HeadCell>Actions</Table.HeadCell>
                 </Table.Head>
                 <Table.Body>
-                  {usersLoading ? (
+                  {loadingRequests ? (
                     <Table.Row>
-                      <Table.Cell colSpan={8} className="text-center py-8">
+                      <Table.Cell colSpan={6} className="text-center py-8">
                         <div className="flex items-center justify-center gap-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                           Chargement...
                         </div>
                       </Table.Cell>
                     </Table.Row>
-                  ) : filteredUsers.length === 0 ? (
+                  ) : accessRequests.length === 0 ? (
                     <Table.Row>
-                      <Table.Cell colSpan={8} className="text-center py-8 text-gray-500">
-                        Aucun utilisateur trouvé
+                      <Table.Cell colSpan={6} className="text-center py-8 text-gray-500">
+                        Aucune demande d'accès
                       </Table.Cell>
                     </Table.Row>
                   ) : (
-                    filteredUsers.map((user) => (
-                      <Table.Row key={user.id} className="bg-white">
-                        <Table.Cell>
-                  <input
-                            type="checkbox"
-                            checked={selectedUserIds.includes(user.id)}
-                            onChange={(e) => handleSelectUser(user.id, e.target.checked)}
-                            className="rounded border-gray-300"
-                          />
+                    accessRequests.map((request) => (
+                      <Table.Row key={request.id}>
+                        <Table.Cell className="font-medium text-gray-900">
+                          {request.displayName}
                         </Table.Cell>
-                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                              {user.photoURL ? (
-                                <Image
-                                  src={user.photoURL}
-                                  alt={user.displayName || 'User avatar'}
-                                  width={32}
-                                  height={32}
-                                  className="w-8 h-8 rounded-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-sm font-medium text-gray-600">
-                                  {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {user.displayName || 'Nom non défini'}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {user.invited ? 'Invité' : 'Inscrit'}
-                              </div>
-                            </div>
-                          </div>
-                        </Table.Cell>
-                        <Table.Cell>{user.email}</Table.Cell>
+                        <Table.Cell>{request.email}</Table.Cell>
+                        <Table.Cell>{request.message || '-'}</Table.Cell>
                         <Table.Cell>
-                          <Badge className={getRoleBadgeColor(user.role)}>
-                            {String(roles.find(r => r.id === user.role)?.name || user.role)}
+                          {formatTimestamp(request.requestedAt)}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Badge
+                            color={
+                              request.status === 'approved' ? 'success' :
+                              request.status === 'rejected' ? 'failure' :
+                              'warning'
+                            }
+                          >
+                            {request.status === 'approved' ? 'Approuvée' :
+                             request.status === 'rejected' ? 'Rejetée' :
+                             'En attente'}
                           </Badge>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Badge color={user.active ? 'success' : 'failure'}>
-                            {user.active ? 'Actif' : 'Inactif'}
-                          </Badge>
-                        </Table.Cell>
-                        <Table.Cell>
-                          {user.company || '-'}
-                        </Table.Cell>
-                        <Table.Cell>
-                          <div className="text-sm text-gray-900">
-                            {formatTimestamp(user.lastLoginAt)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {user.totalLogins || 0} connexions
-                          </div>
                         </Table.Cell>
                         <Table.Cell>
                           <div className="flex gap-2">
-                            <Button
-                              size="xs"
-                              color="gray"
-                              onClick={() => handleViewUserActivities(user)}
-                              title="Voir l&apos;activité"
-                            >
-                              <HiClock className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="xs"
-                              color="gray"
-                              onClick={() => openEditModal(user)}
-                              title="Modifier"
-                            >
-                              <HiOutlinePencilAlt className="h-3 w-3" />
-                            </Button>
-                            {user.role !== 'admin' && (
+                            {request.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="xs"
+                                  color="success"
+                                  onClick={() => handleAccessRequest(request.id, 'approved', request.email, request.displayName)}
+                                  disabled={actionLoading}
+                                  title="Approuver"
+                                >
+                                  <HiCheck className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="xs"
+                                  color="failure"
+                                  onClick={() => handleAccessRequest(request.id, 'rejected', request.email, request.displayName)}
+                                  disabled={actionLoading}
+                                  title="Rejeter"
+                                >
+                                  <HiX className="h-3 w-3" />
+                                </Button>
+                              </>
+                            )}
+                            {request.status === 'rejected' && (
                               <Button
                                 size="xs"
                                 color="failure"
-                                onClick={() => handleDeleteUser(user.id)}
+                                onClick={() => handleDeleteAccessRequest(request.id)}
                                 disabled={actionLoading}
                                 title="Supprimer"
                               >
@@ -837,125 +1007,8 @@ export default function UsersPage() {
                   )}
                 </Table.Body>
               </Table>
-            </div>
-          </Card>
-        </Tabs.Item>
-
-        {/* Access Requests Tab */}
-        <Tabs.Item
-          title={
-            <span className="flex items-center gap-2">
-              <HiMail className="h-4 w-4" />
-              Demandes d'accès ({accessRequests.filter(r => r.status === 'pending').length})
-            </span>
-          }
-        >
-          <Card>
-            <div className="overflow-x-auto">
-              <Table hoverable>
-                <Table.Head>
-                  <Table.HeadCell>Demandeur</Table.HeadCell>
-                  <Table.HeadCell>Email</Table.HeadCell>
-                  <Table.HeadCell>Message</Table.HeadCell>
-                  <Table.HeadCell>Date</Table.HeadCell>
-                  <Table.HeadCell>Statut</Table.HeadCell>
-                  <Table.HeadCell>Actions</Table.HeadCell>
-                </Table.Head>
-                <Table.Body className="divide-y">
-                  {loadingRequests ? (
-                    <Table.Row>
-                      <Table.Cell colSpan={6} className="text-center py-8">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                          Chargement...
-                  </div>
-                      </Table.Cell>
-                    </Table.Row>
-                  ) : accessRequests.length === 0 ? (
-                    <Table.Row>
-                      <Table.Cell colSpan={6} className="text-center py-8 text-gray-500">
-                        Aucune demande d'accès
-                      </Table.Cell>
-                    </Table.Row>
-                  ) : (
-                    accessRequests.map((request) => (
-                      <Table.Row key={request.id} className="bg-white">
-                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-600">
-                                {(request.displayName || request.email || '?').charAt(0).toUpperCase()}
-                      </span>
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {request.displayName || 'Nom non spécifié'}
-                              </div>
-                            </div>
-                          </div>
-                        </Table.Cell>
-                        <Table.Cell>{request.email}</Table.Cell>
-                        <Table.Cell>
-                          <div className="max-w-xs truncate" title={request.message}>
-                            {request.message || 'Aucun message'}
-                          </div>
-                        </Table.Cell>
-                        <Table.Cell>
-                          {request.requestedAt ? 
-                            new Date(request.requestedAt.seconds * 1000).toLocaleDateString('fr-FR') :
-                            'Date inconnue'
-                          }
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Badge 
-                            color={
-                              request.status === 'pending' ? 'warning' : 
-                              request.status === 'approved' ? 'success' : 'failure'
-                            }
-                          >
-                            {request.status === 'pending' ? 'En attente' :
-                             request.status === 'approved' ? 'Approuvé' : 'Rejeté'}
-                          </Badge>
-                        </Table.Cell>
-                        <Table.Cell>
-                          {request.status === 'pending' && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="xs"
-                                color="success"
-                                onClick={() => handleAccessRequest(
-                                  request.id, 
-                                  'approved', 
-                                  request.email, 
-                                  request.displayName
-                                )}
-                                disabled={actionLoading}
-                              >
-                                <HiCheck className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="xs"
-                                color="failure"
-                                onClick={() => handleAccessRequest(
-                                  request.id, 
-                                  'rejected', 
-                                  request.email, 
-                                  request.displayName
-                                )}
-                                disabled={actionLoading}
-                              >
-                                <HiX className="h-3 w-3" />
-                              </Button>
-                      </div>
-                          )}
-                        </Table.Cell>
-                      </Table.Row>
-                ))
-              )}
-                </Table.Body>
-              </Table>
-        </div>
-      </Card>
+            </Card>
+          </div>
         </Tabs.Item>
       </Tabs>
 
@@ -975,7 +1028,7 @@ export default function UsersPage() {
                 <option value="">Sélectionnez une action</option>
                 <option value="update_role">Changer le rôle</option>
                 <option value="update_status">Changer le statut</option>
-                                            <option value="update_company">Changer l&apos;entreprise</option>
+                <option value="update_company">Changer l&apos;entreprise</option>
                 <option value="update_department">Changer le département</option>
               </Select>
             </div>
@@ -1021,7 +1074,7 @@ export default function UsersPage() {
                   id="bulkCompany"
                   value={bulkUpdateData.company}
                   onChange={(e) => setBulkUpdateData(prev => ({ ...prev, company: e.target.value }))}
-                                              placeholder="Nom de l&apos;entreprise"
+                  placeholder="Nom de l&apos;entreprise"
                   required
                 />
               </div>
@@ -1119,7 +1172,7 @@ export default function UsersPage() {
                 type="text"
                 value={inviteForm.displayName}
                 onChange={(e) => setInviteForm(prev => ({ ...prev, displayName: e.target.value }))}
-                                            placeholder="Nom de l&apos;utilisateur"
+                placeholder="Nom de l&apos;utilisateur"
               />
             </div>
             <div>
@@ -1138,6 +1191,7 @@ export default function UsersPage() {
             </div>
             <div className="flex justify-end gap-3 pt-4">
               <Button
+                type="button"
                 color="gray"
                 onClick={() => setIsInviteModalOpen(false)}
                 disabled={actionLoading}
@@ -1146,6 +1200,7 @@ export default function UsersPage() {
               </Button>
               <Button
                 type="submit"
+                color="primary"
                 disabled={actionLoading}
               >
                 {actionLoading ? 'Envoi...' : 'Envoyer l\'invitation'}
@@ -1157,7 +1212,7 @@ export default function UsersPage() {
 
       {/* Edit User Modal */}
       <Modal show={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-                    <Modal.Header>Modifier l&apos;utilisateur</Modal.Header>
+        <Modal.Header>Modifier l&apos;utilisateur</Modal.Header>
         <Modal.Body>
           {selectedUser && (
             <form onSubmit={handleEditUser} className="space-y-4">

@@ -249,7 +249,7 @@ export default function TopCard({
       {/* Value and subvalue */}
       <div className="pl-0">
         <p className={`
-          text-2xl font-bold ${style.textColor} leading-tight mb-1
+          text-xl font-bold ${style.textColor} leading-tight mb-1
           ${valueClassName}
         `}>
           {safeValue}

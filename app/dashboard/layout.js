@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Header from "../../components/Header";
-import Sidebar from "../../components/Sidebar";
-import Footer from "../../components/Footer";
-import AuthGuard from "../../components/AuthGuard";
+import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
+import Footer from "@/components/Footer";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function DashboardLayout({ children }) {
-  // State to control sidebar visibility on small screens
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
@@ -36,4 +35,4 @@ export default function DashboardLayout({ children }) {
       </div>
     </AuthGuard>
   );
-}
+} 

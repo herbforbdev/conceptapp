@@ -70,7 +70,7 @@ export default function SettingsPage() {
         </h1>
 
         <Card className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-xl text-[#031b31] font-semibold mb-4">
             {t('settings.language')}
           </h2>
           <div className="flex items-center gap-4">
@@ -106,27 +106,27 @@ export default function SettingsPage() {
 
         {/* General Settings Section */}
         <Card className="mt-6 bg-white/80 border border-[#385e82]">
-          <h2 className="text-xl font-semibold mb-4">{t('settings.General Settings')}</h2>
+          <h2 className="text-xl font-semibold text-[#031b31] mb-4">{t('settings.General Settings')}</h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-[#e6eaf0] rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
               <div>
-                <h3 className="font-medium">{t('settings.Dark Mode')}</h3>
-                <p className="text-sm text-gray-600">{t('settings.Toggle dark mode appearance')}</p>
+                <h3 className="font-medium text-[#031b31]">{t('settings.Dark Mode')}</h3>
+                <p className="text-sm text-[#385e82]">{t('settings.Toggle dark mode appearance')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-[#e2e8f0] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#385e82]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#385e82] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#385e82]"></div>
               </label>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-[#e6eaf0] rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
               <div>
-                <h3 className="font-medium">{t('settings.Email Notifications')}</h3>
-                <p className="text-sm text-gray-600">{t('settings.Receive email notifications for important updates')}</p>
+                <h3 className="font-medium text-[#031b31]">{t('settings.Email Notifications')}</h3>
+                <p className="text-sm text-[#385e82]">{t('settings.Receive email notifications for important updates')}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-[#e2e8f0] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#385e82]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#385e82] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#385e82]"></div>
               </label>
             </div>
           </div>

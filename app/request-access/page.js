@@ -23,6 +23,14 @@ export default function RequestAccessPage() {
     setResult(null);
 
     try {
+      if (!formData.email || !formData.displayName) {
+        setResult({
+          type: 'error',
+          message: 'Veuillez remplir tous les champs obligatoires.'
+        });
+        return;
+      }
+
       // Check if user already exists
       const { user: existingUser } = await userService.isUserAuthorized(formData.email);
       
@@ -36,11 +44,15 @@ export default function RequestAccessPage() {
       }
 
       // Create access request
-      await userService.createAccessRequest(
+      const requestId = await userService.createAccessRequest(
         formData.email,
         formData.displayName,
         formData.message
       );
+
+      if (!requestId) {
+        throw new Error('Failed to create access request');
+      }
 
       // Get all admin users to notify
       const allUsers = await userService.getAllUsers();
@@ -55,6 +67,8 @@ export default function RequestAccessPage() {
           formData.displayName,
           adminIds
         );
+      } else {
+        console.warn('No admin users found to notify');
       }
 
       setResult({
@@ -72,7 +86,7 @@ export default function RequestAccessPage() {
       console.error('Error creating access request:', error);
       setResult({
         type: 'error',
-        message: 'Erreur lors de l&apos;envoi de votre demande. Veuillez réessayer.'
+        message: 'Une erreur est survenue lors de l&apos;envoi de votre demande. Veuillez réessayer plus tard ou contacter le support.'
       });
     } finally {
       setLoading(false);
@@ -167,7 +181,7 @@ export default function RequestAccessPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 size="lg"
               >
                 {loading ? 'Envoi en cours...' : 'Envoyer la demande'}

@@ -112,40 +112,40 @@ export default function NotificationsPage() {
           {t('settings.Back')}
         </a>
       </div>
-      <h1 className="text-2xl font-bold mb-6">{t('settings.Notification Settings')}</h1>
+      <h1 className="text-2xl font-bold text-[#031b31] mb-6">{t('settings.Notification Settings')}</h1>
 
       {/* Notification Channels */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
+        <Card className="bg-[#f8fafc] border border-[#e2e8f0]">
           <div className="flex items-center space-x-4">
             <div className="bg-blue-100 p-3 rounded-lg">
               <HiMail className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-medium">{t('settings.Email Channel')}</h3>
-              <p className="text-sm text-gray-600">example@email.com</p>
+              <h3 className="font-medium text-[#031b31]">{t('settings.Email Channel')}</h3>
+              <p className="text-sm text-[#385e82]">example@email.com</p>
             </div>
           </div>
         </Card>
-        <Card>
+        <Card className="bg-[#f8fafc] border border-[#e2e8f0]">
           <div className="flex items-center space-x-4">
             <div className="bg-green-100 p-3 rounded-lg">
               <HiPhone className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <h3 className="font-medium">{t('settings.Mobile Push')}</h3>
-              <p className="text-sm text-gray-600">iOS & Android</p>
+              <h3 className="font-medium text-[#031b31]">{t('settings.Mobile Push')}</h3>
+              <p className="text-sm text-[#385e82]">iOS & Android</p>
             </div>
           </div>
         </Card>
-        <Card>
+        <Card className="bg-[#f8fafc] border border-[#e2e8f0]">
           <div className="flex items-center space-x-4">
             <div className="bg-purple-100 p-3 rounded-lg">
               <HiDesktopComputer className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <h3 className="font-medium">{t('settings.Desktop Push')}</h3>
-              <p className="text-sm text-gray-600">Chrome & Firefox</p>
+              <h3 className="font-medium text-[#031b31]">{t('settings.Desktop Push')}</h3>
+              <p className="text-sm text-[#385e82]">Chrome & Firefox</p>
             </div>
           </div>
         </Card>
@@ -153,23 +153,23 @@ export default function NotificationsPage() {
 
       {/* Notification Settings */}
       {notificationCategories.map((category, index) => (
-        <Card className="mb-6" key={index}>
+        <Card className="mb-6 bg-[#f8fafc] border border-[#e2e8f0]" key={index}>
           <div className="flex items-center space-x-4 mb-6">
             <div className="bg-blue-100 p-3 rounded-lg">
               {category.icon}
             </div>
             <div>
-              <h2 className="text-xl font-semibold">{t('settings.' + category.title)}</h2>
-              <p className="text-gray-600">{t('settings.' + category.description)}</p>
+              <h2 className="text-xl font-semibold text-[#031b31]">{t('settings.' + category.title)}</h2>
+              <p className="text-[#385e82]">{t('settings.' + category.description)}</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {category.settings.map((setting) => (
-              <div key={setting.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div key={setting.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-[#e2e8f0]">
                 <div>
-                  <h3 className="font-medium">{t('settings.' + setting.label)}</h3>
-                  <p className="text-sm text-gray-600">{t('settings.' + setting.description)}</p>
+                  <h3 className="font-medium text-[#031b31]">{t('settings.' + setting.label)}</h3>
+                  <p className="text-sm text-[#385e82]">{t('settings.' + setting.description)}</p>
                 </div>
                 <ToggleSwitch
                   checked={
@@ -182,6 +182,7 @@ export default function NotificationsPage() {
                       ? handleEmailToggle(setting.id)
                       : handlePushToggle(setting.id)
                   }
+                  className="[&>div]:bg-[#e2e8f0] [&>div]:border-[#385e82] [&>div[data-checked=true]]:bg-[#385e82]"
                 />
               </div>
             ))}
@@ -190,14 +191,14 @@ export default function NotificationsPage() {
       ))}
 
       {/* Notification Schedule */}
-      <Card>
-        <h2 className="text-xl font-semibold mb-4">{t('settings.Quiet Hours')}</h2>
-        <p className="text-gray-600 mb-4">
+      <Card className="bg-[#f8fafc] border border-[#e2e8f0]">
+        <h2 className="text-xl font-semibold text-[#031b31] mb-4">{t('settings.Quiet Hours')}</h2>
+        <p className="text-[#385e82] mb-4">
           {t("settings.Set a time period when you don't want to receive notifications")}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="startTime">{t('settings.Start Time')}</Label>
+            <Label htmlFor="startTime" className="text-[#031b31] font-medium">{t('settings.Start Time')}</Label>
             <Select id="startTime">
               {[...Array(24)].map((_, i) => (
                 <option key={i} value={i}>
@@ -207,7 +208,7 @@ export default function NotificationsPage() {
             </Select>
           </div>
           <div>
-            <Label htmlFor="endTime">{t('settings.End Time')}</Label>
+            <Label htmlFor="endTime" className="text-[#031b31] font-medium">{t('settings.End Time')}</Label>
             <Select id="endTime">
               {[...Array(24)].map((_, i) => (
                 <option key={i} value={i}>

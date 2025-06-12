@@ -21,8 +21,6 @@ export default function ProfilePage() {
     displayName: '',
     phoneNumber: '',
     company: '',
-    department: '',
-    bio: '',
     location: '',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     emailNotifications: true,
@@ -46,8 +44,6 @@ export default function ProfilePage() {
         displayName: user.displayName || '',
         phoneNumber: user.phoneNumber || '',
         company: user.company || '',
-        department: user.department || '',
-        bio: user.bio || '',
         location: user.location || '',
         timezone: user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
         emailNotifications: user.emailNotifications ?? true,
@@ -81,8 +77,6 @@ export default function ProfilePage() {
         displayName: user.displayName || '',
         phoneNumber: user.phoneNumber || '',
         company: user.company || '',
-        department: user.department || '',
-        bio: user.bio || '',
         location: user.location || '',
         timezone: user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
         emailNotifications: user.emailNotifications ?? true,
@@ -225,7 +219,7 @@ export default function ProfilePage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -307,15 +301,6 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="department" value="Département" />
-                      <TextInput
-                        id="department"
-                        value={enhancedProfile.department}
-                        onChange={(e) => setEnhancedProfile(prev => ({ ...prev, department: e.target.value }))}
-                        placeholder="Département"
-                      />
-                    </div>
-                    <div>
                       <Label htmlFor="location" value="Localisation" />
                       <TextInput
                         id="location"
@@ -339,23 +324,12 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="bio" value="Biographie" />
-                    <Textarea
-                      id="bio"
-                      rows={3}
-                      value={enhancedProfile.bio}
-                      onChange={(e) => setEnhancedProfile(prev => ({ ...prev, bio: e.target.value }))}
-                      placeholder="Une courte description de vous..."
-                    />
-                  </div>
-
                   {hasChanges && (
                     <div className="flex justify-end pt-4 border-t">
                       <Button
                         type="submit"
                         disabled={isSaving}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="bg-indigo-600 hover:bg-indigo-700"
                       >
                         {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
                       </Button>
@@ -378,14 +352,30 @@ export default function ProfilePage() {
                   <h3 className="text-lg font-semibold text-gray-900">
                     Historique d&apos;Activité
                   </h3>
-                  <Button
-                    size="sm"
-                    color="gray"
-                    onClick={loadUserActivities}
-                  >
-                    <HiRefresh className="h-4 w-4 mr-2" />
-                    Actualiser
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      color="gray"
+                      onClick={loadUserActivities}
+                    >
+                      <HiRefresh className="h-4 w-4 mr-2" />
+                      Actualiser
+                    </Button>
+                    <Button
+                      size="sm"
+                      color="failure"
+                      onClick={() => {
+                        // Add function to clear activity history
+                        if (window.confirm('Êtes-vous sûr de vouloir effacer l\'historique des activités ?')) {
+                          // Call your service to clear activities
+                          userService.clearUserActivities(user.id);
+                          loadUserActivities(); // Refresh the list
+                        }
+                      }}
+                    >
+                      Effacer l&apos;historique
+                    </Button>
+                  </div>
                 </div>
                 
                 {userActivities?.length > 0 ? (
@@ -428,9 +418,25 @@ export default function ProfilePage() {
               transition={{ duration: 0.5 }}
             >
               <Card>
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                  Sécurité du Compte
-                </h3>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Sécurité du Compte
+                  </h3>
+                  <Button
+                    size="sm"
+                    color="failure"
+                    onClick={() => {
+                      if (window.confirm('Êtes-vous sûr de vouloir terminer toutes les autres sessions ?')) {
+                        // Call your service to end all other sessions
+                        userService.terminateOtherSessions(user.id, sessionId);
+                        // Refresh the sessions list
+                        loadActiveSessions();
+                      }
+                    }}
+                  >
+                    Terminer autres sessions
+                  </Button>
+                </div>
                 
                 {/* Account Info */}
                 <div className="space-y-4 mb-6">
@@ -504,89 +510,89 @@ export default function ProfilePage() {
               transition={{ duration: 0.5 }}
             >
               <Card>
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                <h3 className="text-lg font-semibold text-[#031b31] mb-6">
                   Préférences
                 </h3>
-                
                 <form onSubmit={handleEnhancedProfileUpdate} className="space-y-6">
-                  {/* Notification Preferences */}
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Notifications</h4>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="font-medium text-gray-900">Notifications par email</div>
-                          <div className="text-sm text-gray-600">Recevoir des notifications importantes par email</div>
-                        </div>
-                        <ToggleSwitch
-                          checked={enhancedProfile.emailNotifications}
-                          onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, emailNotifications: checked }))}
-                          className="[&>span]:bg-slate-600 [&>span]:border-slate-700 [&>span[aria-checked='true']]:bg-blue-600 [&>span[aria-checked='true']]:border-blue-700"
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="font-medium text-gray-900">Notifications push</div>
-                          <div className="text-sm text-gray-600">Recevoir des notifications dans le navigateur</div>
-                        </div>
-                        <ToggleSwitch
-                          checked={enhancedProfile.pushNotifications}
-                          onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, pushNotifications: checked }))}
-                          className="[&>span]:bg-slate-600 [&>span]:border-slate-700 [&>span[aria-checked='true']]:bg-blue-600 [&>span[aria-checked='true']]:border-blue-700"
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="font-medium text-gray-900">Rapports hebdomadaires</div>
-                          <div className="text-sm text-gray-600">Recevoir un résumé hebdomadaire des activités</div>
-                        </div>
-                        <ToggleSwitch
-                          checked={enhancedProfile.weeklyReports}
-                          onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, weeklyReports: checked }))}
-                          className="[&>span]:bg-slate-600 [&>span]:border-slate-700 [&>span[aria-checked='true']]:bg-blue-600 [&>span[aria-checked='true']]:border-blue-700"
-                        />
-                      </div>
-                    </div>
+                    <Label htmlFor="language" value="Langue" className="text-[#031b31] font-medium" />
+                    <Select
+                      id="language"
+                      value={enhancedProfile.language}
+                      onChange={(e) => {
+                        const newLang = e.target.value;
+                        setEnhancedProfile(prev => ({ ...prev, language: newLang }));
+                        setLanguage(newLang);
+                      }}
+                      className="mt-1 bg-[#f8fafc] border-[#e2e8f0] text-[#031b31]"
+                    >
+                      <option value="fr">Français</option>
+                      <option value="en">English</option>
+                    </Select>
                   </div>
 
-                  {/* Language & Theme */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="language" value="Langue" />
-                      <Select
-                        id="language"
-                        value={enhancedProfile.language}
-                        onChange={(e) => setEnhancedProfile(prev => ({ ...prev, language: e.target.value }))}
-                      >
-                        <option value="fr">Français</option>
-                        <option value="en">English</option>
-                      </Select>
+                  <div>
+                    <Label htmlFor="theme" value="Thème" className="text-[#031b31] font-medium" />
+                    <Select
+                      id="theme"
+                      value={enhancedProfile.theme}
+                      onChange={(e) => setEnhancedProfile(prev => ({ ...prev, theme: e.target.value }))}
+                      className="mt-1 bg-[#f8fafc] border-[#e2e8f0] text-[#031b31]"
+                    >
+                      <option value="light">Clair</option>
+                      <option value="dark">Sombre</option>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
+                      <div>
+                        <Label htmlFor="emailNotifications" value="Notifications par email" className="text-[#031b31] font-medium" />
+                        <p className="text-sm text-[#385e82]">Recevoir des notifications par email</p>
+                      </div>
+                      <ToggleSwitch
+                        id="emailNotifications"
+                        checked={enhancedProfile.emailNotifications}
+                        onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, emailNotifications: checked }))}
+                        className="[&>div]:bg-[#e2e8f0] [&>div]:border-[#385e82] [&>div[data-checked=true]]:bg-[#385e82]"
+                      />
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="theme" value="Thème" />
-                      <Select
-                        id="theme"
-                        value={enhancedProfile.theme}
-                        onChange={(e) => setEnhancedProfile(prev => ({ ...prev, theme: e.target.value }))}
-                      >
-                        <option value="light">Clair</option>
-                        <option value="dark">Sombre</option>
-                        <option value="auto">Automatique</option>
-                      </Select>
+
+                    <div className="flex items-center justify-between p-4 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
+                      <div>
+                        <Label htmlFor="pushNotifications" value="Notifications push" className="text-[#031b31] font-medium" />
+                        <p className="text-sm text-[#385e82]">Recevoir des notifications dans le navigateur</p>
+                      </div>
+                      <ToggleSwitch
+                        id="pushNotifications"
+                        checked={enhancedProfile.pushNotifications}
+                        onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, pushNotifications: checked }))}
+                        className="[&>div]:bg-[#e2e8f0] [&>div]:border-[#385e82] [&>div[data-checked=true]]:bg-[#385e82]"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
+                      <div>
+                        <Label htmlFor="weeklyReports" value="Rapports hebdomadaires" className="text-[#031b31] font-medium" />
+                        <p className="text-sm text-[#385e82]">Recevoir un résumé hebdomadaire des activités</p>
+                      </div>
+                      <ToggleSwitch
+                        id="weeklyReports"
+                        checked={enhancedProfile.weeklyReports}
+                        onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, weeklyReports: checked }))}
+                        className="[&>div]:bg-[#e2e8f0] [&>div]:border-[#385e82] [&>div[data-checked=true]]:bg-[#385e82]"
+                      />
                     </div>
                   </div>
 
                   {hasChanges && (
-                    <div className="flex justify-end pt-4 border-t">
+                    <div className="flex justify-end pt-4 border-t border-[#e2e8f0]">
                       <Button
                         type="submit"
                         disabled={isSaving}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="bg-[#385e82] hover:bg-[#031b31] text-white"
                       >
-                        {isSaving ? 'Enregistrement...' : 'Enregistrer les préférences'}
+                        {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
                       </Button>
                     </div>
                   )}

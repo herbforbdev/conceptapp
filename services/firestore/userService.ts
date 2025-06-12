@@ -104,6 +104,10 @@ export const userService = {
     });
   },
 
+  async deleteAccessRequest(id: string): Promise<void> {
+    await deleteDoc(doc(firestore, 'AccessRequests', id));
+  },
+
   async getPendingAccessRequests(): Promise<AccessRequest[]> {
     const q = query(
       collection(firestore, 'AccessRequests'), 

@@ -53,7 +53,7 @@ export default function ProfilePage() {
           {t('settings.Back')}
         </a>
       </div>
-      <h1 className="text-2xl font-bold mb-6">{t('settings.Profile Settings')}</h1>
+      <h1 className="text-2xl font-bold text-[#031b31] mb-6">{t('settings.Profile Settings')}</h1>
 
       {showSuccessAlert && (
         <Alert color="success" className="mb-4">
@@ -64,12 +64,12 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Information */}
         <div className="lg:col-span-2">
-          <Card>
-            <h2 className="text-xl font-semibold mb-4">{t('settings.Profile Information')}</h2>
+          <Card className="bg-[#f8fafc] border border-[#e2e8f0]">
+            <h2 className="text-xl font-semibold text-[#031b31] mb-4">{t('settings.Profile Information')}</h2>
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="displayName">{t('settings.Full Name')}</Label>
+                  <Label htmlFor="displayName" className="text-[#031b31] font-medium">{t('settings.Full Name')}</Label>
                   <TextInput
                     id="displayName"
                     value={profileData.displayName}
@@ -77,19 +77,21 @@ export default function ProfilePage() {
                       setProfileData({ ...profileData, displayName: e.target.value })
                     }
                     disabled={!isEditing}
+                    className="bg-white border border-[#e2e8f0] text-[#031b31]"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email">{t('settings.Email')}</Label>
+                  <Label htmlFor="email" className="text-[#031b31] font-medium">{t('settings.Email')}</Label>
                   <TextInput
                     id="email"
                     type="email"
                     value={profileData.email}
                     disabled
+                    className="bg-white border border-[#e2e8f0] text-[#031b31]"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">{t('settings.Phone Number')}</Label>
+                  <Label htmlFor="phone" className="text-[#031b31] font-medium">{t('settings.Phone Number')}</Label>
                   <TextInput
                     id="phone"
                     value={profileData.phone}
@@ -97,10 +99,11 @@ export default function ProfilePage() {
                       setProfileData({ ...profileData, phone: e.target.value })
                     }
                     disabled={!isEditing}
+                    className="bg-white border border-[#e2e8f0] text-[#031b31]"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="company">{t('settings.Company')}</Label>
+                  <Label htmlFor="company" className="text-[#031b31] font-medium">{t('settings.Company')}</Label>
                   <TextInput
                     id="company"
                     value={profileData.company}
@@ -108,15 +111,16 @@ export default function ProfilePage() {
                       setProfileData({ ...profileData, company: e.target.value })
                     }
                     disabled={!isEditing}
+                    className="bg-white border border-[#e2e8f0] text-[#031b31]"
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="bio">{t('settings.Bio')}</Label>
+                <Label htmlFor="bio" className="text-[#031b31] font-medium">{t('settings.Bio')}</Label>
                 <textarea
                   id="bio"
                   rows={4}
-                  className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  className="block p-2.5 w-full text-sm text-[#031b31] bg-white rounded-lg border border-[#e2e8f0] focus:ring-[#385e82] focus:border-[#385e82]"
                   value={profileData.bio}
                   onChange={(e) =>
                     setProfileData({ ...profileData, bio: e.target.value })
@@ -127,7 +131,7 @@ export default function ProfilePage() {
               <div className="flex justify-end space-x-2">
                 {isEditing ? (
                   <>
-                    <Button type="submit" color="success">
+                    <Button type="submit" color="success" className="bg-[#385e82] hover:bg-[#031b31] text-white">
                       {t('settings.Save Changes')}
                     </Button>
                     <Button color="gray" onClick={() => setIsEditing(false)}>
@@ -135,7 +139,7 @@ export default function ProfilePage() {
                     </Button>
                   </>
                 ) : (
-                  <Button onClick={() => setIsEditing(true)}>{t('settings.Edit Profile')}</Button>
+                  <Button onClick={() => setIsEditing(true)} className="bg-[#385e82] hover:bg-[#031b31] text-white">{t('settings.Edit Profile')}</Button>
                 )}
               </div>
             </form>
@@ -145,10 +149,10 @@ export default function ProfilePage() {
         {/* Sidebar Cards */}
         <div className="space-y-4">
           {/* Profile Photo */}
-          <Card>
+          <Card className="bg-[#f8fafc] border border-[#e2e8f0]">
             <div className="text-center">
               <div className="mb-4">
-                <div className="w-32 h-32 mx-auto rounded-full bg-gray-200 flex items-center justify-center">
+                <div className="w-32 h-32 mx-auto rounded-full bg-[#e2e8f0] flex items-center justify-center">
                   {user?.photoURL ? (
                     <Image
                       src={user.photoURL}
@@ -167,19 +171,19 @@ export default function ProfilePage() {
                 className="mb-2"
                 accept="image/*"
               />
-              <Button size="sm">{t('settings.Upload Photo')}</Button>
+              <Button size="sm" className="bg-[#385e82] hover:bg-[#031b31] text-white">{t('settings.Upload Photo')}</Button>
             </div>
           </Card>
 
           {/* Security Settings */}
-          <Card>
-            <h3 className="text-lg font-semibold mb-4">{t('settings.Security')}</h3>
+          <Card className="bg-[#f8fafc] border border-[#e2e8f0]">
+            <h3 className="text-lg font-semibold text-[#031b31] mb-4">{t('settings.Security')}</h3>
             <div className="space-y-4">
-              <Button color="light" className="w-full text-left">
+              <Button color="light" className="w-full text-left bg-white border border-[#e2e8f0] text-[#031b31]">
                 <HiKey className="mr-2 h-5 w-5" />
                 {t('settings.Change Password')}
               </Button>
-              <Button color="light" className="w-full text-left">
+              <Button color="light" className="w-full text-left bg-white border border-[#e2e8f0] text-[#031b31]">
                 <HiShieldCheck className="mr-2 h-5 w-5" />
                 {t('settings.Two-Factor Auth')}
               </Button>
@@ -187,22 +191,22 @@ export default function ProfilePage() {
           </Card>
 
           {/* Connected Accounts */}
-          <Card>
-            <h3 className="text-lg font-semibold mb-4">{t('settings.Connected Accounts')}</h3>
+          <Card className="bg-[#f8fafc] border border-[#e2e8f0]">
+            <h3 className="text-lg font-semibold text-[#031b31] mb-4">{t('settings.Connected Accounts')}</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <HiLink className="mr-2 h-5 w-5" />
-                  <span>{t('settings.Google')}</span>
+                  <span className="text-[#031b31]">{t('settings.Google')}</span>
                 </div>
-                <Button size="xs" color="light">{t('settings.Connect')}</Button>
+                <Button size="xs" color="light" className="bg-white border border-[#e2e8f0] text-[#031b31]">{t('settings.Connect')}</Button>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <HiLink className="mr-2 h-5 w-5" />
-                  <span>{t('settings.Microsoft')}</span>
+                  <span className="text-[#031b31]">{t('settings.Microsoft')}</span>
                 </div>
-                <Button size="xs" color="light">{t('settings.Connect')}</Button>
+                <Button size="xs" color="light" className="bg-white border border-[#e2e8f0] text-[#031b31]">{t('settings.Connect')}</Button>
               </div>
             </div>
           </Card>

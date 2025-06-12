@@ -53,8 +53,8 @@ export default function Login() {
                 <SiMarketo className="h-8 w-8 text-white" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-[#1c2541] mb-2">Welcome to Concept</h1>
-            <p className="text-[#415A77]">Sign in to access your dashboard</p>
+            <h1 className="text-3xl font-bold text-[#1c2541] mb-2">Bienvenue sur Ice Concept</h1>
+            <p className="text-[#415A77]">Connectez-vous pour accéder au dashboard</p>
           </div>
 
           {/* Authorization Error */}

@@ -51,9 +51,9 @@ export default function TimePeriodSelector({
 
   const handlePeriodSelect = (period: TimePeriod) => {
     try {
-      onPeriodChange(period);
-      if (period !== TIME_PERIODS.CUSTOM) {
-        setIsOpen(false);
+    onPeriodChange(period);
+    if (period !== TIME_PERIODS.CUSTOM) {
+      setIsOpen(false);
       }
     } catch (error) {
       console.error('Error selecting period:', error);
@@ -62,12 +62,12 @@ export default function TimePeriodSelector({
 
   const handleDateChange = (type: 'start' | 'end', value: string) => {
     try {
-      if (!onDateRangeChange) return;
-      if (type === 'start') {
-        onDateRangeChange(value, endDate || '');
-      } else {
-        onDateRangeChange(startDate || '', value);
-      }
+    if (!onDateRangeChange) return;
+    if (type === 'start') {
+      onDateRangeChange(value, endDate || '');
+    } else {
+      onDateRangeChange(startDate || '', value);
+    }
     } catch (error) {
       console.error('Error changing date:', error);
     }

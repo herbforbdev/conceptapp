@@ -41,22 +41,24 @@ const BarChart = dynamic(() => import("react-chartjs-2").then((mod) => mod.Bar),
 
 // Add a helper to format dates in French short format
 const formatDateFR = (dateStr) => {
-  // Try to parse 'Apr 2025' or 'Apr 14, 25' to a Date
-  let d = new Date(dateStr);
-  if (isNaN(d)) {
-    // Try to parse as '14 Apr 2025' or 'Apr 14, 2025'
-    const parts = dateStr.match(/(\d{1,2})\s*([A-Za-zéû]+)\s*(\d{2,4})?/);
-    if (parts) {
-      const day = parts[1];
-      const month = parts[2];
-      const year = parts[3] || new Date().getFullYear();
-      d = new Date(`${day} ${month} ${year}`);
-    }
-  }
-  if (isNaN(d)) return dateStr;
   // French months short
   const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-  return `${d.getDate().toString().padStart(2, '0')}${months[d.getMonth()]}`;
+  
+  // First try to parse as a month-year string (e.g. "Apr 2025")
+  const monthYearMatch = dateStr.match(/([A-Za-zéû]+)\s+(\d{4})/);
+  if (monthYearMatch) {
+    const month = new Date(`${monthYearMatch[1]} 1, ${monthYearMatch[2]}`).getMonth();
+    return `${months[month]} ${monthYearMatch[2]}`;
+  }
+  
+  // If not month-year, try to parse as a regular date
+  const d = new Date(dateStr);
+  if (!isNaN(d)) {
+    return `${months[d.getMonth()]} ${d.getFullYear()}`;
+  }
+  
+  // If all parsing fails, return original string
+  return dateStr;
 };
 
 
@@ -94,14 +96,22 @@ export default function SalesTrendsPage() {
     // Monthly stats
     const monthly = filtered.reduce((acc, sale) => {
       const d = new Date(sale.date.seconds * 1000);
+      const timestamp = d.getTime();
       const label = d.toLocaleString("default", { month: "short", year: "numeric" });
-      if (!acc[label]) acc[label] = { totalUSD: 0, count: 0 };
+      if (!acc[label]) {
+        acc[label] = { 
+          totalUSD: 0, 
+          count: 0,
+          timestamp // Store timestamp for sorting
+        };
+      }
       acc[label].totalUSD += sale.amountUSD || 0;
       acc[label].count += 1;
       return acc;
     }, {});
+
     const sorted = Object.entries(monthly)
-      .sort(([a], [b]) => new Date(a) - new Date(b))
+      .sort(([, a], [, b]) => a.timestamp - b.timestamp) // Sort by timestamp
       .map(([month, data]) => ({
         month,
         totalUSD: data.totalUSD,

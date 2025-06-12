@@ -826,9 +826,9 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 rounded-2xl bg-white/80 shadow p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="text-lg font-bold text-black">{t('dashboard.sales_trend')}</div>
-              <select className="rounded-lg border border-gray-200 px-3 py-1 text-sm bg-white/70" onChange={e => setChartType(e.target.value)} value={chartType}>
-                <option value="sales">{t('dashboard.sales_trend')}</option>
-                <option value="costs">{t('dashboard.costs_trend')}</option>
+              <select className="rounded-lg border border-gray-200 px-3 py-1 text-sm bg-white/70 text-gray-900" onChange={e => setChartType(e.target.value)} value={chartType}>
+                <option value="sales" className="text-gray-900">{t('dashboard.sales_trend')}</option>
+                <option value="costs" className="text-gray-900">{t('dashboard.costs_trend')}</option>
               </select>
             </div>
             <div className="h-64">
