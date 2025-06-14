@@ -69,9 +69,11 @@ export function useMasterData() {
   const productMap = useMemo(() => {
     return new Map(products.map(product => [product.id, {
       ...product,
-      // Use translated names
+      // Use translated names but preserve original fields
       productid: product.translatedName,
-      producttype: product.translatedType
+      producttype: product.translatedType,
+      // Ensure activitytypeid is preserved
+      activitytypeid: product.activitytypeid
     }]));
   }, [products]);
 

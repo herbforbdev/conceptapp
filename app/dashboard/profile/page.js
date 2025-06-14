@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
   const { user, logout, updateUserProfile, userActivities, loadUserActivities, sessionId } = useAuth();
-  const { t, language, setLanguage } = useLanguage();
+  const { t, language, setLanguage, syncLanguageWithProfile } = useLanguage();
   const router = useRouter();
 
   // Phase 3: Enhanced profile fields
@@ -39,6 +39,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
+      const userLanguage = user.language || 'fr';
+      
+      // Sync language context with user profile language
+      if (userLanguage !== language) {
+        syncLanguageWithProfile(userLanguage);
+      }
+      
       setEnhancedProfile(prev => ({
         ...prev,
         displayName: user.displayName || '',
@@ -49,11 +56,11 @@ export default function ProfilePage() {
         emailNotifications: user.emailNotifications ?? true,
         pushNotifications: user.pushNotifications ?? true,
         weeklyReports: user.weeklyReports ?? false,
-        language: user.language || language || 'fr',
+        language: userLanguage,
         theme: user.theme || 'light'
       }));
     }
-  }, [user, language]);
+  }, [user, language, syncLanguageWithProfile]);
 
   useEffect(() => {
     const loadActiveSessions = async () => {
@@ -86,7 +93,20 @@ export default function ProfilePage() {
         theme: user.theme || 'light'
       };
       
-      const hasProfileChanges = JSON.stringify(currentProfile) !== JSON.stringify(enhancedProfile);
+      // More robust change detection
+      const hasProfileChanges = Object.keys(currentProfile).some(key => {
+        const currentValue = currentProfile[key];
+        const enhancedValue = enhancedProfile[key];
+        
+        // Handle boolean values explicitly
+        if (typeof currentValue === 'boolean' || typeof enhancedValue === 'boolean') {
+          return Boolean(currentValue) !== Boolean(enhancedValue);
+        }
+        
+        // Handle string values
+        return String(currentValue) !== String(enhancedValue);
+      });
+      
       setHasChanges(hasProfileChanges);
     }
   }, [enhancedProfile, user, language]);
@@ -118,19 +138,29 @@ export default function ProfilePage() {
     setIsSaving(true);
     
     try {
-      // Update language context if language changed
+      // Update language context immediately if language changed
       if (enhancedProfile.language !== language) {
         setLanguage(enhancedProfile.language);
+        // Also save to localStorage immediately for persistence
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('language', enhancedProfile.language);
+        }
       }
       
       const success = await updateUserProfile(enhancedProfile);
       if (success) {
         setMessage({ type: 'success', text: 'Profil mis à jour avec succès!' });
         setHasChanges(false);
+        
+        // Force a small delay to ensure the language change is applied
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du profil.' });
       }
     } catch (error) {
+      console.error('Profile update error:', error);
       setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du profil.' });
     } finally {
       setIsSaving(false);
@@ -522,7 +552,7 @@ export default function ProfilePage() {
                       onChange={(e) => {
                         const newLang = e.target.value;
                         setEnhancedProfile(prev => ({ ...prev, language: newLang }));
-                        setLanguage(newLang);
+                        // Don't immediately set language context here - wait for save
                       }}
                       className="mt-1 bg-[#f8fafc] border-[#e2e8f0] text-[#031b31]"
                     >
@@ -554,7 +584,6 @@ export default function ProfilePage() {
                         id="emailNotifications"
                         checked={enhancedProfile.emailNotifications}
                         onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, emailNotifications: checked }))}
-                        className="[&>div]:bg-[#e2e8f0] [&>div]:border-[#385e82] [&>div[data-checked=true]]:bg-[#385e82]"
                       />
                     </div>
 
@@ -567,7 +596,6 @@ export default function ProfilePage() {
                         id="pushNotifications"
                         checked={enhancedProfile.pushNotifications}
                         onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, pushNotifications: checked }))}
-                        className="[&>div]:bg-[#e2e8f0] [&>div]:border-[#385e82] [&>div[data-checked=true]]:bg-[#385e82]"
                       />
                     </div>
 
@@ -580,7 +608,6 @@ export default function ProfilePage() {
                         id="weeklyReports"
                         checked={enhancedProfile.weeklyReports}
                         onChange={(checked) => setEnhancedProfile(prev => ({ ...prev, weeklyReports: checked }))}
-                        className="[&>div]:bg-[#e2e8f0] [&>div]:border-[#385e82] [&>div[data-checked=true]]:bg-[#385e82]"
                       />
                     </div>
                   </div>

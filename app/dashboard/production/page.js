@@ -588,17 +588,41 @@ const getPackagingForProduct = (productId, productMap) => {
 const getTranslatedProductName = (product, t) => {
   if (!product) return 'N/A';
   const name = product.productid || product.name || 'Unknown';
+  if (!name) return 'N/A';
+  const lower = name.toLowerCase();
+  const type = product.producttype?.toLowerCase();
+  const includesAny = (str, terms) => terms.some(term => str.includes(term));
   try {
-    // Try to find a translation key based on product type and name
-    if (product.producttype) {
-      const key = `products.types.${product.producttype.toLowerCase()}`;
-      const translated = t(key);
-      if (translated && translated !== key) {
-        return String(translated);
+    if (type?.includes('packaging') || lower.includes('package') || lower.includes('emballage')) {
+      if (includesAny(lower, ['cube ice', 'glaçons'])) {
+        if (lower.includes('1kg')) return String(t('products.items.packaging.cubeIce.1kg') || name);
+        if (lower.includes('2kg')) return String(t('products.items.packaging.cubeIce.2kg') || name);
+        if (lower.includes('5kg')) return String(t('products.items.packaging.cubeIce.5kg') || name);
       }
+      if (includesAny(lower, ['water', 'eau'])) {
+        if (lower.includes('600ml')) return String(t('products.items.packaging.waterBottling.600ml') || name);
+        if (lower.includes('750ml')) return String(t('products.items.packaging.waterBottling.750ml') || name);
+        if (lower.includes('1.5l') || lower.includes('1,5l')) return String(t('products.items.packaging.waterBottling.1_5L') || name);
+        if (lower.includes('5l')) return String(t('products.items.packaging.waterBottling.5L') || name);
+      }
+      return String(name);
     }
-    // Return the raw name if no translation found
-    return String(name);
+    if (type === 'block ice' || includesAny(lower, ['bloc de glace', 'block ice'])) {
+      if (lower.includes('5kg')) return String(t('products.items.blockIce.5kg') || name);
+      if (lower.includes('8kg')) return String(t('products.items.blockIce.8kg') || name);
+      if (lower.includes('30kg')) return String(t('products.items.blockIce.30kg') || name);
+    }
+    if (type === 'cube ice' || includesAny(lower, ['glaçons', 'cube ice', 'ice cube'])) {
+      if (lower.includes('1kg')) return String(t('products.items.cubeIce.1kg') || name);
+      if (lower.includes('2kg')) return String(t('products.items.cubeIce.2kg') || name);
+      if (lower.includes('5kg')) return String(t('products.items.cubeIce.5kg') || name);
+    }
+    if (type === 'water bottling' || includesAny(lower, ['eau en bouteille', 'bottled water', 'water bottle'])) {
+      if (lower.includes('600ml')) return String(t('products.items.waterBottling.600ml') || name);
+      if (lower.includes('750ml')) return String(t('products.items.waterBottling.750ml') || name);
+      if (lower.includes('1.5l') || lower.includes('1,5l')) return String(t('products.items.waterBottling.1_5L') || name);
+      if (lower.includes('5l')) return String(t('products.items.waterBottling.5L') || name);
+    }
   } catch (error) {
     console.warn('Translation error for product:', name, error);
   }
@@ -608,9 +632,63 @@ const getTranslatedActivityTypeName = (activityType, t) => {
   if (!activityType) return 'N/A';
   const name = activityType.name || activityType;
   if (!name) return 'N/A';
-  const key = `products.activities.${name.toLowerCase().replace(/\s+/g, '_')}`;
-  const translated = t(key);
-  return String(translated && translated !== key ? translated : name);
+  
+  // First try hardcoded translation map for existing entries
+  const activityTypeTranslationMap = {
+    "Block Ice": "block_ice",
+    "Cube Ice & Water Bottling": "cube_ice_water_bottling"
+  };
+  
+  if (activityTypeTranslationMap[name]) {
+    const translated = t(`masterData.activities.${activityTypeTranslationMap[name]}`, '');
+    if (translated && translated !== `masterData.activities.${activityTypeTranslationMap[name]}`) {
+      return String(translated);
+    }
+  }
+  
+  // Try dynamic key generation for new entries
+  const keyVariations = [
+    // Direct key in activities (not nested under types)
+    name.replace(/\s+/g, '_').replace(/&/g, '_').toLowerCase(),
+    // With French characters
+    name.toLowerCase().replace(/\s+/g, '_').replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/à/g, 'a').replace(/ç/g, 'c'),
+    // Original with underscores
+    name.replace(/\s+/g, '_').toLowerCase(),
+    // CamelCase version
+    name.replace(/\s+/g, '').replace(/&/g, ''),
+    // Without spaces in lowercase
+    name.replace(/\s+/g, '').toLowerCase(),
+    // Legacy products.activities pattern
+    name.toLowerCase().replace(/\s+/g, '_')
+  ];
+  
+  // Try each variation - activities are directly under masterData.activities, not under types
+  for (const key of keyVariations) {
+    const translated = t(`masterData.activities.${key}`, '');
+    if (translated && translated !== `masterData.activities.${key}`) {
+      return String(translated);
+    }
+  }
+  
+  // Also try under types structure for backward compatibility
+  for (const key of keyVariations) {
+    const translated = t(`masterData.activities.types.${key}`, '');
+    if (translated && translated !== `masterData.activities.types.${key}`) {
+      return String(translated);
+    }
+  }
+  
+  // Try legacy pattern
+  for (const key of keyVariations) {
+    const legacyKey = `products.activities.${key}`;
+    const translated = t(legacyKey, '');
+    if (translated && translated !== legacyKey) {
+      return String(translated);
+    }
+  }
+  
+  // Fallback to original name (perfect for French entries added via master-data page)
+  return String(name);
 };
 
 // Add fallback translation for unknown and no packaging
@@ -1296,13 +1374,14 @@ export default function ProductionPage() {
   }, [router]);
 
   const handleDelete = useCallback(async (id) => {
+    if (!window.confirm(t('common.deleteConfirm'))) return;
     try {
       await deleteDoc(doc(firestore, "Production", id));
       router.refresh();
     } catch (err) {
       console.error("Error deleting production record:", err);
     }
-  }, [router]);
+  }, [router, t]);
 
   const handleBulkDelete = useCallback(async () => {
     if (selectedItems.length === 0) return;
@@ -2166,8 +2245,8 @@ export default function ProductionPage() {
       <div className="grid grid-cols-12 gap-6">
         {/* Production Summary Table - Left Side */}
         <div className="col-span-5">
-          <Card className="border border-red-200 rounded-lg bg-white h-full">
-            <div className="px-6 py-3 bg-red-50 border-b border-red-200 flex justify-between items-center rounded-t-2xl">
+          <Card className="border border-red-200 rounded-lg bg-white h-full p-0">
+            <div className="px-8 py-8 bg-red-50 border-b border-red-200 flex justify-between items-center rounded-t-2xl">
               <h3 className="text-lg font-semibold text-red-900 rounded-t-2xl">{safeT(t, 'production.summary.title', 'Production Summary')}</h3>
               <div className="flex gap-2">
                 <Select
@@ -2200,8 +2279,7 @@ export default function ProductionPage() {
                 </Select>
               </div>
             </div>  
-            <div className="p-5 overflow-x-auto">
-              <table className="w-full text-sm text-left text-gray-900 border border-red-100 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+            <table className="w-full text-sm text-left text-gray-900 border border-red-100 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
                 <thead className="bg-red-50">
                   <tr>
                     <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900">{safeT(t, 'production.summary.activityType', 'Activity Type')}</th>
@@ -2270,7 +2348,6 @@ export default function ProductionPage() {
                   </tr>
                 </tbody>
               </table>
-            </div>
           </Card>
         </div>
 

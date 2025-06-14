@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Surgical Code Changes
+* Only modify the minimal lines necessary to implement the requested feature or fix.
+* Never refactor or rewrite working code; keep unrelated parts untouched.
+
+Preserve Translation File Structure
+* When adding or updating keys in lib/translations/fr.json or lib/translations/en.json, follow the exact nesting and ordering you see in those files.
+* Ensure that every new key in one language has a corresponding entry (same path) in the other.
+
+Follow React Best Practices
+* Use functional components and hooks correctly to avoid common pitfalls (e.g. stale closures, missing deps in useEffect).
+
+* Adhere to the React Hooks Rules and ESLint-plugin-React best-practice rules to prevent “react/jsx-no-bind” (130) errors in production.

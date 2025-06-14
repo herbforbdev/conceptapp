@@ -244,17 +244,52 @@ function CostsPage() {
     const name = expenseType.name || expenseType;
     if (!name) return 'N/A';
     
-    // First try the direct masterData translation key pattern
-    const key = name.replace(/\s+/g, '_').toLowerCase();
-    const translated = t(`masterData.expenses.types.${key}`, '');
-    if (translated) return translated;
+    // First try hardcoded translation map for existing entries
+    const expenseTypeTranslationMap = {
+      "Generator Fuel": "generator_fuel",
+      "Maintenance & Repairs of Machines": "maintenance_&_repairs_of_machines",
+      "Maintenance et réparations des machines": "entretien_&_réparations_des_machines",
+      "Electricity": "electricity",
+      "Water": "water",
+      "Salaries": "salaries",
+      "Transport": "transport",
+      "Office Supplies": "office_supplies",
+      "Marketing": "marketing",
+      "Insurance": "insurance",
+      "Rent": "rent",
+      "Other": "other"
+    };
     
-    // Also try camelCase version
-    const camelKey = name.replace(/\s+/g, '');
-    const camelTranslated = t(`masterData.expenses.types.${camelKey}`, '');
-    if (camelTranslated) return camelTranslated;
+    if (expenseTypeTranslationMap[name]) {
+      const translated = t(`masterData.expenses.types.${expenseTypeTranslationMap[name]}`, '');
+      if (translated && translated !== `masterData.expenses.types.${expenseTypeTranslationMap[name]}`) {
+        return translated;
+      }
+    }
     
-    // Fallback to the original name
+    // Try dynamic key generation for new entries
+    const keyVariations = [
+      // Original name with underscores and ampersands
+      name.replace(/\s+/g, '_').replace(/&/g, '&').toLowerCase(),
+      // Original name with underscores and & symbols
+      name.replace(/\s+/g, '_').replace(/&/g, '_&_').toLowerCase(),
+      // Original name with underscores only
+      name.replace(/\s+/g, '_').replace(/&/g, '').toLowerCase(),
+      // CamelCase version
+      name.replace(/\s+/g, '').replace(/&/g, ''),
+      // Direct French translations that exist in JSON
+      name.toLowerCase().replace(/\s+/g, '_').replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/à/g, 'a').replace(/ç/g, 'c')
+    ];
+    
+    // Try each variation
+    for (const key of keyVariations) {
+      const translated = t(`masterData.expenses.types.${key}`, '');
+      if (translated && translated !== `masterData.expenses.types.${key}`) {
+        return translated;
+      }
+    }
+    
+    // Fallback to original name (perfect for French entries added via master-data page)
     return name;
   }
 
@@ -264,17 +299,50 @@ function CostsPage() {
     const name = activityType.name || activityType;
     if (!name) return 'N/A';
     
-    // First try the direct masterData translation key pattern
-    const key = name.replace(/\s+/g, '_').toLowerCase();
-    const translated = t(`masterData.activities.types.${key}`, '');
-    if (translated) return translated;
+    // First try hardcoded translation map for existing entries
+    const activityTypeTranslationMap = {
+      "Block Ice": "block_ice",
+      "Cube Ice & Water Bottling": "cube_ice_water_bottling"
+    };
     
-    // Also try without spaces in lowercase
-    const noSpaceKey = name.replace(/\s+/g, '').toLowerCase();
-    const noSpaceTranslated = t(`masterData.activities.types.${noSpaceKey}`, '');
-    if (noSpaceTranslated) return noSpaceTranslated;
+    if (activityTypeTranslationMap[name]) {
+      const translated = t(`masterData.activities.${activityTypeTranslationMap[name]}`, '');
+      if (translated && translated !== `masterData.activities.${activityTypeTranslationMap[name]}`) {
+        return translated;
+      }
+    }
     
-    // Fallback to the original name
+    // Try dynamic key generation for new entries
+    const keyVariations = [
+      // Direct key in activities (not nested under types)
+      name.replace(/\s+/g, '_').replace(/&/g, '_').toLowerCase(),
+      // With French characters
+      name.toLowerCase().replace(/\s+/g, '_').replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/à/g, 'a').replace(/ç/g, 'c'),
+      // Original with underscores
+      name.replace(/\s+/g, '_').toLowerCase(),
+      // CamelCase version
+      name.replace(/\s+/g, '').replace(/&/g, ''),
+      // Without spaces in lowercase
+      name.replace(/\s+/g, '').toLowerCase()
+    ];
+    
+    // Try each variation - activities are directly under masterData.activities, not under types
+    for (const key of keyVariations) {
+      const translated = t(`masterData.activities.${key}`, '');
+      if (translated && translated !== `masterData.activities.${key}`) {
+        return translated;
+      }
+    }
+    
+    // Also try under types structure for backward compatibility
+    for (const key of keyVariations) {
+      const translated = t(`masterData.activities.types.${key}`, '');
+      if (translated && translated !== `masterData.activities.types.${key}`) {
+        return translated;
+      }
+    }
+    
+    // Fallback to original name (perfect for French entries added via master-data page)
     return name;
   }
 
@@ -372,14 +440,52 @@ function CostsPage() {
     });
   }, [costs, filters.selectedMonth, filters.selectedYear, filters.selectedActivityType, filters.selectedExpenseType]);
 
+  // Add sorting state
+  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
+
+  // Add sorting function
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  // Add sorted costs
+  const sortedCosts = useMemo(() => {
+    const sorted = [...filteredCosts];
+    const direction = sortConfig.direction === 'asc' ? 1 : -1;
+
+    return sorted.sort((a, b) => {
+      switch (sortConfig.key) {
+        case 'date':
+          return direction * (toDateObj(a.date).getTime() - toDateObj(b.date).getTime());
+        case 'activity':
+          const activityA = String(activityTypeMap.get(a.activityTypeId)?.name || '');
+          const activityB = String(activityTypeMap.get(b.activityTypeId)?.name || '');
+          return direction * activityA.localeCompare(activityB);
+        case 'expense':
+          const expenseA = String(expenseTypeMap.get(a.expenseTypeId)?.name || '');
+          const expenseB = String(expenseTypeMap.get(b.expenseTypeId)?.name || '');
+          return direction * expenseA.localeCompare(expenseB);
+        case 'amountFC':
+          return direction * ((a.amountFC || 0) - (b.amountFC || 0));
+        case 'amountUSD':
+          return direction * ((a.amountUSD || 0) - (b.amountUSD || 0));
+        default:
+          return 0;
+      }
+    });
+  }, [filteredCosts, sortConfig, activityTypeMap, expenseTypeMap]);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage] = useState(10);
 
   // Calculate total pages
   const totalPages = useMemo(() => {
-    return Math.ceil(filteredCosts.length / entriesPerPage);
-  }, [filteredCosts, entriesPerPage]);
+    return Math.ceil(sortedCosts.length / entriesPerPage);
+  }, [sortedCosts, entriesPerPage]);
 
   // Calculate pagination indexes
   const indexOfLastItem = currentPage * entriesPerPage;
@@ -387,8 +493,8 @@ function CostsPage() {
 
   // Get paginated data
   const paginatedCosts = useMemo(() => {
-    return filteredCosts.slice(indexOfFirstItem, indexOfLastItem);
-  }, [filteredCosts, indexOfFirstItem, indexOfLastItem]);
+    return sortedCosts.slice(indexOfFirstItem, indexOfLastItem);
+  }, [sortedCosts, indexOfFirstItem, indexOfLastItem]);
 
   // Pagination helper functions
   const goToPreviousPage = useCallback(() => {
@@ -437,44 +543,6 @@ function CostsPage() {
     setDateRange({ startDate: start, endDate: end });
   }, [selectedMonth, selectedYear]);
 
-  // Add sorting state
-  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
-
-  // Add sorting function
-  const handleSort = (key) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
-
-  // Add sorted costs
-  const sortedCosts = useMemo(() => {
-    const sorted = [...filteredCosts];
-    const direction = sortConfig.direction === 'asc' ? 1 : -1;
-
-    return sorted.sort((a, b) => {
-      switch (sortConfig.key) {
-        case 'date':
-          return direction * (toDateObj(a.date).getTime() - toDateObj(b.date).getTime());
-        case 'activity':
-          const activityA = String(activityTypeMap.get(a.activityTypeId)?.name || '');
-          const activityB = String(activityTypeMap.get(b.activityTypeId)?.name || '');
-          return direction * activityA.localeCompare(activityB);
-        case 'expense':
-          const expenseA = String(expenseTypeMap.get(a.expenseTypeId)?.name || '');
-          const expenseB = String(expenseTypeMap.get(b.expenseTypeId)?.name || '');
-          return direction * expenseA.localeCompare(expenseB);
-        case 'amountFC':
-          return direction * ((a.amountFC || 0) - (b.amountFC || 0));
-        case 'amountUSD':
-          return direction * ((a.amountUSD || 0) - (b.amountUSD || 0));
-        default:
-          return 0;
-      }
-    });
-  }, [filteredCosts, sortConfig, activityTypeMap, expenseTypeMap]);
-
   // Handle period selection
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period);
@@ -492,12 +560,12 @@ function CostsPage() {
   const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
-    if (filteredCosts.length > 0 && selectedItems.length === filteredCosts.length) {
+    if (sortedCosts.length > 0 && selectedItems.length === sortedCosts.length) {
       setSelectAll(true);
     } else {
       setSelectAll(false);
     }
-  }, [selectedItems, filteredCosts]);
+  }, [selectedItems, sortedCosts]);
 
   // Add isDeleting state for bulk/single delete
   const [isDeleting, setIsDeleting] = useState(false);
@@ -1020,7 +1088,7 @@ function CostsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-[#b2d8d8]">
-              {filteredCosts.map((cost) => (
+              {paginatedCosts.map((cost) => (
                 <tr key={cost.id} className="hover:bg-[#b2d8d8]">
                   <td className="px-6 py-4">
                     <input
@@ -1164,7 +1232,7 @@ function CostsPage() {
                           <Button color="info" size="xs" onClick={() => startEditing(cost)} className="h-8 w-8 p-0 flex items-center justify-center bg-[#004c4c] text-white hover:bg-[#008080]/80 border border-[#004c4c]">
                             <HiPencil className="h-4 w-4" />
                           </Button>
-                          <Button color="failure" size="xs" onClick={() => { if (window.confirm(t('costs.confirm.delete_single'))) { handleDelete(cost.id); } }} className="h-8 w-8 p-0 flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 border border-red-200">
+                          <Button color="failure" size="xs" onClick={() => handleDelete(cost.id)} className="h-8 w-8 p-0 flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 border border-red-200">
                             <HiTrash className="h-4 w-4" />
                           </Button>
                         </>
@@ -1176,13 +1244,42 @@ function CostsPage() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {sortedCosts.length > entriesPerPage && (
+          <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-[#004c4c]">
+            <span className="text-sm text-gray-700">
+              {t('table.showing')} {(currentPage - 1) * entriesPerPage + 1} {t('table.to')} {Math.min(currentPage * entriesPerPage, sortedCosts.length)} {t('table.of')} {sortedCosts.length} {t('table.entries')}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                color="gray"
+                size="sm"
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+                className="bg-[#66b2b2]/20 text-[#008080] hover:bg-green-200 disabled:bg-[#66b2b2] disabled:text-green-400 shadow-sm"
+              >
+                {t('common.previous')}
+              </Button>
+              <Button
+                color="gray"
+                size="sm"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                className="bg-[#66b2b2]/20 text-[#008080] hover:bg-green-200 disabled:bg-[#66b2b2] disabled:text-green-400 shadow-sm"
+              >
+                {t('common.next')}
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Main Content Grid - Two Cards Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Left Card - Summary Table (untouched) */}
         <Card className="border border-[#66b2b2]/20 rounded-lg bg-white">
-          <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg flex justify-between items-center">
+          <div className="px-8 py-8 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg flex justify-between items-center">
             <h3 className="text-lg font-semibold text-white uppercase text-left">
               {safeT(t, 'common.summary', 'Summary')}
             </h3>
@@ -1215,7 +1312,7 @@ function CostsPage() {
           </div>
           
           {/* Summary Table */}
-          <div className="p-5 overflow-x-auto">
+          <div className="p-0 overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-900 border border-[#004c4c] rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
               <thead className="bg-[#004c4c]">
                 <tr>
@@ -1460,34 +1557,7 @@ function CostsPage() {
         </div>
       </div>
 
-      {/* Pagination */}
-      {filteredCosts.length > entriesPerPage && (
-        <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-[#004c4c]">
-          <span className="text-sm text-gray-700">
-            {t('table.showing')} {(currentPage - 1) * entriesPerPage + 1} {t('table.to')} {Math.min(currentPage * entriesPerPage, filteredCosts.length)} {t('table.of')} {filteredCosts.length} {t('table.entries')}
-          </span>
-          <div className="flex gap-2">
-            <Button
-              color="gray"
-              size="sm"
-              onClick={goToPreviousPage}
-              disabled={currentPage === 1}
-              className="bg-[#66b2b2]/20 text-[#008080] hover:bg-green-200 disabled:bg-[#66b2b2] disabled:text-green-400 shadow-sm"
-            >
-              {t('common.previous')}
-            </Button>
-            <Button
-              color="gray"
-              size="sm"
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages}
-              className="bg-[#66b2b2]/20 text-[#008080] hover:bg-green-200 disabled:bg-[#66b2b2] disabled:text-green-400 shadow-sm"
-            >
-              {t('common.next')}
-            </Button>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

@@ -87,6 +87,12 @@ export default function AddCostPage() {
         if (!entry.date || !entry.activityTypeId || !entry.expenseTypeId) {
           setError(t('costs.add.error.requiredFields')); setIsSubmitting(false); return;
         }
+        
+        // Validate that numeric values are not zero
+        if (Number(entry.amountFC) <= 0 || Number(entry.amountUSD) <= 0 || Number(entry.exchangeRate) <= 0) {
+          setError('Amounts and exchange rate must be greater than zero'); setIsSubmitting(false); return;
+        }
+        
         await addCost({
           date: new Date(entry.date),
           activityTypeId: entry.activityTypeId,
@@ -126,8 +132,8 @@ export default function AddCostPage() {
         <div className="bg-white rounded-xl shadow-sm border border-red-100 p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Add New Cost Entry</h1>
-              <p className="text-gray-600 mt-1">Record your business expenses and track costs</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('costs.add.title')}</h1>
+              <p className="text-gray-600 mt-1">{t('costs.add.addDescription')}</p>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -136,7 +142,7 @@ export default function AddCostPage() {
                 className="text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Costs
+                {t('costs.add.backToCosts')}
               </Button>
             </div>
           </div>

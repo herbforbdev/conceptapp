@@ -423,14 +423,63 @@ const getTranslatedActivityTypeName = (activityType, t) => {
   const name = activityType.name || activityType.activityid || activityType;
   if (!name) return 'N/A';
   
-  // Normalize the key
-  const key = `products.activities.${normalizeActivityKey(name)}`;
+  // First try hardcoded translation map for existing entries
+  const activityTypeTranslationMap = {
+    "Block Ice": "block_ice",
+    "Cube Ice & Water Bottling": "cube_ice_water_bottling"
+  };
   
-  // Try to get translation
-  const translated = t(key);
+  if (activityTypeTranslationMap[name]) {
+    const translated = t(`masterData.activities.${activityTypeTranslationMap[name]}`, '');
+    if (translated && translated !== `masterData.activities.${activityTypeTranslationMap[name]}`) {
+      return String(translated);
+    }
+  }
   
-  // Return translation if it exists, otherwise return original name
-  return String(translated && translated !== key ? translated : name);
+  // Try dynamic key generation for new entries
+  const keyVariations = [
+    // Direct key in activities (not nested under types)
+    name.replace(/\s+/g, '_').replace(/&/g, '_').toLowerCase(),
+    // With French characters
+    name.toLowerCase().replace(/\s+/g, '_').replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/à/g, 'a').replace(/ç/g, 'c'),
+    // Original with underscores
+    name.replace(/\s+/g, '_').toLowerCase(),
+    // CamelCase version
+    name.replace(/\s+/g, '').replace(/&/g, ''),
+    // Without spaces in lowercase
+    name.replace(/\s+/g, '').toLowerCase(),
+    // Legacy products.activities pattern
+    `products.activities.${normalizeActivityKey(name)}`
+  ];
+  
+  // Try each variation - activities are directly under masterData.activities, not under types
+  for (const key of keyVariations) {
+    const translated = t(`masterData.activities.${key}`, '');
+    if (translated && translated !== `masterData.activities.${key}`) {
+      return String(translated);
+    }
+  }
+  
+  // Also try under types structure for backward compatibility
+  for (const key of keyVariations) {
+    const translated = t(`masterData.activities.types.${key}`, '');
+    if (translated && translated !== `masterData.activities.types.${key}`) {
+      return String(translated);
+    }
+  }
+  
+  // Try legacy pattern
+  for (const key of keyVariations) {
+    if (key.startsWith('products.activities.')) {
+      const translated = t(key, '');
+      if (translated && translated !== key) {
+        return String(translated);
+      }
+    }
+  }
+  
+  // Fallback to original name (perfect for French entries added via master-data page)
+  return String(name);
 };
 
 const getTranslatedChartLabel = (label, t) => {
@@ -516,6 +565,9 @@ export default function SalesPage() {
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1
   });
+
+  // Product type filter for summary tables
+  const [selectedProductType, setSelectedProductType] = useState('');
 
   // Time period states
   const [selectedTimePeriod, setSelectedTimePeriod] = useState(TIME_PERIODS.MONTH);
@@ -683,11 +735,31 @@ export default function SalesPage() {
     return Array.from(productMap.values()).reduce((acc, product) => {
       if (!seen.has(product.id)) {
         seen.add(product.id);
-        acc.add(product);
+        acc.push(product);
       }
       return acc;
-    }, new Set());
+    }, []);
   }, [productMap]);
+
+  // Get unique product types for filter dropdown
+  const uniqueProductTypes = useMemo(() => {
+    const types = new Set();
+    Array.from(productMap.values()).forEach(product => {
+      if (product.producttype && 
+          !product.producttype.includes('Packaging') && 
+          !product.producttype.includes('Emballage')) {
+        types.add(product.producttype);
+      }
+    });
+    return Array.from(types).sort();
+  }, [productMap]);
+
+  // Set default product type when component mounts
+  useEffect(() => {
+    if (uniqueProductTypes.length > 0 && !selectedProductType) {
+      setSelectedProductType(uniqueProductTypes[0]);
+    }
+  }, [uniqueProductTypes, selectedProductType]);
 
   // Helper function to get unique products by activity type
   const getUniqueProductsByActivityType = useCallback((activityTypeId) => {
@@ -1673,7 +1745,38 @@ export default function SalesPage() {
 
         {/* Sales by Product Summary Table */}
         <Card className="lg:col-span-1">
-          <h3 className="text-lg font-semibold mb-4 text-blue-900">{t('sales.summary.byProduct')}</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-blue-900">{t('sales.summary.byProduct')}</h3>
+            <Select
+              value={selectedProductType}
+              onChange={(e) => setSelectedProductType(e.target.value)}
+              className="w-40 bg-white border-blue-200 text-blue-900 focus:border-blue-500 focus:ring-blue-500"
+              size="sm"
+            >
+              <option value="">{t('filters.allProducts')}</option>
+              {uniqueProductTypes.map(type => {
+                // Get translation key for product type
+                let translationKey;
+                if (type === 'Block Ice') {
+                  translationKey = 'products.types.blockIce';
+                } else if (type === 'Cube Ice') {
+                  translationKey = 'products.types.cubeIce';
+                } else if (type === 'Water Bottling') {
+                  translationKey = 'products.types.waterBottling';
+                } else if (type === 'Water Cans') {
+                  translationKey = 'products.types.waterCans';
+                } else {
+                  translationKey = `products.types.${type.toLowerCase().replace(/\s+/g, '')}`;
+                }
+                
+                return (
+                  <option key={type} value={type}>
+                    {t(translationKey) || type}
+                  </option>
+                );
+              })}
+            </Select>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-900">
               <thead className="bg-blue-50">
@@ -1687,19 +1790,32 @@ export default function SalesPage() {
                 {(() => {
                   // Metrics for selected period
                   const metrics = calculateSalesMetrics(periodData);
-                  const productSales = periodData.reduce((acc, sale) => {
+                  
+                  // Filter products by selected product type
+                  const filteredPeriodData = selectedProductType 
+                    ? periodData.filter(sale => {
+                        const product = productMap.get(sale.productId);
+                        return product?.producttype === selectedProductType;
+                      })
+                    : periodData;
+                  
+                  const productSales = filteredPeriodData.reduce((acc, sale) => {
                     const product = productMap.get(sale.productId);
                     const productName = product?.productid || 'Unknown Product';
-                    if (!acc[productName]) acc[productName] = { totalUSD: 0 };
+                    if (!acc[productName]) acc[productName] = { totalUSD: 0, product };
                     acc[productName].totalUSD += sale.amountUSD || 0;
                     return acc;
                   }, {});
 
+                  // Calculate total for filtered data
+                  const filteredTotal = Object.values(productSales).reduce((sum, data) => sum + data.totalUSD, 0);
+
                   const rows = Object.entries(productSales)
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
+                    .slice(0, 4) // Limit to 4 rows for consistent height
                     .map(([productName, data]) => (
                       <tr key={productName} className="hover:bg-blue-50">
-                        <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedProductName(productMap.get(productName), t)}</td>
+                        <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedProductName(data.product, t)}</td>
                         <td className="px-6 py-4 font-semibold text-sm text-center">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
                             {data.totalUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
@@ -1707,19 +1823,32 @@ export default function SalesPage() {
                         </td>
                         <td className="px-6 py-4 font-semibold text-sm text-center">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {metrics.totalSales.amountUSD>0?((data.totalUSD/metrics.totalSales.amountUSD)*100).toFixed(1):0}%
+                            {filteredTotal > 0 ? ((data.totalUSD / filteredTotal) * 100).toFixed(1) : 0}%
                           </span>
                         </td>
                       </tr>
                     ));
+                  
+                  // Add empty rows to maintain consistent height (4 rows total)
+                  const emptyRowsNeeded = Math.max(0, 4 - rows.length);
+                  for (let i = 0; i < emptyRowsNeeded; i++) {
+                    rows.push(
+                      <tr key={`empty-${i}`} className="h-12">
+                        <td className="px-6 py-4">&nbsp;</td>
+                        <td className="px-6 py-4">&nbsp;</td>
+                        <td className="px-6 py-4">&nbsp;</td>
+                      </tr>
+                    );
+                  }
+                  
                   return (
                     <>
                       {rows}
-                      <tr className="bg-blue-50 font-semibold">
+                      <tr className="bg-blue-50 font-semibold border-t-2 border-blue-200">
                         <td className="px-6 py-4 text-base">Total</td>
                         <td className="px-6 py-4 text-base text-center">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {metrics.totalSales.amountUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
+                            {filteredTotal.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-base text-center">100%</td>
@@ -1759,6 +1888,7 @@ export default function SalesPage() {
                   const rows = Object.entries(activitySalesMap)
                     .filter(([key, data]) => key !== 'undefined')
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
+                    .slice(0, 5) // Limit to 5 rows for consistent height
                     .map(([key, data]) => (
                       <tr key={key} className="hover:bg-blue-50">
                         <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedActivityTypeName(data.activityType, t)}</td>
@@ -1776,7 +1906,7 @@ export default function SalesPage() {
                     ));
                   // Add fallback for unknown/missing activityTypeId
                   const unknown = activitySalesMap['undefined'];
-                  if (unknown && unknown.totalUSD > 0) {
+                  if (unknown && unknown.totalUSD > 0 && rows.length < 5) {
                     rows.push(
                       <tr key="unknown" className="hover:bg-blue-50">
                         <td className="px-6 py-4 font-semibold text-sm text-blue-900">{t('common.undefined', 'Non défini')}</td>
@@ -1793,10 +1923,23 @@ export default function SalesPage() {
                       </tr>
                     );
                   }
+                  
+                  // Add empty rows to maintain consistent height (5 rows total)
+                  const emptyRowsNeeded = Math.max(0, 5 - rows.length);
+                  for (let i = 0; i < emptyRowsNeeded; i++) {
+                    rows.push(
+                      <tr key={`empty-activity-${i}`} className="h-12">
+                        <td className="px-6 py-4">&nbsp;</td>
+                        <td className="px-6 py-4">&nbsp;</td>
+                        <td className="px-6 py-4">&nbsp;</td>
+                      </tr>
+                    );
+                  }
+                  
                   return (
                     <>
                       {rows}
-                      <tr className="bg-blue-50 font-semibold">
+                      <tr className="bg-blue-50 font-semibold border-t-2 border-blue-200">
                         <td className="px-6 py-4 text-base">Total </td>
                         <td className="px-6 py-4 text-base text-center">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
@@ -1842,6 +1985,7 @@ export default function SalesPage() {
                   }, {});
                   const rows = Object.entries(channelSales)
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
+                    .slice(0, 5) // Limit to 5 rows for consistent height
                     .map(([channel, data]) => (
                       <tr key={channel} className="hover:bg-blue-50">
                         <td className="px-6 py-4 font-semibold text-sm text-blue-900">{t(`sales.channels.${channel}`, channel)}</td>
@@ -1857,10 +2001,23 @@ export default function SalesPage() {
                         </td>
                       </tr>
                     ));
+                  
+                  // Add empty rows to maintain consistent height (5 rows total)
+                  const emptyRowsNeeded = Math.max(0, 5 - rows.length);
+                  for (let i = 0; i < emptyRowsNeeded; i++) {
+                    rows.push(
+                      <tr key={`empty-channel-${i}`} className="h-12">
+                        <td className="px-6 py-4">&nbsp;</td>
+                        <td className="px-6 py-4">&nbsp;</td>
+                        <td className="px-6 py-4">&nbsp;</td>
+                      </tr>
+                    );
+                  }
+                  
                   return (
                     <>
                       {rows}
-                      <tr className="bg-blue-50 font-semibold">
+                      <tr className="bg-blue-50 font-semibold border-t-2 border-blue-200">
                         <td className="px-6 py-4 text-base">Total</td>
                         <td className="px-6 py-4 text-base text-center">
                           <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">

@@ -14,6 +14,7 @@ export default function Login() {
   const { user, loading, authError, isAuthorized, loginWithGoogle } = useAuth();
   const router = useRouter();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [showFirstTimeMessage, setShowFirstTimeMessage] = useState(false);
 
   // Redirect to dashboard if already logged in and authorized
   useEffect(() => {
@@ -75,6 +76,13 @@ export default function Login() {
                   )}
                 </div>
               </Alert>
+            </div>
+          )}
+
+          {showFirstTimeMessage && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+              <strong className="font-bold">First time login!</strong>
+              <span className="block sm:inline"> Please change your password.</span>
             </div>
           )}
 

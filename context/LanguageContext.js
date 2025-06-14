@@ -13,7 +13,7 @@ export function useLanguage() {
     return {
       language: 'en',
       setLanguage: () => {},
-      t: (key) => {
+      t: (key, params = {}) => {
         try {
           const keys = key.split('.');
           let translation = en;
@@ -33,6 +33,17 @@ export function useLanguage() {
           if (translation === null || translation === undefined) {
             return key;
           }
+          
+          // Handle interpolation if params are provided
+          if (typeof translation === 'string' && Object.keys(params).length > 0) {
+            let result = translation;
+            Object.entries(params).forEach(([paramKey, paramValue]) => {
+              const placeholder = `{${paramKey}}`;
+              result = result.split(placeholder).join(String(paramValue));
+            });
+            return result;
+          }
+          
           return translation;
         } catch (error) {
           console.warn(`Error translating key: ${key}`, error);
@@ -45,13 +56,13 @@ export function useLanguage() {
 }
 
 export function LanguageProvider({ children }) {
-  // Get initial language from localStorage or default to English
-  const [language, setLanguage] = useState('en'); // Default to 'en' for SSR
+  // Get initial language from localStorage or default to French
+  const [language, setLanguage] = useState('fr'); // Default to 'fr' for SSR
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    const savedLanguage = localStorage.getItem('language') || 'en';
+    const savedLanguage = localStorage.getItem('language') || 'fr'; // Default to French
     setLanguage(savedLanguage);
   }, []);
 
@@ -68,8 +79,8 @@ export function LanguageProvider({ children }) {
     }
   }, [language, isClient]);
 
-  // Translation function with object protection
-  const t = useCallback((key) => {
+  // Translation function with object protection and interpolation support
+  const t = useCallback((key, params = {}) => {
     try {
       const keys = key.split('.');
       let translation = translations[language];
@@ -101,6 +112,16 @@ export function LanguageProvider({ children }) {
         return key;
       }
       
+      // Handle interpolation if params are provided
+      if (typeof translation === 'string' && Object.keys(params).length > 0) {
+        let result = translation;
+        Object.entries(params).forEach(([paramKey, paramValue]) => {
+          const placeholder = `{${paramKey}}`;
+          result = result.split(placeholder).join(String(paramValue));
+        });
+        return result;
+      }
+      
       return translation;
     } catch (error) {
       console.error(`Error translating key: ${key}`, error);
@@ -108,9 +129,20 @@ export function LanguageProvider({ children }) {
     }
   }, [language]);
 
+  // Function to sync language with user profile
+  const syncLanguageWithProfile = useCallback((userLanguage) => {
+    if (userLanguage && userLanguage !== language) {
+      setLanguage(userLanguage);
+      if (isClient) {
+        localStorage.setItem('language', userLanguage);
+      }
+    }
+  }, [language, isClient]);
+
   const value = {
     language,
     setLanguage,
+    syncLanguageWithProfile,
     t,
     translations
   };

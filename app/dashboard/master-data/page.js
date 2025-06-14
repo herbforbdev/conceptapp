@@ -225,13 +225,47 @@ function getTranslatedExpenseDescription(name, t) {
 }
 
 function getTranslatedActivityTypeName(name, t) {
-  const key = activityTypeTranslationMap[name];
-  return key ? t(`masterData.activities.types.${key}`) : name;
+  if (!name) return name;
+  
+  // Dynamic translation with fallback
+  const variations = [
+    name.toLowerCase().replace(/\s+/g, '_'),
+    name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+    name.toLowerCase().replace(/\s+/g, ''),
+    name.replace(/\s+/g, '_').toLowerCase()
+  ];
+  
+  for (const variation of variations) {
+    const key = `products.activities.${variation}`;
+    const translated = t(key);
+    if (translated && translated !== key) {
+      return translated;
+    }
+  }
+  
+  return name; // Fallback to original name
 }
 
 function getTranslatedActivityDescription(name, t) {
-  const key = activityTypeTranslationMap[name];
-  return key ? t(`masterData.activities.descriptions.${key}`) : name;
+  if (!name) return name;
+  
+  // Dynamic translation with fallback
+  const variations = [
+    name.toLowerCase().replace(/\s+/g, '_'),
+    name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+    name.toLowerCase().replace(/\s+/g, ''),
+    name.replace(/\s+/g, '_').toLowerCase()
+  ];
+  
+  for (const variation of variations) {
+    const key = `products.activities.descriptions.${variation}`;
+    const translated = t(key);
+    if (translated && translated !== key) {
+      return translated;
+    }
+  }
+  
+  return name; // Fallback to original name
 }
 
 export default function MasterDataPage() {
@@ -507,28 +541,28 @@ export default function MasterDataPage() {
   const startEditing = (item) => {
     setEditingId(item.id);
     
-    // For activities tab, populate with translated values
+    // For activities tab, populate with original database values for editing
     if (activeTab === "activities") {
       setEditingData({
         ...item,
         name: getTranslatedActivityTypeName(item.name, t),
-        description: getTranslatedActivityDescription(item.name, t)
+        description: item.description || '' // Use original database value, not translation
       });
     }
-    // For expenses tab, populate with translated values  
+    // For expenses tab, populate with original database values for editing
     else if (activeTab === "expenses") {
       setEditingData({
         ...item,
         name: getTranslatedExpenseTypeName(item.name, t),
-        description: getTranslatedExpenseDescription(item.name, t)
+        description: item.description || '' // Use original database value, not translation
       });
     }
-    // For products tab, populate with translated values
+    // For products tab, populate with original database values for editing
     else {
       setEditingData({
         ...item,
         productid: getTranslatedProductName(item, t),
-        description: getTranslatedProductDescription(item, t)
+        description: item.description || '' // Use original database value, not translation
       });
     }
   };
@@ -575,14 +609,12 @@ export default function MasterDataPage() {
         // Find original product by ID
         const originalItem = products?.find(item => item.id.trim() === cleanId);
         if (originalItem) {
-          // If the translated name/description match, convert back to original values
+          // If the translated name matches, convert back to original value
           if (editingData.productid === getTranslatedProductName(originalItem, t)) {
             dataToSave.productid = originalItem.productid; // Keep original database value
           }
-          if (editingData.description === getTranslatedProductDescription(originalItem, t)) {
-            dataToSave.description = originalItem.description; // Keep original database value
-          }
-          // Otherwise keep the edited values as-is (user entered new text)
+          // Description is already the original database value, so keep user's edits as-is
+          // No need to check against translation since we're using original values for editing
         }
       }
       
@@ -1161,7 +1193,7 @@ export default function MasterDataPage() {
                 className="w-full"
               />
             ) : (
-              getTranslatedExpenseDescription(item.name, t)
+              item.description || getTranslatedExpenseDescription(item.name, t)
             )}
           </td>
           <td className="px-6 py-3 text-right">
@@ -1235,7 +1267,7 @@ export default function MasterDataPage() {
                 className="w-full"
               />
             ) : (
-              getTranslatedActivityDescription(item.name, t)
+              item.description || getTranslatedActivityDescription(item.name, t)
             )}
           </td>
           <td className="px-6 py-3 text-right">

@@ -344,11 +344,47 @@ const getPackagingStockData = (packagingType, productMap, getCurrentTotalStock, 
   packagingProducts = Array.from(uniqueProductsMap.values());
 
   // Get current stock for each packaging product using getCurrentTotalStock
-  const stockData = packagingProducts.map((product, idx) => ({
-    label: t ? t('products.items.packaging.' + (packagingType === 'ice_cube' ? 'cubeIce' : 'waterBottling') + '.' + (product.productid.match(/\d+[,.]?\d*\s*(kg|l|ml)/i)?.[0]?.replace(/\s/g, '').replace(',', '_').replace('.', '_').toLowerCase() || product.productid)) : product.productid,
-    stock: getCurrentTotalStock(product.id),
-    color: colorPalette[idx % colorPalette.length]
-  }));
+  const stockData = packagingProducts.map((product, idx) => {
+    // Use the same translation logic as other components
+    const getTranslatedPackagingName = (product) => {
+      if (!product) return 'N/A';
+      const name = product.productid;
+      if (!name) return 'N/A';
+      const lower = name.toLowerCase();
+      const type = product.producttype?.toLowerCase();
+      
+      try {
+        if (type?.includes('packaging') || lower.includes('package') || lower.includes('emballage')) {
+          if (lower.includes('cube ice') || lower.includes('glaçons')) {
+            if (lower.includes('1kg')) return t('products.items.packaging.cubeIce.1kg') || 'Emballage pour Glaçons 1Kg';
+            if (lower.includes('2kg')) return t('products.items.packaging.cubeIce.2kg') || 'Emballage pour Glaçons 2Kg';
+            if (lower.includes('5kg')) return t('products.items.packaging.cubeIce.5kg') || 'Emballage pour Glaçons 5Kg';
+          }
+          if ((lower.includes('water') || lower.includes('eau')) && !lower.includes('bidon') && !lower.includes('can')) {
+            if (lower.includes('600ml')) return t('products.items.packaging.waterBottling.600ml') || 'Emballage pour Eau en bouteille 600ml';
+            if (lower.includes('750ml')) return t('products.items.packaging.waterBottling.750ml') || 'Emballage pour Eau en bouteille 750ml';
+            if (lower.includes('1.5l') || lower.includes('1,5l')) return t('products.items.packaging.waterBottling.1_5L') || 'Emballage pour Eau en bouteille 1,5L';
+            if (lower.includes('5l')) return t('products.items.packaging.waterBottling.5L') || 'Emballage pour Eau en bouteille 5L';
+          }
+        }
+      } catch (error) {
+        console.warn('Translation error for packaging product:', name, error);
+      }
+      
+      // Fallback: add "Emballage pour" prefix if it's a packaging product
+      if (type?.includes('packaging') || lower.includes('package') || lower.includes('emballage')) {
+        return `Emballage pour ${name.replace(/^(Package |Packaging |Emballage pour )/i, '')}`;
+      }
+      
+      return name;
+    };
+    
+    return {
+      label: getTranslatedPackagingName(product),
+      stock: getCurrentTotalStock(product.id),
+      color: colorPalette[idx % colorPalette.length]
+    };
+  });
 
   return {
     labels: stockData.map(d => d.label),
@@ -425,6 +461,39 @@ const matchProductType = (product, targetType) => {
       return type === 'packaging for water bottling';
     default:
       return false;
+  }
+};
+
+// Initialize chart options with proper structure
+const baseChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top',
+      labels: {
+        color: '#4c5c68'
+      }
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: '#e6e6e6'
+      },
+      ticks: {
+        color: '#4c5c68'
+      }
+    },
+    x: {
+      grid: {
+        color: '#e6e6e6'
+      },
+      ticks: {
+        color: '#4c5c68'
+      }
+    }
   }
 };
 
@@ -954,47 +1023,7 @@ export default function InventoryPage() {
     }
   };
 
-  // Update baseChartOptions to ensure annotations are enabled
-  const baseChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'top' },
-      tooltip: {
-        mode: 'index',
-        intersect: false,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: '#e5e7eb',
-        borderWidth: 1,
-        padding: 10,
-        displayColors: true
-      },
-      annotation: {
-        common: {
-          drawTime: 'afterDraw'
-        }
-      }
-    },
-    scales: { 
-      y: { 
-        beginAtZero: true,
-        grid: {
-          drawBorder: true,
-          color: '#E5E7EB'
-        }
-      },
-      x: { 
-        grid: { display: false },
-        ticks: {
-          color: '#6B7280',
-          font: { size: 10 }
-        }
-      }
-    }
-  };
-
+ 
   // Calculate stock for top cards with improved efficiency
   useEffect(() => {
     if (!allInventoryMovements?.length || !productMap?.size) return;
@@ -1592,6 +1621,42 @@ export default function InventoryPage() {
     return Array.from(yearsSet).sort((a, b) => b - a);
   }, [allInventoryMovements]);
 
+  // Calculate total stock across all products
+  const totalStock = useMemo(() => {
+    if (!allInventoryMovements || !productMap) return 0;
+    
+    return Array.from(productMap.keys()).reduce((total, productId) => {
+      const stock = getCurrentTotalStock(productId);
+      return total + stock;
+    }, 0);
+  }, [allInventoryMovements, productMap, getCurrentTotalStock]);
+
+  // Calculate low stock items
+  const lowStockItems = useMemo(() => {
+    if (!allInventoryMovements || !productMap) return 0;
+    
+    let count = 0;
+    Array.from(productMap.values()).forEach(product => {
+      const stock = getCurrentTotalStock(product.id);
+      const isPackaging = product.producttype?.toLowerCase().includes('packaging');
+      
+      if (isPackaging) {
+        let threshold = 0;
+        if (product.producttype.toLowerCase().includes('cube')) {
+          threshold = thresholds?.iceCubes ?? 0;
+        } else if (product.producttype.toLowerCase().includes('water')) {
+          threshold = thresholds?.bottles ?? 0;
+        }
+        
+        if (stock <= threshold) {
+          count++;
+        }
+      }
+    });
+    
+    return count;
+  }, [allInventoryMovements, productMap, getCurrentTotalStock, thresholds]);
+
   // --- Early return for loading state ---
   if (isPageLoading) return (
     <div className="flex items-center justify-center min-h-screen">
@@ -1666,41 +1731,41 @@ export default function InventoryPage() {
 
       {/* Top Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-        <TopCard 
-          title={t('inventory.summary.totalInventory')}
-          value={`${(stockStats?.totalInventory || 0).toLocaleString()} ${t('charts.axes.units')}`}
+        <TopCard
+          title={t('inventory.summary.totalInventory') || 'Total Inventory'}
+          value={`${(stockStats?.totalInventory || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
           icon={<HiInbox size={16} />}
-          type="Total Inventory"
+          type="totalInventory"
         />
-        <TopCard 
-          title={t('inventory.summary.monthlyMovements')}
-          value={`${stockStats?.monthlyMovements || 0} ${t('metrics.per_day')}`}
+        <TopCard
+          title={t('inventory.summary.monthlyMovements') || 'Monthly Movements'}
+          value={`${stockStats?.monthlyMovements || 0} ${t('metrics.per_day') || 'per day'}`}
           icon={<HiRefresh size={16} />}
-          type="Monthly Movement"
+          type="monthlyMovements"
         />
         <TopCard 
-          title={t('inventory.summary.blockIceStock')}
-          value={`${(stockStats?.blockIceStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          title={t('inventory.summary.blockIceStock') || 'Block Ice Stock'}
+          value={`${(stockStats?.blockIceStock || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
           icon={<HiCube size={16} />}
-          type="Stock Level"
+          type="blockIce"
         />
         <TopCard 
-          title={t('inventory.summary.cubeIceStock')}
-          value={`${(stockStats?.cubeIceStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          title={t('inventory.summary.cubeIceStock') || 'Cube Ice Stock'}
+          value={`${(stockStats?.cubeIceStock || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
           icon={<HiCube size={16} />}
-          type="Stock Level"
+          type="cubeIce"
         />
         <TopCard 
-          title={t('inventory.summary.waterBottlingStock')}
-          value={`${(stockStats?.waterBottlingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          title={t('inventory.summary.waterBottlingStock') || 'Water Bottling Stock'}
+          value={`${(stockStats?.waterBottlingStock || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
           icon={<PiBeerBottleFill size={16} />}
-          type="Stock Level"
+          type="waterBottling"
         />
         <TopCard 
-          title={t('inventory.summary.packagingStock')}
-          value={`${(stockStats?.packagingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          title={t('inventory.summary.packagingStock') || 'Packaging Stock'}
+          value={`${(stockStats?.packagingStock || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
           icon={<HiArchive size={16} />}
-          type="Stock Level"
+          type="packaging"
         />
       </div>
 
@@ -1808,11 +1873,36 @@ export default function InventoryPage() {
                   className="w-full bg-white border-purple-200 text-gray-900 focus:ring-purple-500 focus:border-purple-500 rounded-lg"
                 >
                   <option value="">{t('inventory.filters.allActivityTypes')}</option>
-                  {activityTypes?.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {t(`products.activities.${type.name?.toLowerCase().replace(/\s+/g, '_')}`) || type.name}
-                    </option>
-                  ))}
+                  {activityTypes?.map((type) => {
+                    // Dynamic translation with fallback
+                    const getTranslatedActivityType = (name) => {
+                      if (!name) return name;
+                      
+                      // Try multiple translation key variations
+                      const variations = [
+                        name.toLowerCase().replace(/\s+/g, '_'),
+                        name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+                        name.toLowerCase().replace(/\s+/g, ''),
+                        name.replace(/\s+/g, '_').toLowerCase()
+                      ];
+                      
+                      for (const variation of variations) {
+                        const key = `products.activities.${variation}`;
+                        const translated = t(key);
+                        if (translated && translated !== key) {
+                          return translated;
+                        }
+                      }
+                      
+                      return name; // Fallback to original name
+                    };
+                    
+                    return (
+                      <option key={type.id} value={type.id}>
+                        {getTranslatedActivityType(type.name)}
+                      </option>
+                    );
+                  })}
                 </Select>
               </div>
               {/* Product filter */}
@@ -2086,9 +2176,33 @@ export default function InventoryPage() {
                         (() => {
                           const activityTypeId = record.activityTypeId || productMap.get(record.productId)?.activitytypeid;
                           const activityTypeName = activityTypeMap?.get(activityTypeId)?.name || t('common.unknown');
+                          
+                          // Dynamic translation with fallback
+                          const getTranslatedActivityType = (name) => {
+                            if (!name) return t('common.unknown');
+                            
+                            // Try multiple translation key variations
+                            const variations = [
+                              name.toLowerCase().replace(/\s+/g, '_'),
+                              name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+                              name.toLowerCase().replace(/\s+/g, ''),
+                              name.replace(/\s+/g, '_').toLowerCase()
+                            ];
+                            
+                            for (const variation of variations) {
+                              const key = `products.activities.${variation}`;
+                              const translated = t(key);
+                              if (translated && translated !== key) {
+                                return translated;
+                              }
+                            }
+                            
+                            return name; // Fallback to original name
+                          };
+                          
                           return (
                             <span className="inline-block px-2 py-1 rounded bg-purple-50 text-purple-800 text-xs font-medium">
-                              {t(`products.activities.${activityTypeName?.toLowerCase().replace(/\s+/g, '_')}`) || activityTypeName}
+                              {getTranslatedActivityType(activityTypeName)}
                             </span>
                           );
                         })()
@@ -2339,7 +2453,7 @@ export default function InventoryPage() {
           {/* Ice Cube Packaging Chart */}
           <Card className="bg-white">
             <h3 className="text-lg font-semibold mb-3 text-[#4c5c68] text-center">{t('inventory.charts.iceCubePackaging')}</h3>
-            <div className="h-[300px]">
+            <div className="h-[350px] w-full">
               <ClientOnly>
                 <BarChart 
                   data={getPackagingStockData("ice_cube", productMap, getCurrentTotalStock, t)}
@@ -2381,7 +2495,7 @@ export default function InventoryPage() {
           {/* Water Bottling Packaging Chart */}
           <Card className="bg-white">
             <h3 className="text-lg font-semibold mb-3 text-[#4c5c68] text-center">{t('inventory.charts.waterBottlingPackaging')}</h3>
-            <div className="h-[300px]">
+            <div className="h-[350px] w-full">
               <ClientOnly>
                 <BarChart 
                   data={getPackagingStockData("water_bottling", productMap, getCurrentTotalStock, t)}
@@ -2421,6 +2535,8 @@ export default function InventoryPage() {
           </Card>
         </div>
       </div>
+
+
     </div>
   );
 }

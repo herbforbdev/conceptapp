@@ -21,6 +21,8 @@
     "next": "Suivant",
     "previous": "Précédent",
     "activity": "Activité",
+    "activityType": "Type d'activité",
+    "activityTypes": "Types d'activités",
     "product": "Produit",
     "expense": "Dépense",
     "channel": "Canal",
@@ -46,7 +48,6 @@
     "adminRequired": "Cette section nécessite des privilèges d'administrateur.",
     "backToDashboard": "Retour au Tableau de Bord",
     "loadingData": "Chargement des données...",
-    "loadingFormData": "Chargement des données du formulaire...",
     "per_day": "par jour",
     "vs_last_month": "vs mois dernier",
     "amount_cdf": "Montant (CDF)",
@@ -218,7 +219,9 @@
       "packagingForWaterCans": "Emballage pour Bidon d'eau",
       "PackagingForWaterCans": "Emballage pour Bidon d'eau",
       "EmballagepourBidond'eau": "Emballage pour Bidon d'eau",
-      "EmballagepourBidond'eau": "Emballage pour Bidon d'eau",
+      "emballagepourbidond'eau": "Emballage pour Bidon d'eau",
+      "emballagepourbidon_d'eau": "Emballage pour Bidon d'eau",
+      
       "Water Bottling": "Eau en bouteille",
       "WaterBottling": "Eau en bouteille",
       "WaterCans": "Bidon D'Eau",
@@ -227,7 +230,8 @@
       "PackagingForIceCube": "Emballage pour Glaçons",
       "Packaging For Water Bottling": "Emballage pour Eau en bouteille",
       "waterCans": "Bidon D'Eau",
-      "PackagingOnly": "Emballages Uniquement"
+      "PackagingOnly": "Emballages Uniquement",
+      "bidond'eau": "Bidon d'eau"
     },
     "categories": {
       "mainProducts": "Produits principaux",
@@ -444,6 +448,8 @@
       "selectType": "Sélectionner un type",
       "addRow": "Ajouter une ligne",
       "submit": "Soumettre",
+      "addDescription": "Ajoutez de nouveaux mouvements d'inventaire",
+      "backToInventory": "Retour à l'inventaire",
       "entry": "entrée",
       "entries": "entrées",
       "currentStock": "Stock actuel",
@@ -588,6 +594,8 @@
       "addRow": "Ajouter une ligne",
       "title": "Ajouter une entrée de production",
       "subtitle": "Ajoutez une nouvelle production",
+      "addDescription": "Ajoutez de nouvelles productions",
+      "backToProduction": "Retour à la production",
       "submit": "Soumettre",
       "entry": "entrée",
       "entries": "entrées",
@@ -643,14 +651,15 @@
       "activityTypes": "Chargement des types d'activité..."
     },
     "actions": {
-      "deleteSelected": "Supprimer la sélection"
+      "deleteSelected": "Supprimer la sélection",
+      "delete": "Supprimer la sélection"
     },
     "table": {
       "date": "Date",
       "activityType": "Type d'activité",
       "product": "Produit",
       "channel": "Canal",
-      "showing": "Affichage de {{start}} à {{end}} sur {{total}} entrées",
+      "showing": "Affichage de {start} à {end} sur {total} entrées",
       "previous": "Précédent",
       "next": "Suivant",
       "of": "sur",
@@ -677,6 +686,7 @@
       "entries": "entrées",
       "entry": "entrée",
       "submit": "Soumettre",
+      "backToSales": "Retour aux ventes",
       "duplicateEntry": "Dupliquer l'entrée",
       "removeEntry": "Supprimer l'entrée",
       "error": {
@@ -794,7 +804,8 @@
       "addEntry": "Ajouter une entrée",
       "submit": "Soumettre",
       "entry": "entrée",
-      "entries": "entrées"
+      "entries": "entrées",
+      "backToCosts": "Retour aux coûts"
     },
     "fields": {
       "date": "Date",
@@ -901,11 +912,13 @@
         "maintenance_repairs_of_machines": "Entretien & Réparations des Machines",
         "maintenanceRepairsOfMachines": "Entretien & Réparations des Machines",
         "maintenance_&_repairs_of_machines": "Entretien & Réparations des Machines",
+        "entretien_&_réparations_des_machines": "Entretien & Réparations des Machines",
         "monthly_commitment": "Engagement Mensuel",
         "monthlyCommitment": "Engagement Mensuel",
         "maintenance_repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
         "maintenanceRepairsOfRollingEquipment": "Entretien & Réparations de l'Équipement Roulant",
         "maintenance_&_repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
+        "équipement_roulants": "Entretien & Réparations de l'Équipement Roulant",
         "social_charges": "Charges Sociales",
         "socialCharges": "Charges Sociales",
         "rolling_equipment": "Équipement Roulant",
@@ -934,7 +947,10 @@
         "equipment": "Équipement",
         "fuel": "Carburant",
         "taxes": "Taxes",
-        "miscellaneous": "Divers"
+        "miscellaneous": "Divers",
+        "emballages_": "Emballages",
+        "emballages": "Emballages",
+        "intrants": "Intrants"
       },
       "descriptions": {
         "construction_real_estate_repairs": "Dépenses pour la construction et les réparations immobilières",

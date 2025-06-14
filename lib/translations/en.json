@@ -648,7 +648,7 @@
       "activityType": "Activity Type",
       "product": "Product",
       "channel": "Channel",
-      "showing": "Showing",
+      "showing": "Showing {start} to {end} of {total} entries",
       "previous": "Previous",
       "next": "Next",
       "of": "of",

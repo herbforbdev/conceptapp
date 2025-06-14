@@ -26,6 +26,7 @@ export default function AddSalePage() {
     activityTypes,
     productMap,
     activityTypeMap,
+    getProductsByActivity,
     loading: masterDataLoading 
   } = useMasterData();
 
@@ -76,24 +77,61 @@ export default function AddSalePage() {
 
   // Filter products based on selected activity type
   const getFilteredProducts = (activityTypeId) => {
-    if (!activityTypeId) return [];
-
+    if (!activityTypeId || !productMap || productMap.size === 0) {
+      return [];
+    }
+    
+    // Debug: Log the activity type being filtered for
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 Filtering products for activityTypeId:', activityTypeId);
+      console.log('📦 Total products in map:', productMap.size);
+      
+      // Log a sample of products to see their structure
+      const sampleProducts = Array.from(productMap.values()).slice(0, 3);
+      console.log('📋 Sample products:', sampleProducts.map(p => ({
+        id: p.id,
+        productid: p.productid,
+        producttype: p.producttype,
+        activitytypeid: p.activitytypeid
+      })));
+    }
+    
     const uniqueProducts = new Map();
     
+    // Use direct filtering from productMap for more control
     Array.from(productMap.values())
       .filter(product => {
         if (!product || !product.producttype) return false;
         
-        const matchesActivity = (product.activitytypeid || '').trim() === activityTypeId.trim();
+        // Check both possible field names for activity type ID
+        const productActivityId = product.activitytypeid || product.activityTypeId || '';
+        const matchesActivity = productActivityId.trim() === activityTypeId.trim();
+        
         const isMainProduct = 
           product.producttype === 'Block Ice' || 
           product.producttype === 'Cube Ice' ||
-          product.producttype === 'Water Bottling';
+          product.producttype === 'Water Bottling' ||
+          product.producttype === 'Water Cans';
+          
         const isNotPackaging = 
           !product.producttype?.includes('Packaging') &&
           !product.productid?.includes('Package');
 
-        return matchesActivity && isMainProduct && isNotPackaging;
+        const shouldInclude = matchesActivity && isMainProduct && isNotPackaging;
+        
+        // Debug: Log each product check
+        if (process.env.NODE_ENV === 'development' && matchesActivity) {
+          console.log(`✅ Product ${product.productid}:`, {
+            productActivityId,
+            selectedActivityId: activityTypeId,
+            matchesActivity,
+            isMainProduct,
+            isNotPackaging,
+            shouldInclude
+          });
+        }
+
+        return shouldInclude;
       })
       .forEach(product => {
         if (!uniqueProducts.has(product.id)) {
@@ -101,8 +139,14 @@ export default function AddSalePage() {
         }
       });
 
-    return Array.from(uniqueProducts.values())
+    const result = Array.from(uniqueProducts.values())
       .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
+      
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🎯 Filtered products result:', result.map(p => p.productid));
+    }
+    
+    return result;
   };
 
   // Update the addEntry function
@@ -151,6 +195,11 @@ export default function AddSalePage() {
       if (entry.id !== id) return entry;
 
       const updated = { ...entry, [field]: value };
+
+      // Clear product selection when activity type changes
+      if (field === 'activityTypeId') {
+        updated.productId = "";
+      }
 
       // If date changes, update the exchange rate
       if (field === 'date') {
@@ -221,6 +270,12 @@ export default function AddSalePage() {
         if (!entry.date || !entry.activityTypeId || !entry.productId || !entry.quantitySold || !entry.amountFC || !entry.amountUSD || !entry.exchangeRate || !entry.channel) {
           setError(t('sales.add.error.requiredFields')); setIsSubmitting(false); return;
         }
+        
+        // Validate that numeric values are not zero
+        if (Number(entry.quantitySold) <= 0 || Number(entry.amountFC) <= 0 || Number(entry.amountUSD) <= 0 || Number(entry.exchangeRate) <= 0) {
+          setError('Quantity sold, amounts, and exchange rate must be greater than zero'); setIsSubmitting(false); return;
+        }
+        
         // 1. Add sales record
         const saleDoc = await addDoc(collection(firestore, "Sales"), {
           date: new Date(entry.date),
@@ -289,8 +344,8 @@ export default function AddSalePage() {
         <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Add New Sales Entry</h1>
-              <p className="text-gray-600 mt-1">Record your sales transactions and track revenue</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('sales.add.title')}</h1>
+              <p className="text-gray-600 mt-1">{t('sales.add.addDescription')}</p>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -299,7 +354,7 @@ export default function AddSalePage() {
                 className="text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Sales
+                {t('sales.add.backToSales')}
               </Button>
             </div>
           </div>
@@ -328,7 +383,7 @@ export default function AddSalePage() {
                   <th className="px-3 py-4 font-semibold text-blue-900 text-xs uppercase tracking-wider">{t('sales.fields.date')}</th>
                   <th className="px-3 py-4 font-semibold text-blue-900 text-xs uppercase tracking-wider">{t('sales.fields.activityType')}</th>
                   <th className="px-3 py-4 font-semibold text-blue-900 text-xs uppercase tracking-wider">{t('sales.fields.product')}</th>
-                  <th className="px-3 py-4 font-semibold text-blue-900 text-xs uppercase tracking-wider text-center">{t('sales.fields.quantity')}</th>
+                  <th className="px-3 py-4 font-semibold text-blue-900 text-xs uppercase tracking-wider text-center">{t('sales.fields.quantitySold')}</th>
                   <th className="px-3 py-4 font-semibold text-blue-900 text-xs uppercase tracking-wider text-center">{t('sales.fields.amountFC')}</th>
                   <th className="px-3 py-4 font-semibold text-blue-900 text-xs uppercase tracking-wider text-center">{t('sales.fields.exchangeRate')}</th>
                   <th className="px-3 py-4 font-semibold text-blue-900 text-xs uppercase tracking-wider text-center">{t('sales.fields.amountUSD')}</th>
@@ -378,8 +433,10 @@ export default function AddSalePage() {
                             typeKey = 'blockIce';
                           } else if (type.toLowerCase().includes('cube')) {
                             typeKey = 'cubeIce';
-                          } else if (type.toLowerCase().includes('water')) {
+                          } else if (type.toLowerCase().includes('water') && type.toLowerCase().includes('bottling')) {
                             typeKey = 'waterBottling';
+                          } else if (type.toLowerCase().includes('water') && type.toLowerCase().includes('cans')) {
+                            typeKey = 'waterCans';
                           } else {
                             typeKey = type.toLowerCase().replace(/\s+/g, '');
                           }

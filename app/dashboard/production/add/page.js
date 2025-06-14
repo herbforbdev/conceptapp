@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Button, Select, TextInput } from "flowbite-react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
@@ -41,6 +41,31 @@ export default function AddProductionPage() {
   }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Debug: Log all products when component mounts
+  useEffect(() => {
+    if (productMap.size > 0) {
+      console.log('🔍 ALL PRODUCTS LOADED:');
+      Array.from(productMap.values()).forEach(p => {
+        console.log(`  - ${p.productid} (${p.producttype}) [${p.activitytypeid}]`);
+      });
+      
+      console.log('🔍 PACKAGING PRODUCTS ONLY:');
+      Array.from(productMap.values())
+        .filter(p => {
+          const pType = p.producttype?.toLowerCase() || '';
+          const pName = p.productid?.toLowerCase() || '';
+          return pType.includes('packaging') || 
+                 pType.includes('emballage') || 
+                 pName.includes('packaging') || 
+                 pName.includes('emballage') ||
+                 pName.includes('package');
+        })
+        .forEach(p => {
+          console.log(`  📦 ${p.productid} (${p.producttype}) [${p.activitytypeid}]`);
+        });
+    }
+  }, [productMap]);
 
   // Add helper for product name translation
   const getTranslatedProductName = (product, t) => {
@@ -180,79 +205,160 @@ export default function AddProductionPage() {
           const productType = product.producttype?.toLowerCase() || '';
           
           // Debug logging
-          console.log('Selected product:', {
+          console.log('🔍 Selected product:', {
             name: product.productid,
             type: product.producttype,
+            activityId: product.activitytypeid,
             normalizedType: productType,
             normalizedName: productName
           });
           
           // For Cube Ice, Water Bottling, and Water Cans, auto-select packaging
-          const isWaterCans = productType.includes('bidon') || productType.includes('water can');
-          if (productType === 'cube ice' || productType === 'water bottling' || productType === 'water cans' || isWaterCans) {
-            // Find corresponding packaging product
+          const isCubeIce = productType.includes('cube ice') || productType === 'cube ice';
+          const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling';
+          const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans');
+          
+          if (isCubeIce || isWaterBottling || isWaterCans) {
+            // Find corresponding packaging products for the same activity type
             const packagingProducts = Array.from(productMap.values()).filter(p => {
               const pType = p.producttype?.toLowerCase() || '';
               const pName = p.productid?.toLowerCase() || '';
+              
+              // Check if it's a packaging product
               const isPackaging = pType.includes('packaging') || 
                                 pType.includes('emballage') || 
                                 pName.includes('packaging') || 
                                 pName.includes('emballage') ||
                                 pName.includes('package');
+              
+              // Must be same activity type and be packaging
               return isPackaging && p.activitytypeid === product.activitytypeid;
             });
             
-            console.log('Found packaging products:', packagingProducts.map(p => ({
+            console.log('📦 Found packaging products:', packagingProducts.map(p => ({
               name: p.productid,
               type: p.producttype,
-              activityId: p.activitytypeid
+              activityId: p.activitytypeid,
+              normalizedName: p.productid?.toLowerCase()
             })));
             
-            console.log('Product name for matching:', productName);
-            console.log('All products for activity:', Array.from(productMap.values()).filter(p => p.activitytypeid === product.activitytypeid).map(p => ({
-              name: p.productid,
-              type: p.producttype
-            })));
+            if (packagingProducts.length === 0) {
+              console.log('⚠️ WARNING: No packaging products found for activity type:', product.activitytypeid);
+            }
             
-                         // Match packaging by size/capacity - check specific patterns first
-             let matchingPackaging = null;
-             if (productName.includes('1kg')) {
-               matchingPackaging = packagingProducts.find(p => p.productid?.toLowerCase().includes('1kg'));
-             } else if (productName.includes('2kg')) {
-               matchingPackaging = packagingProducts.find(p => p.productid?.toLowerCase().includes('2kg'));
-             } else if (productName.includes('5kg')) {
-               matchingPackaging = packagingProducts.find(p => p.productid?.toLowerCase().includes('5kg'));
-             } else if (productName.includes('600ml')) {
-               matchingPackaging = packagingProducts.find(p => p.productid?.toLowerCase().includes('600ml'));
-             } else if (productName.includes('750ml')) {
-               matchingPackaging = packagingProducts.find(p => p.productid?.toLowerCase().includes('750ml'));
-             } else if (productName.includes('1.5l') || productName.includes('1,5l') || productName.includes('1_5l')) {
-               // Match 1.5L specifically (avoid matching plain "5l")
-               matchingPackaging = packagingProducts.find(p => {
-                 const packagingName = p.productid?.toLowerCase() || '';
-                 return packagingName.includes('1.5l') || 
-                        packagingName.includes('1,5l') ||
-                        packagingName.includes('1_5l');
-               });
-             } else if (productName.includes('5l') && !productName.includes('1.5l') && !productName.includes('1,5l')) {
-               // Match 5L but exclude 1.5L variations
-               matchingPackaging = packagingProducts.find(p => {
-                 const packagingName = p.productid?.toLowerCase() || '';
-                 return packagingName.includes('5l') && 
-                        !packagingName.includes('1.5l') && 
-                        !packagingName.includes('1,5l') &&
-                        !packagingName.includes('1_5l');
-               });
-             }
+            console.log('Looking for packaging matching product:', productName);
+            
+            // Match packaging by size/capacity - more robust matching
+            let matchingPackaging = null;
+            
+            // Extract size from product name - handle variations
+            const extractSize = (name) => {
+              const lowerName = name.toLowerCase();
+              if (lowerName.includes('1kg')) return '1kg';
+              if (lowerName.includes('2kg')) return '2kg';
+              if (lowerName.includes('5kg')) return '5kg';
+              if (lowerName.includes('600ml')) return '600ml';
+              if (lowerName.includes('750ml')) return '750ml';
+              if (lowerName.includes('1.5l') || lowerName.includes('1,5l')) return '1.5l';
+              if (lowerName.includes('5l') && !lowerName.includes('1.5l') && !lowerName.includes('1,5l')) return '5l';
+              return null;
+            };
+            
+            // Check if two sizes match (handling variations like "5kg" vs "of 5kg", "1.5l" vs "1,5l")
+            const sizesMatch = (size1, size2, packagingName) => {
+              if (size1 === size2) return true;
+              
+              // Handle specific variations
+              if (size1 === '5kg' && packagingName.includes('of 5kg')) return true;
+              if (size1 === '1.5l' && (packagingName.includes('1,5l') || packagingName.includes('1_5l'))) return true;
+              if (size1 === '1,5l' && (packagingName.includes('1.5l') || packagingName.includes('1_5l'))) return true;
+              
+              return false;
+            };
+            
+            const productSize = extractSize(productName);
+            console.log('Extracted product size:', productSize);
+            
+            if (productSize) {
+              // Try different matching strategies
+              const matchingStrategies = [
+                // Strategy 1: Exact size match with package/emballage keywords
+                (p) => {
+                  const packagingName = p.productid?.toLowerCase() || '';
+                  const packagingSize = extractSize(packagingName);
+                  const hasSize = sizesMatch(productSize, packagingSize, packagingName);
+                  const isPackaging = packagingName.includes('package') || packagingName.includes('emballage');
+                  return hasSize && isPackaging;
+                },
+                // Strategy 2: Size match in packaging products only
+                (p) => {
+                  const packagingName = p.productid?.toLowerCase() || '';
+                  const productType = p.producttype?.toLowerCase() || '';
+                  const packagingSize = extractSize(packagingName);
+                  const hasSize = sizesMatch(productSize, packagingSize, packagingName);
+                  const isPackagingType = productType.includes('packaging') || productType.includes('emballage');
+                  return hasSize && isPackagingType;
+                },
+                // Strategy 3: Flexible size matching with variations
+                (p) => {
+                  const packagingName = p.productid?.toLowerCase() || '';
+                  const productType = p.producttype?.toLowerCase() || '';
+                  const isPackagingType = productType.includes('packaging') || productType.includes('emballage');
+                  
+                  if (!isPackagingType) return false;
+                  
+                  // Use the flexible size matching function
+                  const packagingSize = extractSize(packagingName);
+                  return sizesMatch(productSize, packagingSize, packagingName);
+                }
+              ];
+              
+              // Try each strategy until we find a match
+              for (let i = 0; i < matchingStrategies.length; i++) {
+                console.log(`Trying strategy ${i + 1} for product size:`, productSize);
+                matchingPackaging = packagingProducts.find(matchingStrategies[i]);
+                if (matchingPackaging) {
+                  console.log(`✅ Found packaging using strategy ${i + 1}:`, {
+                    productid: matchingPackaging.productid,
+                    producttype: matchingPackaging.producttype
+                  });
+                  break;
+                } else {
+                  console.log(`❌ Strategy ${i + 1} failed`);
+                }
+              }
+            }
+            
+            console.log('Matching packaging found:', matchingPackaging ? {
+              name: matchingPackaging.productid,
+              type: matchingPackaging.producttype,
+              description: matchingPackaging.description
+            } : 'None');
+            
+            if (!matchingPackaging) {
+              console.log('DEBUG: No packaging match found for product:', productName);
+              console.log('DEBUG: Product type:', productType);
+              console.log('DEBUG: Available packaging products:');
+              packagingProducts.forEach(p => {
+                console.log(`  - ${p.productid} (${p.producttype})`);
+              });
+            }
             
             if (matchingPackaging) {
+              console.log('✅ Setting packagingName to:', matchingPackaging.productid);
               updated.packagingName = matchingPackaging.productid;
               // If quantity is already set, copy it to packaging
               if (updated.quantityProduced) {
                 updated.packagingQuantity = updated.quantityProduced;
               }
+            } else {
+              console.log('❌ No packaging match found, clearing packaging field');
+              console.log('❌ Product name was:', productName);
+              console.log('❌ Product type was:', productType);
+              updated.packagingName = '';
+              updated.packagingQuantity = '';
             }
-          } else if (productType === 'block ice') {
+          } else if (productType.includes('block ice') || productType === 'block ice') {
             // For Block Ice, clear packaging
             updated.packagingName = '';
             updated.packagingQuantity = '';
@@ -265,12 +371,23 @@ export default function AddProductionPage() {
         const product = productMap.get(updated.productId);
         if (product) {
           const productType = product.producttype?.toLowerCase() || '';
-          const isWaterCans = productType.includes('bidon') || productType.includes('water can');
-          if ((productType === 'cube ice' || productType === 'water bottling' || productType === 'water cans' || isWaterCans) && updated.packagingName) {
+          const isCubeIce = productType.includes('cube ice') || productType === 'cube ice';
+          const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling';
+          const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans');
+          
+          if ((isCubeIce || isWaterBottling || isWaterCans) && updated.packagingName) {
             updated.packagingQuantity = value;
           }
         }
       }
+      
+      console.log('🔄 Updated entry:', {
+        id: updated.id,
+        productId: updated.productId,
+        packagingName: updated.packagingName,
+        field: field,
+        value: value
+      });
       
       return updated;
     }));
@@ -316,6 +433,11 @@ export default function AddProductionPage() {
         if (!entry.date || !entry.activityTypeId || !entry.productId || !entry.quantityProduced) {
           setError(t('production.add.error.requiredFields')); setIsSubmitting(false); return;
         }
+        
+        // Validate that quantity produced is not zero
+        if (Number(entry.quantityProduced) <= 0) {
+          setError('Quantity produced must be greater than zero'); setIsSubmitting(false); return;
+        }
         const product = productMap.get(entry.productId);
         // 1. Add production record
         const prodDoc = await addDoc(collection(firestore, "Production"), {
@@ -346,8 +468,11 @@ export default function AddProductionPage() {
         // 3. Add OUT movement for packaging if needed
         const activityName = (activityTypeMap.get(entry.activityTypeId)?.name || '').toLowerCase();
         const productType = product?.producttype?.toLowerCase() || '';
-        const isWaterCans = productType.includes('bidon') || productType.includes('water can');
-        if ((activityName.includes('cube') || activityName.includes('bottling') || isWaterCans) && entry.packagingName && entry.packagingQuantity) {
+        const isCubeIce = productType.includes('cube ice') || productType === 'cube ice';
+        const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling';
+        const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans');
+        
+        if ((isCubeIce || isWaterBottling || isWaterCans || activityName.includes('cube') || activityName.includes('bottling')) && entry.packagingName && entry.packagingQuantity) {
           // Find packaging productId
           const packagingProduct = Array.from(productMap.values()).find(p => p.productid === entry.packagingName);
           if (packagingProduct) {
@@ -395,8 +520,8 @@ export default function AddProductionPage() {
         <div className="bg-white rounded-xl shadow-sm border border-green-100 p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Add New Production Entry</h1>
-              <p className="text-gray-600 mt-1">Record your production activities and track output</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('production.add.title')}</h1>
+              <p className="text-gray-600 mt-1">{t('production.add.addDescription')}</p>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -405,7 +530,7 @@ export default function AddProductionPage() {
                 className="text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Production
+                {t('production.add.backToProduction')}
               </Button>
             </div>
           </div>
@@ -492,9 +617,55 @@ export default function AddProductionPage() {
                     <td className="px-3 py-3">
                       <div className="w-full text-sm p-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
                         {entry.packagingName ? (() => {
+                          console.log('🎯 DISPLAY DEBUG for entry:', entry.id);
+                          console.log('🎯 packagingName value:', entry.packagingName);
+                          console.log('🎯 packagingName type:', typeof entry.packagingName);
+                          
                           // Find packaging product to get translated name
                           const packagingProduct = Array.from(productMap.values()).find(p => p.productid === entry.packagingName);
-                          return packagingProduct ? getTranslatedProductName(packagingProduct, t) : entry.packagingName;
+                          console.log('🎯 Found exact match packaging product:', packagingProduct ? packagingProduct.productid : 'None');
+                          
+                          if (packagingProduct) {
+                            const translatedName = getTranslatedProductName(packagingProduct, t);
+                            console.log('🎯 Translated packaging name:', translatedName);
+                            
+                            // Check if this is a packaging product and add prefix if needed
+                            const isPackagingProduct = packagingProduct.producttype?.toLowerCase().includes('packaging') ||
+                                                     packagingProduct.productid?.toLowerCase().includes('package');
+                            
+                            if (isPackagingProduct) {
+                              // Add "Emballage pour" prefix to distinguish from main product
+                              return `Emballage pour ${translatedName.replace(/^(Emballage pour |Package |Packaging )/i, '')}`;
+                            }
+                            
+                            return translatedName;
+                          } else {
+                            // Fallback: try to find by partial match
+                            const fallbackProduct = Array.from(productMap.values()).find(p => 
+                              p.productid?.toLowerCase().includes(entry.packagingName.toLowerCase()) ||
+                              entry.packagingName.toLowerCase().includes(p.productid?.toLowerCase())
+                            );
+                            console.log('🎯 Fallback product found:', fallbackProduct ? fallbackProduct.productid : 'None');
+                            
+                            if (fallbackProduct) {
+                              const fallbackTranslated = getTranslatedProductName(fallbackProduct, t);
+                              console.log('🎯 Fallback translated name:', fallbackTranslated);
+                              
+                              // Check if this is a packaging product and add prefix if needed
+                              const isPackagingProduct = fallbackProduct.producttype?.toLowerCase().includes('packaging') ||
+                                                       fallbackProduct.productid?.toLowerCase().includes('package');
+                              
+                              if (isPackagingProduct) {
+                                // Add "Emballage pour" prefix to distinguish from main product
+                                return `Emballage pour ${fallbackTranslated.replace(/^(Emballage pour |Package |Packaging )/i, '')}`;
+                              }
+                              
+                              return fallbackTranslated;
+                            } else {
+                              console.log('🎯 No product found, returning raw packagingName:', entry.packagingName);
+                              return entry.packagingName;
+                            }
+                          }
                         })() : t('production.fields.noPackaging')}
                       </div>
                     </td>
