@@ -42,9 +42,9 @@ export default function AddProductionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Debug: Log all products when component mounts
+  // Debug: Log all products when component mounts (development only)
   useEffect(() => {
-    if (productMap.size > 0) {
+    if (process.env.NODE_ENV === 'development' && productMap.size > 0) {
       console.log('🔍 ALL PRODUCTS LOADED:');
       Array.from(productMap.values()).forEach(p => {
         console.log(`  - ${p.productid} (${p.producttype}) [${p.activitytypeid}]`);
@@ -204,19 +204,24 @@ export default function AddProductionPage() {
           const productName = product.productid?.toLowerCase() || '';
           const productType = product.producttype?.toLowerCase() || '';
           
-          // Debug logging
-          console.log('🔍 Selected product:', {
-            name: product.productid,
-            type: product.producttype,
-            activityId: product.activitytypeid,
-            normalizedType: productType,
-            normalizedName: productName
-          });
+          // Debug logging (development only)
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔍 Selected product:', {
+              name: product.productid,
+              type: product.producttype,
+              activityId: product.activitytypeid,
+              normalizedType: productType,
+              normalizedName: productName
+            });
+          }
           
           // For Cube Ice, Water Bottling, and Water Cans, auto-select packaging
-          const isCubeIce = productType.includes('cube ice') || productType === 'cube ice';
-          const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling';
-          const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans');
+          const isCubeIce = productType.includes('cube ice') || productType === 'cube ice' || 
+                           productType.includes('glaçons') || productType === 'glaçons';
+          const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling' ||
+                                 productType.includes('eau en bouteille') || productType === 'eau en bouteille';
+          const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans') ||
+                             productType.includes('bidon d\'eau') || productType === 'bidon d\'eau';
           
           if (isCubeIce || isWaterBottling || isWaterCans) {
             // Find corresponding packaging products for the same activity type
@@ -373,7 +378,8 @@ export default function AddProductionPage() {
               updated.packagingName = '';
               updated.packagingQuantity = '';
             }
-          } else if (productType.includes('block ice') || productType === 'block ice') {
+          } else if (productType.includes('block ice') || productType === 'block ice' ||
+                    productType.includes('bloc de glace') || productType === 'bloc de glace') {
             // For Block Ice, clear packaging
             updated.packagingName = '';
             updated.packagingQuantity = '';
@@ -386,9 +392,12 @@ export default function AddProductionPage() {
         const product = productMap.get(updated.productId);
         if (product) {
           const productType = product.producttype?.toLowerCase() || '';
-          const isCubeIce = productType.includes('cube ice') || productType === 'cube ice';
-          const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling';
-          const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans');
+          const isCubeIce = productType.includes('cube ice') || productType === 'cube ice' || 
+                           productType.includes('glaçons') || productType === 'glaçons';
+          const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling' ||
+                                 productType.includes('eau en bouteille') || productType === 'eau en bouteille';
+          const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans') ||
+                             productType.includes('bidon d\'eau') || productType === 'bidon d\'eau';
           
           if ((isCubeIce || isWaterBottling || isWaterCans) && updated.packagingName) {
             updated.packagingQuantity = value;
@@ -485,9 +494,12 @@ export default function AddProductionPage() {
         // 3. Add OUT movement for packaging if needed
         const activityName = (activityTypeMap.get(entry.activityTypeId)?.name || '').toLowerCase();
         const productType = product?.producttype?.toLowerCase() || '';
-        const isCubeIce = productType.includes('cube ice') || productType === 'cube ice';
-        const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling';
-        const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans');
+        const isCubeIce = productType.includes('cube ice') || productType === 'cube ice' || 
+                         productType.includes('glaçons') || productType === 'glaçons';
+        const isWaterBottling = productType.includes('water bottling') || productType === 'water bottling' ||
+                               productType.includes('eau en bouteille') || productType === 'eau en bouteille';
+        const isWaterCans = productType.includes('bidon') || productType.includes('water can') || productType.includes('water cans') ||
+                           productType.includes('bidon d\'eau') || productType === 'bidon d\'eau';
         
         if ((isCubeIce || isWaterBottling || isWaterCans || activityName.includes('cube') || activityName.includes('bottling')) && entry.packagingName && entry.packagingQuantity) {
           // Find packaging productId
@@ -648,7 +660,9 @@ export default function AddProductionPage() {
                           
                           if (packagingProduct) {
                             const translatedName = getTranslatedProductName(packagingProduct, t);
-                            console.log('🎯 Translated packaging name:', translatedName);
+                            if (process.env.NODE_ENV === 'development') {
+                              console.log('🎯 Translated packaging name:', translatedName);
+                            }
                             
                             // Check if this is a packaging product and add prefix if needed
                             const isPackagingProduct = packagingProduct.producttype?.toLowerCase().includes('packaging') ||
@@ -666,11 +680,15 @@ export default function AddProductionPage() {
                               p.productid?.toLowerCase().includes(entry.packagingName.toLowerCase()) ||
                               entry.packagingName.toLowerCase().includes(p.productid?.toLowerCase())
                             );
-                            console.log('🎯 Fallback product found:', fallbackProduct ? fallbackProduct.productid : 'None');
+                            if (process.env.NODE_ENV === 'development') {
+                              console.log('🎯 Fallback product found:', fallbackProduct ? fallbackProduct.productid : 'None');
+                            }
                             
                             if (fallbackProduct) {
                               const fallbackTranslated = getTranslatedProductName(fallbackProduct, t);
-                              console.log('🎯 Fallback translated name:', fallbackTranslated);
+                              if (process.env.NODE_ENV === 'development') {
+                                console.log('🎯 Fallback translated name:', fallbackTranslated);
+                              }
                               
                               // Check if this is a packaging product and add prefix if needed
                               const isPackagingProduct = fallbackProduct.producttype?.toLowerCase().includes('packaging') ||

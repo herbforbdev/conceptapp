@@ -111,11 +111,18 @@ export default function AddSalePage() {
           product.producttype === 'Block Ice' || 
           product.producttype === 'Cube Ice' ||
           product.producttype === 'Water Bottling' ||
-          product.producttype === 'Water Cans';
+          product.producttype === 'Water Cans' ||
+          // French product types
+          product.producttype === 'Bloc de glace' ||
+          product.producttype === 'Glaçons' ||
+          product.producttype === 'Eau en bouteille' ||
+          product.producttype === 'Bidon d\'eau';
           
         const isNotPackaging = 
           !product.producttype?.includes('Packaging') &&
-          !product.productid?.includes('Package');
+          !product.producttype?.includes('Emballage') &&
+          !product.productid?.includes('Package') &&
+          !product.productid?.includes('Emballage');
 
         const shouldInclude = matchesActivity && isMainProduct && isNotPackaging;
         
