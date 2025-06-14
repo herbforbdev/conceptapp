@@ -981,7 +981,11 @@
       },
       "descriptions": {
         "block_ice": "Production et gestion de bloc de glace.",
-        "cube_ice_water_bottling": "Production et gestion des glaçons et de l'eau en bouteille."
+        "cube_ice_water_bottling": "Production et gestion des glaçons et de l'eau en bouteille.",
+        "cube_ice_&_water_bottling": "Production et gestion des glaçons et de l'eau en bouteille.",
+        "cube_ice___water_bottling": "Production et gestion des glaçons et de l'eau en bouteille.",
+        "glace_en_bloc": "Production et gestion de bloc de glace.",
+        "glaçons_et_eau_en_bouteille": "Production et gestion des glaçons et de l'eau en bouteille."
       },
       "fields": {
         "name": "Nom de l'activité",

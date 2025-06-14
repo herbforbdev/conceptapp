@@ -249,7 +249,7 @@ function getTranslatedActivityTypeName(name, t) {
 function getTranslatedActivityDescription(name, t) {
   if (!name) return name;
   
-  // Dynamic translation with fallback
+  // Dynamic translation with fallback - try multiple paths
   const variations = [
     name.toLowerCase().replace(/\s+/g, '_'),
     name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
@@ -257,11 +257,20 @@ function getTranslatedActivityDescription(name, t) {
     name.replace(/\s+/g, '_').toLowerCase()
   ];
   
-  for (const variation of variations) {
-    const key = `products.activities.descriptions.${variation}`;
-    const translated = t(key);
-    if (translated && translated !== key) {
-      return translated;
+  // Try different translation paths
+  const paths = [
+    'masterData.activities.descriptions',
+    'products.activities.descriptions',
+    'activities.descriptions'
+  ];
+  
+  for (const path of paths) {
+    for (const variation of variations) {
+      const key = `${path}.${variation}`;
+      const translated = t(key);
+      if (translated && translated !== key) {
+        return translated;
+      }
     }
   }
   

@@ -409,9 +409,36 @@ export default function AddSalePage() {
                         className="w-full"
                       >
                         <option value="">{t('sales.placeholders.selectActivityType')}</option>
-                        {memoizedActivityTypes.map(a => (
-                          <option key={a.id} value={a.id}>{t(`products.activities.${a.name?.toLowerCase().replace(/\s+/g, '_')}`) || a.name}</option>
-                        ))}
+                        {memoizedActivityTypes.map(a => {
+                          // Dynamic translation with fallback for activity types
+                          const getTranslatedActivityType = (name) => {
+                            if (!name) return name;
+                            
+                            // Try multiple translation key variations
+                            const variations = [
+                              name.toLowerCase().replace(/\s+/g, '_'),
+                              name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+                              name.toLowerCase().replace(/\s+/g, ''),
+                              name.replace(/\s+/g, '_').toLowerCase()
+                            ];
+                            
+                            for (const variation of variations) {
+                              const key = `products.activities.${variation}`;
+                              const translated = t(key);
+                              if (translated && translated !== key) {
+                                return translated;
+                              }
+                            }
+                            
+                            return name; // Fallback to original name
+                          };
+                          
+                          return (
+                            <option key={a.id} value={a.id}>
+                              {getTranslatedActivityType(a.name)}
+                            </option>
+                          );
+                        })}
                       </Select>
                     </td>
                     <td className="px-3 py-3 font-semibold">
@@ -422,33 +449,47 @@ export default function AddSalePage() {
                       >
                         <option value="">{t('sales.placeholders.selectProduct')}</option>
                         {getFilteredProducts(entry.activityTypeId).map(p => {
-                          // Get the product type and size from the productid
-                          const parts = p.productid.split(' ');
-                          const type = parts[0] + (parts[1] || ''); // Combine first two words for type
-                          const size = parts.slice(2).join(' '); // Rest is size
+                          // Use robust translation logic similar to other pages
+                          const getTranslatedProductName = (product) => {
+                            if (!product || !product.productid) return 'N/A';
+                            
+                            const name = product.productid.toLowerCase();
+                            const type = product.producttype?.toLowerCase() || '';
+                            
+                            // Handle different product types with multiple variations
+                            if (type.includes('block') || name.includes('block')) {
+                              if (name.includes('5kg') || name.includes('5 kg')) return t('products.items.blockIce.5kg');
+                              if (name.includes('8kg') || name.includes('8 kg')) return t('products.items.blockIce.8kg');
+                              if (name.includes('30kg') || name.includes('30 kg')) return t('products.items.blockIce.30kg');
+                            }
+                            
+                            if (type.includes('cube') || name.includes('cube')) {
+                              if (name.includes('1kg') || name.includes('1 kg')) return t('products.items.cubeIce.1kg');
+                              if (name.includes('2kg') || name.includes('2 kg')) return t('products.items.cubeIce.2kg');
+                              if (name.includes('5kg') || name.includes('5 kg')) return t('products.items.cubeIce.5kg');
+                            }
+                            
+                            if (type.includes('water') && (type.includes('bottling') || name.includes('bottled'))) {
+                              if (name.includes('600ml')) return t('products.items.waterBottling.600ml');
+                              if (name.includes('750ml')) return t('products.items.waterBottling.750ml');
+                              if (name.includes('1.5l') || name.includes('1,5l') || name.includes('1_5l')) return t('products.items.waterBottling.1_5L');
+                              if (name.includes('5l') && !name.includes('1.5') && !name.includes('1,5')) return t('products.items.waterBottling.5L');
+                            }
+                            
+                            if (type.includes('water') && type.includes('cans')) {
+                              if (name.includes('1l') && !name.includes('10l') && !name.includes('1.5') && !name.includes('1,5')) return t('products.items.waterCans.1L');
+                              if (name.includes('1.5l') || name.includes('1,5l')) return t('products.items.waterCans.1,5L');
+                              if (name.includes('2l') && !name.includes('12l')) return t('products.items.waterCans.2L');
+                              if (name.includes('5l') && !name.includes('15l')) return t('products.items.waterCans.5L');
+                              if (name.includes('10l')) return t('products.items.waterCans.10L');
+                            }
+                            
+                            return product.productid; // Fallback to original name
+                          };
                           
-                          // Convert type to match translation key format with correct capitalization
-                          let typeKey;
-                          if (type.toLowerCase().includes('block')) {
-                            typeKey = 'blockIce';
-                          } else if (type.toLowerCase().includes('cube')) {
-                            typeKey = 'cubeIce';
-                          } else if (type.toLowerCase().includes('water') && type.toLowerCase().includes('bottling')) {
-                            typeKey = 'waterBottling';
-                          } else if (type.toLowerCase().includes('water') && type.toLowerCase().includes('cans')) {
-                            typeKey = 'waterCans';
-                          } else {
-                            typeKey = type.toLowerCase().replace(/\s+/g, '');
-                          }
-                          
-                          // Convert size to match translation key format
-                          const sizeKey = size?.toLowerCase().replace(/[.,]/g, '_');
-                          
-                          // Build the translation key
-                          const translationKey = `products.items.${typeKey}.${sizeKey}`;
                           return (
                             <option key={p.id} value={p.id}>
-                              {t(translationKey) || p.productid}
+                              {getTranslatedProductName(p)}
                             </option>
                           );
                         })}

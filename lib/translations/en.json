@@ -960,7 +960,11 @@
       },
       "descriptions": {
         "block_ice": "Block ice production and management.",
-        "cube_ice_water_bottling": "Ice cubes and bottled water production and management."
+        "cube_ice_water_bottling": "Ice cubes and bottled water production and management.",
+        "cube_ice_&_water_bottling": "Ice cubes and bottled water production and management.",
+        "cube_ice___water_bottling": "Ice cubes and bottled water production and management.",
+        "glace_en_bloc": "Block ice production and management.",
+        "glaçons_et_eau_en_bouteille": "Ice cubes and bottled water production and management."
       },
       "fields": {
         "name": "Activity name",

@@ -235,18 +235,21 @@ export default function AddProductionPage() {
               return isPackaging && p.activitytypeid === product.activitytypeid;
             });
             
-            console.log('📦 Found packaging products:', packagingProducts.map(p => ({
-              name: p.productid,
-              type: p.producttype,
-              activityId: p.activitytypeid,
-              normalizedName: p.productid?.toLowerCase()
-            })));
-            
-            if (packagingProducts.length === 0) {
-              console.log('⚠️ WARNING: No packaging products found for activity type:', product.activitytypeid);
+            // Debug logging only in development
+            if (process.env.NODE_ENV === 'development') {
+              console.log('📦 Found packaging products:', packagingProducts.map(p => ({
+                name: p.productid,
+                type: p.producttype,
+                activityId: p.activitytypeid,
+                normalizedName: p.productid?.toLowerCase()
+              })));
+              
+              if (packagingProducts.length === 0) {
+                console.log('⚠️ WARNING: No packaging products found for activity type:', product.activitytypeid);
+              }
+              
+              console.log('Looking for packaging matching product:', productName);
             }
-            
-            console.log('Looking for packaging matching product:', productName);
             
             // Match packaging by size/capacity - more robust matching
             let matchingPackaging = null;
@@ -277,7 +280,9 @@ export default function AddProductionPage() {
             };
             
             const productSize = extractSize(productName);
-            console.log('Extracted product size:', productSize);
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Extracted product size:', productSize);
+            }
             
             if (productSize) {
               // Try different matching strategies
@@ -315,46 +320,56 @@ export default function AddProductionPage() {
               
               // Try each strategy until we find a match
               for (let i = 0; i < matchingStrategies.length; i++) {
-                console.log(`Trying strategy ${i + 1} for product size:`, productSize);
+                if (process.env.NODE_ENV === 'development') {
+                  console.log(`Trying strategy ${i + 1} for product size:`, productSize);
+                }
                 matchingPackaging = packagingProducts.find(matchingStrategies[i]);
                 if (matchingPackaging) {
-                  console.log(`✅ Found packaging using strategy ${i + 1}:`, {
-                    productid: matchingPackaging.productid,
-                    producttype: matchingPackaging.producttype
-                  });
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log(`✅ Found packaging using strategy ${i + 1}:`, {
+                      productid: matchingPackaging.productid,
+                      producttype: matchingPackaging.producttype
+                    });
+                  }
                   break;
-                } else {
+                } else if (process.env.NODE_ENV === 'development') {
                   console.log(`❌ Strategy ${i + 1} failed`);
                 }
               }
             }
             
-            console.log('Matching packaging found:', matchingPackaging ? {
-              name: matchingPackaging.productid,
-              type: matchingPackaging.producttype,
-              description: matchingPackaging.description
-            } : 'None');
-            
-            if (!matchingPackaging) {
-              console.log('DEBUG: No packaging match found for product:', productName);
-              console.log('DEBUG: Product type:', productType);
-              console.log('DEBUG: Available packaging products:');
-              packagingProducts.forEach(p => {
-                console.log(`  - ${p.productid} (${p.producttype})`);
-              });
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Matching packaging found:', matchingPackaging ? {
+                name: matchingPackaging.productid,
+                type: matchingPackaging.producttype,
+                description: matchingPackaging.description
+              } : 'None');
+              
+              if (!matchingPackaging) {
+                console.log('DEBUG: No packaging match found for product:', productName);
+                console.log('DEBUG: Product type:', productType);
+                console.log('DEBUG: Available packaging products:');
+                packagingProducts.forEach(p => {
+                  console.log(`  - ${p.productid} (${p.producttype})`);
+                });
+              }
             }
             
             if (matchingPackaging) {
-              console.log('✅ Setting packagingName to:', matchingPackaging.productid);
+              if (process.env.NODE_ENV === 'development') {
+                console.log('✅ Setting packagingName to:', matchingPackaging.productid);
+              }
               updated.packagingName = matchingPackaging.productid;
               // If quantity is already set, copy it to packaging
               if (updated.quantityProduced) {
                 updated.packagingQuantity = updated.quantityProduced;
               }
             } else {
-              console.log('❌ No packaging match found, clearing packaging field');
-              console.log('❌ Product name was:', productName);
-              console.log('❌ Product type was:', productType);
+              if (process.env.NODE_ENV === 'development') {
+                console.log('❌ No packaging match found, clearing packaging field');
+                console.log('❌ Product name was:', productName);
+                console.log('❌ Product type was:', productType);
+              }
               updated.packagingName = '';
               updated.packagingQuantity = '';
             }
@@ -381,13 +396,15 @@ export default function AddProductionPage() {
         }
       }
       
-      console.log('🔄 Updated entry:', {
-        id: updated.id,
-        productId: updated.productId,
-        packagingName: updated.packagingName,
-        field: field,
-        value: value
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 Updated entry:', {
+          id: updated.id,
+          productId: updated.productId,
+          packagingName: updated.packagingName,
+          field: field,
+          value: value
+        });
+      }
       
       return updated;
     }));
@@ -617,13 +634,17 @@ export default function AddProductionPage() {
                     <td className="px-3 py-3">
                       <div className="w-full text-sm p-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
                         {entry.packagingName ? (() => {
-                          console.log('🎯 DISPLAY DEBUG for entry:', entry.id);
-                          console.log('🎯 packagingName value:', entry.packagingName);
-                          console.log('🎯 packagingName type:', typeof entry.packagingName);
+                          if (process.env.NODE_ENV === 'development') {
+                            console.log('🎯 DISPLAY DEBUG for entry:', entry.id);
+                            console.log('🎯 packagingName value:', entry.packagingName);
+                            console.log('🎯 packagingName type:', typeof entry.packagingName);
+                          }
                           
                           // Find packaging product to get translated name
                           const packagingProduct = Array.from(productMap.values()).find(p => p.productid === entry.packagingName);
-                          console.log('🎯 Found exact match packaging product:', packagingProduct ? packagingProduct.productid : 'None');
+                          if (process.env.NODE_ENV === 'development') {
+                            console.log('🎯 Found exact match packaging product:', packagingProduct ? packagingProduct.productid : 'None');
+                          }
                           
                           if (packagingProduct) {
                             const translatedName = getTranslatedProductName(packagingProduct, t);
