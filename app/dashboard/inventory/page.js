@@ -39,11 +39,10 @@ import {
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
-
-
 
 // Register Chart.js components
 ChartJS.register(
@@ -56,6 +55,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  Filler,
   annotationPlugin
 );
 
@@ -1125,7 +1125,7 @@ export default function InventoryPage() {
             borderWidth: 2,
             borderDash: [5, 5],
             label: {
-              enabled: true,
+              display: true,
               content: 'Threshold',
               position: 'end'
             }
@@ -1186,7 +1186,7 @@ export default function InventoryPage() {
             borderWidth: 2,
             borderDash: [5, 5],
             label: {
-              enabled: true,
+              display: true,
               content: 'Threshold',
               position: 'end'
             }
