@@ -754,10 +754,22 @@ export default function SalesPage() {
     return Array.from(types).sort();
   }, [productMap]);
 
-  // Set default product type when component mounts
+  // Set default product type to Block Ice when data loads
   useEffect(() => {
     if (uniqueProductTypes.length > 0 && !selectedProductType) {
-      setSelectedProductType(uniqueProductTypes[0]);
+      // Find Block Ice or Bloc de glace in the available types
+      const blockIceType = uniqueProductTypes.find(type => 
+        type === 'Block Ice' || 
+        type === 'Bloc de glace' || 
+        type === 'Bloc de Glace' ||
+        type.toLowerCase().includes('bloc')
+      );
+      
+      if (blockIceType) {
+        setSelectedProductType(blockIceType);
+      } else {
+        setSelectedProductType(uniqueProductTypes[0]);
+      }
     }
   }, [uniqueProductTypes, selectedProductType]);
 
@@ -979,6 +991,19 @@ export default function SalesPage() {
     });
   }, [filteredSalesData.data, summaryPeriod]);
 
+  // Filter data based on the selected time period for top cards
+  const topCardData = useMemo(() => {
+    if (!sales) return [];
+    return filterByPeriod(sales, {
+      type: filters.selectedTimePeriod,
+      year: filters.dateFilters.year,
+      month: filters.dateFilters.month,
+      week: filters.dateFilters.week,
+      startDate: filters.dateFilters.startDate,
+      endDate: filters.dateFilters.endDate
+    });
+  }, [sales, filters.selectedTimePeriod, filters.dateFilters]);
+
   // 7. All useEffect hooks
   useEffect(() => {
     setMounted(true);
@@ -1129,17 +1154,8 @@ export default function SalesPage() {
         {/* Replace the old time period selector with the new component */}
         <ClientOnly>
           <TimePeriodSelector
-            selectedPeriod={selectedTimePeriod}
-            onPeriodChange={setSelectedTimePeriod}
-            startDate={dateFilters.startDate}
-            endDate={dateFilters.endDate}
-            onDateRangeChange={(start, end) => {
-              setDateFilters(prev => ({
-                ...prev,
-                startDate: start,
-                endDate: end
-              }));
-            }}
+            selectedTimePeriod={filters.selectedTimePeriod}
+            onChange={(newPeriod) => handleFilterChange('selectedTimePeriod', newPeriod)}
           />
         </ClientOnly>
       </div>
@@ -1147,7 +1163,7 @@ export default function SalesPage() {
       {/* Top Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {(() => {
-          const metrics = calculateSalesMetrics(filteredSalesData.data);
+          const metrics = calculateSalesMetrics(topCardData);
           
           return (
             <>
@@ -1755,16 +1771,26 @@ export default function SalesPage() {
             >
               <option value="">{t('filters.allProducts')}</option>
               {uniqueProductTypes.map(type => {
-                // Get translation key for product type
+                // Enhanced translation key mapping for both French and English types
                 let translationKey;
-                if (type === 'Block Ice') {
+                const lowerType = type.toLowerCase();
+                
+                if (type === 'Block Ice' || type === 'Bloc de glace' || type === 'Bloc de Glace' || lowerType.includes('bloc')) {
                   translationKey = 'products.types.blockIce';
-                } else if (type === 'Cube Ice') {
+                } else if (type === 'Cube Ice' || type === 'Glaçons' || lowerType.includes('glaçon')) {
                   translationKey = 'products.types.cubeIce';
-                } else if (type === 'Water Bottling') {
+                } else if (type === 'Water Bottling' || type === 'Eau en bouteille' || lowerType.includes('eau en bouteille')) {
                   translationKey = 'products.types.waterBottling';
-                } else if (type === 'Water Cans') {
+                } else if (type === 'Water Cans' || type === 'Bidon d\'eau' || type === 'Bidon D\'Eau' || lowerType.includes('bidon')) {
                   translationKey = 'products.types.waterCans';
+                } else if (lowerType.includes('packaging') || lowerType.includes('emballage')) {
+                  if (lowerType.includes('cube') || lowerType.includes('glaçon')) {
+                    translationKey = 'products.types.packagingForIceCube';
+                  } else if (lowerType.includes('water') || lowerType.includes('eau')) {
+                    translationKey = 'products.types.packagingForWaterBottling';
+                  } else {
+                    translationKey = 'products.types.packaging';
+                  }
                 } else {
                   translationKey = `products.types.${type.toLowerCase().replace(/\s+/g, '')}`;
                 }
@@ -1791,11 +1817,44 @@ export default function SalesPage() {
                   // Metrics for selected period
                   const metrics = calculateSalesMetrics(periodData);
                   
-                  // Filter products by selected product type
+                  // Enhanced product type filtering to support both French and English
                   const filteredPeriodData = selectedProductType 
                     ? periodData.filter(sale => {
                         const product = productMap.get(sale.productId);
-                        return product?.producttype === selectedProductType;
+                        const productType = product?.producttype;
+                        
+                        // Direct match
+                        if (productType === selectedProductType) return true;
+                        
+                        // Cross-language matching
+                        const lowerSelected = selectedProductType.toLowerCase();
+                        const lowerProduct = productType?.toLowerCase() || '';
+                        
+                        // Block Ice matching
+                        if ((lowerSelected.includes('block') || lowerSelected.includes('bloc')) && 
+                            (lowerProduct.includes('block') || lowerProduct.includes('bloc'))) {
+                          return true;
+                        }
+                        
+                        // Cube Ice matching  
+                        if ((lowerSelected.includes('cube') || lowerSelected.includes('glaçon')) && 
+                            (lowerProduct.includes('cube') || lowerProduct.includes('glaçon'))) {
+                          return true;
+                        }
+                        
+                        // Water Bottling matching
+                        if ((lowerSelected.includes('water bottling') || lowerSelected.includes('eau en bouteille')) && 
+                            (lowerProduct.includes('water bottling') || lowerProduct.includes('eau en bouteille'))) {
+                          return true;
+                        }
+                        
+                        // Water Cans matching
+                        if ((lowerSelected.includes('water can') || lowerSelected.includes('bidon')) && 
+                            (lowerProduct.includes('water can') || lowerProduct.includes('bidon'))) {
+                          return true;
+                        }
+                        
+                        return false;
                       })
                     : periodData;
                   

@@ -5,6 +5,8 @@
     "loadingFormData": "Chargement des données du formulaire...",
     "error": "Erreur",
     "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "saved": "Enregistré",
     "cancel": "Annuler",
     "edit": "Modifier",
     "delete": "Supprimer",
@@ -221,7 +223,14 @@
       "EmballagepourBidond'eau": "Emballage pour Bidon d'eau",
       "emballagepourbidond'eau": "Emballage pour Bidon d'eau",
       "emballagepourbidon_d'eau": "Emballage pour Bidon d'eau",
-      
+      "blocdeglace": "Bloc de Glace",
+      "glaçons": "Glaçons",
+      "eauenbouteille": "Eau en bouteille",
+      "bidon_d'eau": "Bidon d'eau",
+      "bidon_d'eau_sans_label": "Bidon d'eau sans label",
+      "bidon_d'eau_avec_label": "Bidon d'eau avec label",
+      "bidon_d'eau_avec_label_sans_label": "Bidon d'eau avec label sans label",
+      "bidon_d'eau_sans_label_avec_label": "Bidon d'eau sans label avec label",
       "Water Bottling": "Eau en bouteille",
       "WaterBottling": "Eau en bouteille",
       "WaterCans": "Bidon D'Eau",
@@ -356,7 +365,10 @@
       "cube_ice_&_water_bottling": "Glaçons et Eau en bouteille",
       "cube_ice___water_bottling": "Glaçons et Eau en bouteille",
       "glace_en_bloc": "Blocs de glace",
-      "glaçons_et_eau_en_bouteille": "Glaçons et Eau en bouteille"
+      "bloc_de_glace": "Blocs de glace",
+      "glaçons_et_eau_en_bouteille": "Glaçons et Eau en bouteille",
+      "glaçons": "Glaçons",
+      "eau_en_bouteille": "Eau en bouteille"
     },
     "fields": {
       "name": "Nom",
@@ -476,7 +488,7 @@
       "cubeIceStock": "Stock de Glaçons",
       "waterBottlingStock": "Stock d'Eau en bouteille",
       "packagingStock": "Stock d'Emballages",
-      "currentStock": "Stock actuel",
+      "stock": "Stock",
       "iceCubeProducts": "Produits Glaçons",
       "waterBottlingProducts": "Produits Eau en bouteille"
     },
@@ -495,6 +507,7 @@
     "charts": {
       "iceCubePackaging": "Stock d'Emballage pour Glaçons",
       "waterBottlingPackaging": "Stock d'Emballage pour Eau en bouteille",
+      "waterCansPackaging": "Stock d'Emballage pour Bidons d'Eau",
       "threshold": "Seuil"
     },
     "source": {
@@ -703,6 +716,8 @@
       "trend": "Tendance des ventes",
       "byActivity": "Ventes par type d'activité",
       "byProduct": "Ventes par produit",
+      "amount_usd": "Montant (USD)",
+      "amount_cdf": "Montant (CDF)",
       "byChannel": "Ventes par canal"
     },
     "fields": {
@@ -963,7 +978,18 @@
         "generator_fuel": "Dépenses pour le générateur de carburant",
         "tax_charges": "Dépenses pour les charges fiscales",
         "miscellaneous_expenses": "Dépenses diverses",
-        "staff": "Dépenses pour le personnel"
+        "staff": "Dépenses pour le personnel",
+        "emballages": "Dépenses pour les emballages",
+        "emballages_": "Dépenses pour les emballages",
+        "intrants": "Dépenses pour les intrants",
+        "personnel": "Dépenses pour le personnel",
+        "carburant_générateur": "Dépenses pour le carburant du générateur",
+        "dépenses_diverses": "Dépenses diverses",
+        "engagement_mensuel": "Dépenses pour l'engagement mensuel",
+        "charges_sociales": "Dépenses pour les charges sociales",
+        "entretien_&_réparations_des_machines": "Dépenses pour l'entretien et les réparations des machines",
+        "construction_&_réparations_immobilières": "Dépenses pour la construction et les réparations immobilières",
+        "soins_médicaux": "Dépenses pour les soins médicaux"
       },
       "fields": {
         "name": "Nom",

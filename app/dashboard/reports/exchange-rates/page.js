@@ -135,44 +135,45 @@ export default function ExchangeRatesPage() {
             </h2>
             <form onSubmit={handleAddRate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   {t('exchangeRates.year')}
                 </label>
                 <input
                   type="number"
                   value={newRate.year}
                   onChange={(e) => setNewRate({ ...newRate, year: e.target.value })}
-                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500 text-gray-900 bg-white"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   {t('exchangeRates.month')}
                 </label>
                 <select
                   value={newRate.month}
                   onChange={(e) => setNewRate({ ...newRate, month: e.target.value })}
-                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500 text-gray-900 bg-white"
                   required
                 >
                   {months.map((month, index) => (
-                    <option key={index + 1} value={index + 1}>
+                    <option key={index + 1} value={index + 1} className="text-gray-900 bg-white">
                       {month}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('exchangeRates.rate')}
+                <label className="block text-sm font-medium text-gray-900 mb-1">
+                  {t('exchangeRates.rate')} (CDF)
                 </label>
                 <input
                   type="number"
                   step="0.01"
                   value={newRate.rate}
                   onChange={(e) => setNewRate({ ...newRate, rate: e.target.value })}
-                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500 text-gray-900 bg-white"
+                  placeholder="Ex: 2900"
                   required
                 />
               </div>

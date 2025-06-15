@@ -2244,7 +2244,7 @@ export default function ProductionPage() {
       {/* Trend Charts and Summary Table Grid Layout */}
       <div className="grid grid-cols-12 gap-6">
         {/* Production Summary Table - Left Side */}
-        <div className="col-span-5">
+        <div className="col-span-6">
           <Card className="border border-red-200 rounded-lg bg-white h-full p-0">
             <div className="px-8 py-8 bg-red-50 border-b border-red-200 flex justify-between items-center rounded-t-2xl">
               <h3 className="text-lg font-semibold text-red-900 rounded-t-2xl">{safeT(t, 'production.summary.title', 'Production Summary')}</h3>
@@ -2253,7 +2253,7 @@ export default function ProductionPage() {
                   id="summaryYear"
                   value={summaryYear}
                   onChange={e => setSummaryYear(Number(e.target.value))}
-                  className="w-28 text-xs text-[#4c5c68] font-semibold"
+                  className="w-28 text-base text-[#4c5c68] font-semibold"
                 >
                   {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
                     <option key={year} value={year}>{year}</option>
@@ -2263,7 +2263,7 @@ export default function ProductionPage() {
                   id="summaryMonth"
                   value={summaryMonth}
                   onChange={e => setSummaryMonth(Number(e.target.value))}
-                  className="w-32 text-xs text-[#4c5c68] font-semibold"
+                  className="w-32 text-base text-[#4c5c68] font-semibold"
                 >
                   <option value="">{safeT(t, 'production.filters.allMonths', 'All Months')}</option>
                   {Array.from({ length: 12 }, (_, i) => {
@@ -2282,23 +2282,23 @@ export default function ProductionPage() {
             <table className="w-full text-sm text-left text-gray-900 border border-red-100 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
                 <thead className="bg-red-50">
                   <tr>
-                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900">{safeT(t, 'production.summary.activityType', 'Activity Type')}</th>
-                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-center">{safeT(t, 'production.summary.quantity', 'Quantity')}</th>
-                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-center">{safeT(t, 'production.summary.percentageTotal', 'Percentage')}</th>
+                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-base">{safeT(t, 'production.summary.activityType', 'Activity Type')}</th>
+                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-center text-base">{safeT(t, 'production.summary.quantity', 'Quantity')}</th>
+                    <th className="px-6 py-3 font-semibold text-[#4c5c68] text-red-900 text-center text-base">{safeT(t, 'production.summary.percentageTotal', 'Percentage')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-red-100/50">
                   {summaryData.map((item, index) => (
                     <React.Fragment key={index}>
                       <tr className="hover:bg-red-50/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
-                        <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
+                        <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2 text-base">
                           <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
                           {String(safeT(t, `products.activities.${(activityTypeMap.get(item.activityTypeId)?.name || item.activityType || 'unknown').toLowerCase().replace(/\s+/g, '_')}`, getTranslatedActivityTypeName(activityTypeMap.get(item.activityTypeId), t) || item.activityType || 'Unknown'))}
                         </td>
-                        <td className="px-8 py-5 text-center font-semibold text-red-700">
+                        <td className="px-8 py-5 text-center font-semibold text-red-700 text-base">
                           {String(item.total.toLocaleString())}
                         </td>
-                        <td className="px-8 py-5 text-center text-gray-800">
+                        <td className="px-8 py-5 text-center text-gray-800 text-base">
                           <span className="bg-red-100 text-red-800 border border-red-200 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
                             <span className="w-1 h-1 rounded-full bg-red-500 mr-1"></span>
                             {String(item.percentage.toFixed(1))}%
@@ -2308,7 +2308,7 @@ export default function ProductionPage() {
                       {/* Product breakdown rows */}
                       {item.products.map((product, prodIndex) => (
                         <tr key={`${index}-${prodIndex}`} className="bg-red-50/20">
-                          <td className="px-12 py-3 text-[#4c5c68] font-semibold text-xs">
+                          <td className="px-12 py-3 text-[#4c5c68] font-semibold text-base">
                             {String((() => {
                               // Try exact match first, then trimmed match for products with space issues
                               let foundProduct = productMap.get(product.productId);
@@ -2319,11 +2319,11 @@ export default function ProductionPage() {
                               return getTranslatedProductName(foundProduct, t) || foundProduct?.productid || product.productId;
                             })())}
                           </td>
-                          <td className="px-8 py-3 text-center text-gray-600">
+                          <td className="px-8 py-3 text-center text-gray-600 text-base">
                             {String(product.quantity.toLocaleString())}
                           </td>
                           <td className="px-8 py-3 text-center">
-                            <span className="text-gray-500 text-xs">
+                            <span className="text-gray-500 text-base">
                               {String(product.percentage.toFixed(1))}%
                             </span>
                           </td>
@@ -2332,14 +2332,14 @@ export default function ProductionPage() {
                     </React.Fragment>
                   ))}
                   <tr className="bg-gradient-to-r from-red-100 via-red-50 to-red-100 font-bold text-red-900 border-t-2 border-red-200">
-                    <td className="px-8 py-5 rounded-bl-xl flex items-center space-x-2">
+                    <td className="px-8 py-5 rounded-bl-xl flex items-center space-x-2 text-base">
                       <span className="w-2 h-2 rounded-full bg-red-600 inline-block"></span>
                       <span>{safeT(t, 'production.summary.totalProduction', 'Total Production')}</span>
                     </td>
-                    <td className="px-8 py-5 text-center text-red-800">
+                    <td className="px-8 py-5 text-center text-red-800 text-base">
                       {String(summaryData.reduce((sum, item) => sum + item.total, 0).toLocaleString())}
                     </td>
-                    <td className="px-8 py-5 text-center rounded-br-xl text-gray-800">
+                    <td className="px-8 py-5 text-center rounded-br-xl text-gray-800 text-base">
                       <span className="bg-red-200 text-red-800 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
                         <span className="w-1 h-1 rounded-full bg-red-600 mr-1"></span>
                         100%
@@ -2352,7 +2352,7 @@ export default function ProductionPage() {
         </div>
 
         {/* Charts - Right Side */}
-        <div className="col-span-7 flex flex-col gap-6">
+        <div className="col-span-6 flex flex-col gap-6">
           <Card className="p-6">
             <div className="flex flex-col items-center mb-4">
               <h3 className="text-lg font-semibold text-[#4c5c68] mb-3 text-center">{String(t('production.charts.productionTrends'))}</h3>

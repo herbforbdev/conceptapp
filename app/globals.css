@@ -137,3 +137,30 @@ body {
     @apply p-6 w-12 h-12 rounded-xl shadow-md text-white tracking-wide uppercase;
   }
 }
+
+/* Tablet (iPad 10.9" and 11") responsive styles */
+@media (min-width: 820px) and (max-width: 1194px) {
+  /* Example: Make tables scrollable horizontally */
+  table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100vw;
+  }
+  /* Example: Add padding to cards and containers */
+  .card, .container, .Card, .Container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  /* Example: Make buttons larger for touch */
+  button, .btn, .Button {
+    min-height: 48px;
+    min-width: 48px;
+    font-size: 1.1rem;
+  }
+  /* Example: Adjust modal width */
+  .modal, .Modal {
+    width: 90vw;
+    max-width: 700px;
+  }
+}

@@ -180,6 +180,18 @@ const normalizeKey = (str) =>
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
 
+const generateActivityId = (name) => {
+  return normalizeKey(name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[ç]/g, 'c')            // Replace ç with c
+    .replace(/[éèêë]/g, 'e')         // Replace éèêë with e
+    .replace(/[àâä]/g, 'a')          // Replace àâä with a
+    .replace(/[ùûü]/g, 'u')          // Replace ùûü with u
+    .replace(/[îï]/g, 'i')           // Replace îï with i
+    .replace(/[ôö]/g, 'o'));         // Replace ôö with o
+};
+
 // --- Translation helpers for expense and activity types ---
 const expenseTypeTranslationMap = {
   "Generator Fuel": "generator_fuel",
@@ -220,8 +232,76 @@ function getTranslatedExpenseTypeName(name, t) {
 }
 
 function getTranslatedExpenseDescription(name, t) {
+  if (!name) return name;
+  
+  // First try direct mapping from expenseTypeTranslationMap
   const key = expenseTypeTranslationMap[name];
-  return key ? t(`masterData.expenses.descriptions.${key}`) : name;
+  if (key) {
+    const translated = t(`masterData.expenses.descriptions.${key}`);
+    if (translated && translated !== `masterData.expenses.descriptions.${key}`) {
+      return translated;
+    }
+  }
+  
+  // Try direct description mapping from expenseDescriptionTranslationMap
+  const descKey = expenseDescriptionTranslationMap[name];
+  if (descKey) {
+    const translated = t(`masterData.expenses.descriptions.${descKey}`);
+    if (translated && translated !== `masterData.expenses.descriptions.${descKey}`) {
+      return translated;
+    }
+  }
+  
+  // Try normalized key variations
+  const variations = [
+    name.toLowerCase().replace(/\s+/g, '_'),
+    name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+    name.toLowerCase().replace(/\s+/g, ''),
+    name.replace(/\s+/g, '_').toLowerCase()
+  ];
+  
+  // Try different translation paths
+  const paths = [
+    'masterData.expenses.descriptions',
+    'expenses.descriptions',
+    'masterData.expenses.types'
+  ];
+  
+  for (const path of paths) {
+    for (const variation of variations) {
+      const key = `${path}.${variation}`;
+      const translated = t(key);
+      if (translated && translated !== key) {
+        return translated;
+      }
+    }
+  }
+  
+  // Fallback: try to construct a description from the name
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('emballage')) {
+    return 'Dépenses pour les emballages';
+  } else if (lowerName.includes('intrant')) {
+    return 'Dépenses pour les intrants';
+  } else if (lowerName.includes('construction')) {
+    return 'Dépenses pour la construction et les réparations immobilières';
+  } else if (lowerName.includes('carburant') && lowerName.includes('générateur')) {
+    return 'Dépenses pour le carburant du générateur';
+  } else if (lowerName.includes('personnel') || lowerName.includes('staff')) {
+    return 'Dépenses pour le personnel';
+  } else if (lowerName.includes('charges') && lowerName.includes('social')) {
+    return 'Dépenses pour les charges sociales';
+  } else if (lowerName.includes('entretien') && lowerName.includes('machine')) {
+    return 'Dépenses pour l\'entretien et les réparations des machines';
+  } else if (lowerName.includes('engagement') && lowerName.includes('mensuel')) {
+    return 'Dépenses pour l\'engagement mensuel';
+  } else if (lowerName.includes('médic')) {
+    return 'Dépenses pour les soins médicaux';
+  } else if (lowerName.includes('divers')) {
+    return 'Dépenses diverses';
+  }
+  
+  return name; // Final fallback to original name
 }
 
 function getTranslatedActivityTypeName(name, t) {
@@ -665,7 +745,6 @@ export default function MasterDataPage() {
       setAddRowData({});
       router.refresh();
     } catch (e) {
-      // Optionally show error
       setAddRowLoading(false);
     }
     setAddRowLoading(false);
@@ -1202,7 +1281,7 @@ export default function MasterDataPage() {
                 className="w-full"
               />
             ) : (
-              item.description || getTranslatedExpenseDescription(item.name, t)
+              getTranslatedExpenseDescription(item.name, t) || item.description
             )}
           </td>
           <td className="px-6 py-3 text-right">
@@ -1276,7 +1355,7 @@ export default function MasterDataPage() {
                 className="w-full"
               />
             ) : (
-              item.description || getTranslatedActivityDescription(item.name, t)
+              getTranslatedActivityDescription(item.name, t) || item.description
             )}
           </td>
           <td className="px-6 py-3 text-right">

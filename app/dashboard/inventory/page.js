@@ -172,7 +172,7 @@ const InventorySummaryTable = ({ summarySections, t, thresholds, selectedProduct
         <thead className="bg-purple-50">
           <tr>
             <th className="px-6 py-3 font-semibold text-purple-900">{t('common.product')}</th>
-            <th className="px-6 py-3 font-semibold text-purple-900 text-center">{t('inventory.summary.currentStock')}</th>
+            <th className="px-6 py-3 font-semibold text-purple-900 text-center">{t('inventory.summary.stock')}</th>
           </tr>
         </thead>
         <tbody>
@@ -321,14 +321,37 @@ const getPackagingStockData = (packagingType, productMap, getCurrentTotalStock, 
     '#f87171', // rose
   ];
 
-  // Get all packaging products of the specified type
+  // Enhanced packaging product filtering to support all packaging types dynamically
   let packagingProducts = Array.from(productMap.values())
     .filter(p => {
       const type = p.producttype?.toLowerCase() || '';
+      const productName = p.productid?.toLowerCase() || '';
+      
+      // Check if it's a packaging product
+      const isPackaging = type.includes('packaging') || type.includes('emballage');
+      if (!isPackaging) return false;
+      
       if (packagingType === "ice_cube") {
-        return type === 'packaging for cube ice' || type === 'packaging for ice cube';
+        // Check for cube ice references (both French and English)
+        const isCubeIce = type.includes('cube ice') || type.includes('ice cube') || 
+                         type.includes('glaçon') || productName.includes('glaçon') ||
+                         type.includes('cube') || productName.includes('cube');
+        return isCubeIce;
       } else if (packagingType === "water_bottling") {
-        return type === 'packaging for water bottling';
+        // Check for water bottling references (both French and English) - exclude cans/bidons
+        const isWaterBottling = (type.includes('water bottling') || type.includes('eau en bouteille') ||
+                               (type.includes('water') && !type.includes('can') && !type.includes('bidon')) ||
+                               (type.includes('eau') && !type.includes('bidon') && type.includes('bouteille')) ||
+                               productName.includes('eau en bouteille') || productName.includes('water bottle')) &&
+                               !type.includes('can') && !type.includes('bidon');
+        return isWaterBottling;
+      } else if (packagingType === "water_cans") {
+        // Check for water cans references (both French and English)
+        const isWaterCans = type.includes('water can') || type.includes('bidon') ||
+                           (type.includes('water') && type.includes('can')) ||
+                           (type.includes('eau') && type.includes('bidon')) ||
+                           productName.includes('bidon') || productName.includes('water can');
+        return isWaterCans;
       }
       return false;
     })
@@ -354,17 +377,25 @@ const getPackagingStockData = (packagingType, productMap, getCurrentTotalStock, 
       const type = product.producttype?.toLowerCase();
       
       try {
-        if (type?.includes('packaging') || lower.includes('package') || lower.includes('emballage')) {
-          if (lower.includes('cube ice') || lower.includes('glaçons')) {
+        if (type?.includes('packaging') || type?.includes('emballage') || lower.includes('package') || lower.includes('emballage')) {
+          // Cube ice packaging
+          if (lower.includes('cube ice') || lower.includes('glaçons') || lower.includes('cube') || lower.includes('glaçon')) {
             if (lower.includes('1kg')) return t('products.items.packaging.cubeIce.1kg') || 'Emballage pour Glaçons 1Kg';
             if (lower.includes('2kg')) return t('products.items.packaging.cubeIce.2kg') || 'Emballage pour Glaçons 2Kg';
             if (lower.includes('5kg')) return t('products.items.packaging.cubeIce.5kg') || 'Emballage pour Glaçons 5Kg';
           }
+          // Water bottling packaging (exclude cans/bidons)
           if ((lower.includes('water') || lower.includes('eau')) && !lower.includes('bidon') && !lower.includes('can')) {
             if (lower.includes('600ml')) return t('products.items.packaging.waterBottling.600ml') || 'Emballage pour Eau en bouteille 600ml';
             if (lower.includes('750ml')) return t('products.items.packaging.waterBottling.750ml') || 'Emballage pour Eau en bouteille 750ml';
             if (lower.includes('1.5l') || lower.includes('1,5l')) return t('products.items.packaging.waterBottling.1_5L') || 'Emballage pour Eau en bouteille 1,5L';
             if (lower.includes('5l')) return t('products.items.packaging.waterBottling.5L') || 'Emballage pour Eau en bouteille 5L';
+          }
+          // Water cans packaging
+          if (lower.includes('bidon') || (lower.includes('water') && lower.includes('can'))) {
+            if (lower.includes('5l')) return t('products.items.packaging.waterCans.5L') || 'Emballage pour Bidon d\'Eau 5L';
+            if (lower.includes('10l')) return t('products.items.packaging.waterCans.10L') || 'Emballage pour Bidon d\'Eau 10L';
+            if (lower.includes('20l')) return t('products.items.packaging.waterCans.20L') || 'Emballage pour Bidon d\'Eau 20L';
           }
         }
       } catch (error) {
@@ -372,7 +403,7 @@ const getPackagingStockData = (packagingType, productMap, getCurrentTotalStock, 
       }
       
       // Fallback: add "Emballage pour" prefix if it's a packaging product
-      if (type?.includes('packaging') || lower.includes('package') || lower.includes('emballage')) {
+      if (type?.includes('packaging') || type?.includes('emballage') || lower.includes('package') || lower.includes('emballage')) {
         return `Emballage pour ${name.replace(/^(Package |Packaging |Emballage pour )/i, '')}`;
       }
       
@@ -389,7 +420,6 @@ const getPackagingStockData = (packagingType, productMap, getCurrentTotalStock, 
   return {
     labels: stockData.map(d => d.label),
     datasets: [{
-      label: 'Current Stock',
       data: stockData.map(d => d.stock),
       backgroundColor: stockData.map(d => d.color),
       borderColor: stockData.map(d => d.color),
@@ -684,21 +714,31 @@ export default function InventoryPage() {
 
   // In `prepareInventorySummary`, use `product.productid` to get the stock.
   const prepareInventorySummary = useCallback((inventory, products, productMap) => {
-    // Get all main product types
-    const blockIceProducts = products
-      .filter(p => p.producttype === 'Block Ice')
-      .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
-    const cubeIceProducts = products
-      .filter(p => p.producttype === 'Cube Ice')
-      .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
-    const waterBottlingProducts = products
-      .filter(p => p.producttype === 'Water Bottling')
-      .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
+    // Get all unique product types dynamically
+    const productTypeMap = new Map();
+    
+    products.forEach(product => {
+      const type = product.producttype;
+      if (!type) return;
+      
+      // Skip packaging products for main product sections
+      if (type.toLowerCase().includes('packaging') || type.toLowerCase().includes('emballage')) {
+        return;
+      }
+      
+      if (!productTypeMap.has(type)) {
+        productTypeMap.set(type, []);
+      }
+      productTypeMap.get(type).push(product);
+    });
 
-    // Get all packaging products, ensuring no duplicates by ID
+    // Get all packaging products separately
     const packagingProductsMap = new Map();
     products
-      .filter(p => p.producttype?.toLowerCase().includes('packaging'))
+      .filter(p => {
+        const type = p.producttype?.toLowerCase() || '';
+        return type.includes('packaging') || type.includes('emballage');
+      })
       .forEach(p => {
         if (!packagingProductsMap.has(p.id)) {
           packagingProductsMap.set(p.id, p);
@@ -707,36 +747,33 @@ export default function InventoryPage() {
     const packagingProducts = Array.from(packagingProductsMap.values())
       .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
 
-    const summarySections = [
-      {
-        section: 'Block Ice',
-        rows: blockIceProducts.map(product => ({
-          product,
-          productStock: getCurrentStock(product.id)
-        }))
-      },
-      {
-        section: 'Cube Ice',
-        rows: cubeIceProducts.map(product => ({
-          product,
-          productStock: getCurrentStock(product.id)
-        }))
-      },
-      {
-        section: 'Water Bottling',
-        rows: waterBottlingProducts.map(product => ({
-          product,
-          productStock: getCurrentStock(product.id)
-        }))
-      },
-      {
-        section: 'Packaging',
+    // Create sections for each product type
+    const summarySections = [];
+    
+    // Add main product type sections
+    Array.from(productTypeMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([type, typeProducts]) => {
+        const sortedProducts = typeProducts.sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
+        summarySections.push({
+          section: type,
+          rows: sortedProducts.map(product => ({
+            product,
+            productStock: getCurrentStock(product.id)
+          }))
+        });
+      });
+
+    // Add packaging section if there are packaging products
+    if (packagingProducts.length > 0) {
+      summarySections.push({
+        section: 'Emballage',
         rows: packagingProducts.map(product => ({
           product,
           productStock: getCurrentStock(product.id)
         }))
-      }
-    ];
+      });
+    }
 
     // Filter out sections that have no products to show.
     return summarySections.filter(section => section.rows.length > 0);
@@ -2377,7 +2414,7 @@ export default function InventoryPage() {
           <div className="px-6 py-3 bg-purple-50 border-b border-purple-200">
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-purple-900 uppercase">{t('inventory.summary.currentStock')}</h3>
+                <h3 className="text-lg font-semibold text-purple-900 uppercase">{t('inventory.summary.stock')}</h3>
                 
                 {/* Threshold Controls */}
                 <div className="flex items-center gap-4">
@@ -2526,6 +2563,27 @@ export default function InventoryPage() {
                             }
                           }
                         }
+                      }
+                    }
+                  }}
+                />
+              </ClientOnly>
+            </div>
+          </Card>
+
+          {/* Water Cans Packaging Chart */}
+          <Card className="bg-white">
+            <h3 className="text-lg font-semibold mb-3 text-[#4c5c68] text-center">{t('inventory.charts.waterCansPackaging') || 'Stock d\'Emballage pour Bidons d\'Eau'}</h3>
+            <div className="h-[350px] w-full">
+              <ClientOnly>
+                <BarChart 
+                  data={getPackagingStockData("water_cans", productMap, getCurrentTotalStock, t)}
+                  options={{
+                    ...baseChartOptions,
+                    plugins: {
+                      ...baseChartOptions.plugins,
+                      legend: {
+                        display: false
                       }
                     }
                   }}

@@ -30,6 +30,28 @@ const Sidebar = ({ children }) => {
   
   useEffect(() => {
     setIsClient(true);
+
+    // Touch support for tablets: expand on touch, collapse on outside touch
+    const handleTouchStart = (e) => {
+      setExpanded(true);
+    };
+    const handleTouchEnd = (e) => {
+      // Collapse only if touch ends outside the sidebar
+      if (!e.target.closest('.sidebar-touch-area')) {
+        setExpanded(false);
+      }
+    };
+    const sidebar = document.querySelector('.sidebar-touch-area');
+    if (sidebar) {
+      sidebar.addEventListener('touchstart', handleTouchStart);
+      document.addEventListener('touchend', handleTouchEnd);
+    }
+    return () => {
+      if (sidebar) {
+        sidebar.removeEventListener('touchstart', handleTouchStart);
+        document.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
   }, []);
 
   // SidebarLink Component with proper active state handling
@@ -89,6 +111,7 @@ const Sidebar = ({ children }) => {
     bg-[#031b31] border-r border-[#385e82]
     shadow-xl rounded-2xl
     m-3                 /* if you still want that outer margin */
+    sidebar-touch-area
   `}
       >
         <div className="flex flex-col items-center w-full">
