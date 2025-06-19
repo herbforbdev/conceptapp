@@ -1,0 +1,15 @@
+{
+  "name": "costs-upload-script",
+  "version": "1.0.0",
+  "description": "Script to upload costs data to Firestore",
+  "main": "uploadCosts.js",
+  "scripts": {
+    "start": "node uploadCosts.js"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.3",
+    "dotenv": "^16.5.0",
+    "firebase": "^10.8.0",
+    "firebase-admin": "^13.4.0"
+  }
+}

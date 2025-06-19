@@ -86,7 +86,10 @@ export default function SalesTrendsPage() {
   // Memoized product types for rows
   const productTypes = useMemo(() => {
     const types = new Set((products || []).map(p => p.producttype).filter(Boolean));
-    return Array.from(types);
+    return Array.from(types).filter(type => 
+      !type.toLowerCase().includes('packaging') && 
+      !type.toLowerCase().includes('emballage')
+    );
   }, [products]);
 
   // Memoized expense types for rows
@@ -657,9 +660,9 @@ export default function SalesTrendsPage() {
               <table className="min-w-full text-center rounded-xl overflow-hidden">
                 <thead className="bg-[#385e82] text-white">
                   <tr>
-                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-lg"></th>
+                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-xl"></th>
                     {months.map((m, i) => (
-                      <th key={i} className="w-16 py-3 px-2 font-bold text-lg">{m}</th>
+                      <th key={i} className="w-16 py-3 px-2 font-bold text-xl">{m}</th>
                     ))}
                   </tr>
                 </thead>
@@ -670,7 +673,7 @@ export default function SalesTrendsPage() {
                     { label: safeT(t, 'profitability.rows.profit', 'Profit'), data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
                   ].map((row, idx) => (
                     <tr key={row.label} className="">
-                      <td className={`w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-base ${row.color} truncate whitespace-normal break-words`}>{row.label}</td>
+                      <td className={`w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-lg ${row.color} truncate whitespace-normal break-words`}>{row.label}</td>
                       {row.data.map((val, i) => {
                         // Indicator logic
                         let indicator = null;
@@ -680,7 +683,7 @@ export default function SalesTrendsPage() {
                           else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
                         }
                         return (
-                          <td key={i} className="py-2 px-4 text-base font-mono text-gray-800">
+                          <td key={i} className="py-2 px-4 text-lg font-mono text-gray-800">
                             {String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
                             {indicator}
                           </td>
@@ -700,31 +703,56 @@ export default function SalesTrendsPage() {
               <table className="min-w-full text-center rounded-xl overflow-hidden">
                 <thead className="bg-[#385e82] text-white">
                   <tr>
-                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-lg"></th>
+                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-xl"></th>
                     {months.map((m, i) => (
-                      <th key={i} className="w-16 py-3 px-2 font-bold text-lg">{m}</th>
+                      <th key={i} className="w-16 py-3 px-2 font-bold text-xl">{m}</th>
                     ))}
+                    <th className="w-16 py-3 px-2 font-bold text-xl">{safeT(t, 'common.total', 'Total')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {productTypes.map((type, idx) => (
-                    <tr key={type}>
-                      <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-base text-blue-700">
-                        {safeT(t, `products.types.${type.replace(/\s+/g, '')}`, type)}
-                      </td>
-                      {productTypeTable[type].map((val, i) => {
-                        let indicator = null;
-                        if (i > 0) {
-                          const diff = val - productTypeTable[type][i - 1];
-                          if (diff > 0) indicator = <span className="ml-1 text-green-600"><HiArrowUp className="inline h-4 w-4" /></span>;
-                          else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
-                        }
-                        return (
-                          <td key={i} className="py-2 px-4 text-base font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
-                        );
-                      })}
-                    </tr>
-                  ))}
+                  {productTypes.map((type, idx) => {
+                    const rowTotal = productTypeTable[type].reduce((sum, val) => sum + val, 0);
+                    return (
+                      <tr key={type}>
+                        <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-lg text-blue-900 text-left">
+                          {safeT(t, `products.types.${type.replace(/\s+/g, '')}`, type)}
+                        </td>
+                        {productTypeTable[type].map((val, i) => {
+                          let indicator = null;
+                          if (i > 0) {
+                            const diff = val - productTypeTable[type][i - 1];
+                            if (diff > 0) indicator = <span className="ml-1 text-green-600"><HiArrowUp className="inline h-4 w-4" /></span>;
+                            else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
+                          }
+                          return (
+                            <td key={i} className="py-2 px-4 text-lg font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
+                          );
+                        })}
+                        <td className="py-2 px-4 text-lg font-mono font-bold text-blue-800 bg-blue-50">
+                          {String(rowTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-blue-100 border-t-2 border-blue-300">
+                    <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-bold text-lg text-blue-800">
+                      {safeT(t, 'common.total', 'Total')}
+                    </td>
+                    {Array(12).fill(0).map((_, monthIndex) => {
+                      const monthTotal = productTypes.reduce((sum, type) => sum + productTypeTable[type][monthIndex], 0);
+                      return (
+                        <td key={monthIndex} className="py-2 px-4 text-lg font-mono font-bold text-blue-800">
+                          {String(monthTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                        </td>
+                      );
+                    })}
+                    <td className="py-2 px-4 text-lg font-mono font-bold text-blue-900 bg-blue-200">
+                      {String(productTypes.reduce((grandTotal, type) => 
+                        grandTotal + productTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                      ).toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -737,31 +765,56 @@ export default function SalesTrendsPage() {
               <table className="min-w-full text-center rounded-xl overflow-hidden">
                 <thead className="bg-[#385e82] text-white">
                   <tr>
-                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-lg"></th>
+                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-xl"></th>
                     {months.map((m, i) => (
-                      <th key={i} className="w-16 py-3 px-2 font-bold text-lg">{m}</th>
+                      <th key={i} className="w-16 py-3 px-2 font-bold text-xl">{m}</th>
                     ))}
+                    <th className="w-16 py-3 px-2 font-bold text-xl">{safeT(t, 'common.total', 'Total')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {expenseTypeRows.map((type, idx) => (
-                    <tr key={type}>
-                      <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-base text-red-700">
-                        {safeT(t, `masterData.expenses.types.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
-                      </td>
-                      {expenseTypeTable[type].map((val, i) => {
-                        let indicator = null;
-                        if (i > 0) {
-                          const diff = val - expenseTypeTable[type][i - 1];
-                          if (diff > 0) indicator = <span className="ml-1 text-green-600"><HiArrowUp className="inline h-4 w-4" /></span>;
-                          else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
-                        }
-                        return (
-                          <td key={i} className="py-2 px-4 text-base font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
-                        );
-                      })}
-                    </tr>
-                  ))}
+                  {expenseTypeRows.map((type, idx) => {
+                    const rowTotal = expenseTypeTable[type].reduce((sum, val) => sum + val, 0);
+                    return (
+                      <tr key={type}>
+                        <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-lg text-blue-900 text-left">
+                          {safeT(t, `masterData.expenses.types.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
+                        </td>
+                        {expenseTypeTable[type].map((val, i) => {
+                          let indicator = null;
+                          if (i > 0) {
+                            const diff = val - expenseTypeTable[type][i - 1];
+                            if (diff > 0) indicator = <span className="ml-1 text-green-700"><HiArrowUp className="inline h-4 w-4" /></span>;
+                            else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
+                          }
+                          return (
+                            <td key={i} className="py-2 px-4 text-lg font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
+                          );
+                        })}
+                        <td className="py-2 px-4 text-lg font-mono font-bold text-blue-900 bg-blue-50">
+                          {String(rowTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-red-100 border-t-2 border-red-300">
+                    <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-bold text-lg text-blue-900">
+                      {safeT(t, 'common.total', 'Total')}
+                    </td>
+                    {Array(12).fill(0).map((_, monthIndex) => {
+                      const monthTotal = expenseTypeRows.reduce((sum, type) => sum + expenseTypeTable[type][monthIndex], 0);
+                      return (
+                        <td key={monthIndex} className="py-2 px-4 text-lg font-mono font-bold text-blue-900">
+                          {String(monthTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                        </td>
+                      );
+                    })}
+                    <td className="py-2 px-4 text-lg font-mono font-bold text-blue-900 bg-blue-200">
+                      {String(expenseTypeRows.reduce((grandTotal, type) => 
+                        grandTotal + expenseTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                      ).toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -774,31 +827,56 @@ export default function SalesTrendsPage() {
               <table className="min-w-full text-center rounded-xl overflow-hidden">
                 <thead className="bg-[#385e82] text-white">
                   <tr>
-                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-lg"></th>
+                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-xl"></th>
                     {months.map((m, i) => (
-                      <th key={i} className="w-16 py-3 px-2 font-bold text-lg">{m}</th>
+                      <th key={i} className="w-16 py-3 px-2 font-bold text-xl">{m}</th>
                     ))}
+                    <th className="w-16 py-3 px-2 font-bold text-xl">{safeT(t, 'common.total', 'Total')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {activityTypeRows.map((type, idx) => (
-                    <tr key={type}>
-                      <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-base text-[#385e82]">
-                        {safeT(t, `products.activities.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
-                      </td>
-                      {activityTypeTable[type].map((val, i) => {
-                        let indicator = null;
-                        if (i > 0) {
-                          const diff = val - activityTypeTable[type][i - 1];
-                          if (diff > 0) indicator = <span className="ml-1 text-green-600"><HiArrowUp className="inline h-4 w-4" /></span>;
-                          else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
-                        }
-                        return (
-                          <td key={i} className="py-2 px-4 text-base font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
-                        );
-                      })}
-                    </tr>
-                  ))}
+                  {activityTypeRows.map((type, idx) => {
+                    const rowTotal = activityTypeTable[type].reduce((sum, val) => sum + val, 0);
+                    return (
+                      <tr key={type}>
+                        <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-lg text-[#385e82]">
+                          {safeT(t, `products.activities.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
+                        </td>
+                        {activityTypeTable[type].map((val, i) => {
+                          let indicator = null;
+                          if (i > 0) {
+                            const diff = val - activityTypeTable[type][i - 1];
+                            if (diff > 0) indicator = <span className="ml-1 text-green-600"><HiArrowUp className="inline h-4 w-4" /></span>;
+                            else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
+                          }
+                          return (
+                            <td key={i} className="py-2 px-4 text-lg font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
+                          );
+                        })}
+                        <td className="py-2 px-4 text-lg font-mono font-bold text-[#385e82] bg-[#e6eaf0]">
+                          {String(rowTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-[#d1d9e0] border-t-2 border-[#385e82]">
+                    <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-bold text-lg text-[#385e82]">
+                      {safeT(t, 'common.total', 'Total')}
+                    </td>
+                    {Array(12).fill(0).map((_, monthIndex) => {
+                      const monthTotal = activityTypeRows.reduce((sum, type) => sum + activityTypeTable[type][monthIndex], 0);
+                      return (
+                        <td key={monthIndex} className="py-2 px-4 text-lg font-mono font-bold text-[#385e82]">
+                          {String(monthTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                        </td>
+                      );
+                    })}
+                    <td className="py-2 px-4 text-lg font-mono font-bold text-white bg-[#385e82]">
+                      {String(activityTypeRows.reduce((grandTotal, type) => 
+                        grandTotal + activityTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                      ).toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>

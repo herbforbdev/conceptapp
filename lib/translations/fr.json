@@ -171,7 +171,6 @@
     "Set a time period when you don't want to receive notifications": "Définir une période pendant laquelle vous ne souhaitez pas recevoir de notifications",
     "Start Time": "Heure de début",
     "End Time": "Heure de fin",
-    "Push Notifications": "Notifications Push",
     "Back": "Retour",
     "Push Notifications": "Notifications push"
   },
@@ -240,7 +239,8 @@
       "Packaging For Water Bottling": "Emballage pour Eau en bouteille",
       "waterCans": "Bidon D'Eau",
       "PackagingOnly": "Emballages Uniquement",
-      "bidond'eau": "Bidon d'eau"
+      "bidond'eau": "Bidon d'eau",
+      "Bidond'eau": "Bidon d'eau"
     },
     "categories": {
       "mainProducts": "Produits principaux",
@@ -820,7 +820,11 @@
       "submit": "Soumettre",
       "entry": "entrée",
       "entries": "entrées",
-      "backToCosts": "Retour aux coûts"
+      "backToCosts": "Retour aux coûts",
+      "error": {
+        "requiredFields": "Veuillez remplir correctement tous les champs obligatoires",
+        "failed": "Échec de l'ajout des enregistrements de coûts"
+      }
     },
     "fields": {
       "date": "Date",
@@ -933,11 +937,13 @@
         "maintenance_repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
         "maintenanceRepairsOfRollingEquipment": "Entretien & Réparations de l'Équipement Roulant",
         "maintenance_&_repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
-        "équipement_roulants": "Entretien & Réparations de l'Équipement Roulant",
+        "équipement_roulants": "Équipements Roulant",
+        "quipement_roulants": "Équipements Roulant",
+        "quipementRoulants": "Équipements Roulant",
         "social_charges": "Charges Sociales",
         "socialCharges": "Charges Sociales",
-        "rolling_equipment": "Équipement Roulant",
-        "rollingEquipment": "Équipement Roulant",
+        "rolling_equipment": "Équipements Roulant",
+        "rollingEquipment": "Équipements Roulant",
         "medical_care": "Soins Médicaux",
         "medicalCare": "Soins Médicaux",
         "generatorFuel": "Carburant Générateur",
@@ -1360,6 +1366,7 @@
     "title": "Tendances des coûts",
     "total_costs": "Coûts totaux",
     "avg_monthly": "Moyenne mensuelle",
+    "monthly_details": "Détails mensuels",
     "top_expense": "Dépense principale",
     "highest_month": "Mois le plus élevé",
     "monthly_trends": "Tendances mensuelles",
@@ -1387,14 +1394,6 @@
     "accountType": "Type de compte",
     "verified": "Vérifié",
     "uid": "ID utilisateur"
-  },
-  "cost_trends": {
-    "title": "Tendances des coûts",
-    "total_costs": "Coûts totaux",
-    "avg_monthly": "Moyenne mensuelle",
-    "top_expense": "Dépense principale",
-    "highest_month": "Mois le plus élevé",
-    "monthly_trends": "Tendances mensuelles",
-    "monthly_distribution": "Distribution mensuelle"
   }
+  
 }

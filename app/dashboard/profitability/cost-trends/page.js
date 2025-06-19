@@ -69,26 +69,33 @@ export default function CostTrendsPage() {
         (selectedMonth === null || date.getMonth() === selectedMonth);
     });
 
-    // Monthly stats
+    // Monthly stats - Create a unique key for sorting
     const monthly = filtered.reduce((acc, cost) => {
       const d = new Date(cost.date.seconds * 1000);
+      const year = d.getFullYear();
+      const month = d.getMonth(); // 0-based month
+      const sortKey = `${year}-${month.toString().padStart(2, '0')}`; // e.g., "2025-02" for March
       const label = d.toLocaleString("default", { month: "short", year: "numeric" });
-      if (!acc[label]) acc[label] = { 
+      
+      if (!acc[sortKey]) acc[sortKey] = { 
         totalUSD: 0, 
         count: 0,
-        timestamp: d.getTime() // Add timestamp for proper sorting
+        year: year,
+        month: month,
+        label: label
       };
-      acc[label].totalUSD += cost.amountUSD || 0;
-      acc[label].count += 1;
+      acc[sortKey].totalUSD += cost.amountUSD || 0;
+      acc[sortKey].count += 1;
       return acc;
     }, {});
+    
     const sorted = Object.entries(monthly)
-      .sort(([, a], [, b]) => a.timestamp - b.timestamp)
-      .map(([month, data]) => ({
-        month,
+      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+      .map(([, data]) => ({
+        month: data.label,
         totalUSD: data.totalUSD,
         count: data.count,
-        average: data.totalUSD / data.count
+        average: data.count > 0 ? data.totalUSD / data.count : 0
       }));
     setMonthlyData(sorted);
 
@@ -107,12 +114,12 @@ export default function CostTrendsPage() {
     const topMonth = sorted.sort((a, b) => b.totalUSD - a.totalUSD)[0] || { month: '', totalUSD: 0 };
 
     setMetrics({
-      total,
-      avgMonthly,
-      topExpenseType: topType[0],
-      topExpenseAmount: topType[1],
-      topMonth: topMonth.month,
-      topMonthAmount: topMonth.totalUSD
+      total: total || 0,
+      avgMonthly: isNaN(avgMonthly) ? 0 : avgMonthly,
+      topExpenseType: topType[0] || '',
+      topExpenseAmount: topType[1] || 0,
+      topMonth: topMonth.month || '',
+      topMonthAmount: topMonth.totalUSD || 0
     });
   }, [costs, expenseTypes, selectedYear, selectedMonth]);
 
@@ -150,7 +157,7 @@ export default function CostTrendsPage() {
         position: 'top',
         labels: {
           color: '#1c2541',
-          font: { size: 14, family: 'inherit', weight: 'bold' },
+          font: { size: 16, family: 'inherit', weight: 'bold' },
           usePointStyle: true,
           padding: 20,
         }
@@ -172,7 +179,7 @@ export default function CostTrendsPage() {
         grid: { display: false },
         ticks: { 
           color: '#415A77',
-          font: { size: 13, family: 'inherit' }
+          font: { size: 16, family: 'inherit' }
         }
       },
       y: {
@@ -180,7 +187,7 @@ export default function CostTrendsPage() {
         grid: { color: 'rgba(0, 0, 0, 0.04)' },
         ticks: { 
           color: '#415A77',
-          font: { size: 13, family: 'inherit' },
+          font: { size: 16, family: 'inherit' },
           callback: value => `$${value.toLocaleString()}`
         }
       }
@@ -291,22 +298,22 @@ export default function CostTrendsPage() {
         <div className="p-4">
           <h2 className="text-lg font-semibold text-red-700 mb-4">{t('cost_trends.monthly_details')}</h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-900">
+            <table className="w-full text-base text-left text-gray-900">
               <thead className="bg-red-50">
                 <tr>
-                  <th className="px-6 py-3 font-semibold">{t('common.month')}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{t('cost_trends.total_costs')}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{t('common.transactions')}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{t('common.average')}</th>
+                  <th className="px-6 py-4 font-semibold text-base">{t('common.month')}</th>
+                  <th className="px-6 py-4 font-semibold text-center text-base">{t('cost_trends.total_costs')}</th>
+                  <th className="px-6 py-4 font-semibold text-center text-base">{t('common.transactions')}</th>
+                  <th className="px-6 py-4 font-semibold text-center text-base">{t('common.average')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-red-100">
                 {monthlyData.map((data, i) => (
                   <tr key={i} className="hover:bg-red-50">
-                    <td className="px-6 py-4">{data.month}</td>
-                    <td className="px-6 py-4 text-center">${data.totalUSD.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-center">{data.count}</td>
-                    <td className="px-6 py-4 text-center">${data.average.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-base">{data.month}</td>
+                    <td className="px-6 py-4 text-center text-base">${data.totalUSD.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-center text-base">{data.count}</td>
+                    <td className="px-6 py-4 text-center text-base">${data.average.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

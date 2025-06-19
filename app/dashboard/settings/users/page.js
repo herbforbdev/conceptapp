@@ -8,6 +8,7 @@ import { HiOutlinePencilAlt, HiOutlineTrash, HiCheck, HiX, HiMail, HiClock, HiSh
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/firestore/userService";
+import { notificationService } from "@/services/firestore/notificationService";
 import { motion } from "framer-motion";
 
 export default function UsersPage() {
@@ -464,12 +465,30 @@ export default function UsersPage() {
 
     try {
       if (action === 'approved') {
-        // Create user account
-        await userService.inviteUser(requestEmail, requestName, currentUser?.id);
+        // Create user account and set as active
+        const userId = await userService.inviteUser(requestEmail, requestName, currentUser?.id);
+        // Automatically activate the user when approved
+        await userService.updateUser(userId, { active: true });
       }
       
       // Update request status
       await userService.updateAccessRequest(requestId, action, currentUser?.id);
+
+      // Create notification for the user (if they have a user record)
+      try {
+        const userResult = await userService.isUserAuthorized(requestEmail);
+        if (userResult.user) {
+          await notificationService.createAccessRequestNotification(
+            userResult.user.id,
+            action,
+            'ConceptApp', // Company name
+            action === 'rejected' ? 'Votre demande ne répond pas aux critères requis.' : undefined
+          );
+        }
+      } catch (notifError) {
+        console.error('Error creating notification:', notifError);
+        // Continue without notification - main action succeeded
+      }
 
       setResult({
         type: 'success',
@@ -989,7 +1008,7 @@ export default function UsersPage() {
                                 </Button>
                               </>
                             )}
-                            {request.status === 'rejected' && (
+                            {(request.status === 'approved' || request.status === 'rejected') && (
                               <Button
                                 size="xs"
                                 color="failure"

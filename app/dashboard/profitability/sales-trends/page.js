@@ -332,19 +332,19 @@ export default function SalesTrendsPage() {
           <table className="w-full text-sm text-left text-gray-900">
             <thead className="bg-blue-50">
               <tr>
-                <th className="px-6 py-3 font-semibold">{t('charts.sales_trends.table.month')}</th>
-                <th className="px-6 py-3 font-semibold text-center">{t('charts.sales_trends.table.total_usd')}</th>
-                <th className="px-6 py-3 font-semibold text-center">{t('charts.sales_trends.table.num_sales')}</th>
-                <th className="px-6 py-3 font-semibold text-center">{t('charts.sales_trends.table.average')}</th>
+                <th className="px-6 py-3 font-semibold text-base ">{t('charts.sales_trends.table.month')}</th>
+                <th className="px-6 py-3 font-semibold text-center text-base">{t('charts.sales_trends.table.total_usd')}</th>
+                <th className="px-6 py-3 font-semibold text-center text-base">{t('charts.sales_trends.table.num_sales')}</th>
+                <th className="px-6 py-3 font-semibold text-center text-base">{t('charts.sales_trends.table.average')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-blue-100">
               {monthlyData.map((data, index) => (
                 <tr key={index} className="hover:bg-blue-50">
-                  <td className="px-6 py-4">{data.month}</td>
-                  <td className="px-6 py-4 text-center">${data.totalUSD.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-center">{data.count}</td>
-                  <td className="px-6 py-4 text-center">${data.average.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-base">{data.month}</td>
+                  <td className="px-6 py-4 text-center text-base">${data.totalUSD.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-center text-base">{data.count}</td>
+                  <td className="px-6 py-4 text-center text-base">${data.average.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

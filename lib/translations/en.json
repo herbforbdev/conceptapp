@@ -790,7 +790,12 @@
       "addEntry": "Add entry",
       "submit": "Submit",
       "entry": "entry",
-      "entries": "entries"
+      "entries": "entries",
+      "backToCosts": "Back to costs",
+      "error": {
+        "requiredFields": "Please correctly fill in all required fields",
+        "failed": "Failed to add cost records"
+      }
     },
     "fields": {
       "date": "Date",

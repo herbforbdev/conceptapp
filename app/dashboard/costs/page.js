@@ -1278,7 +1278,7 @@ function CostsPage() {
       {/* Main Content Grid - Two Cards Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Left Card - Summary Table (untouched) */}
-        <Card className="border border-[#66b2b2]/20 rounded-lg bg-white">
+        <Card className="border border-[#66b2b2]/20 rounded-lg bg-white self-start">
           <div className="px-8 py-8 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg flex justify-between items-center">
             <h3 className="text-lg font-semibold text-white uppercase text-left">
               {safeT(t, 'common.summary', 'Summary')}
@@ -1419,7 +1419,7 @@ function CostsPage() {
                           yaxis: {
                             labels: {
                               formatter: (val) => val % 1 === 0 ? val.toFixed(0) : val.toFixed(2),
-                              style: { fontSize: '12px', colors: '#64748b' }
+                              style: { fontSize: '14px', colors: '#64748b' }
                             },
                             tickAmount: 6,
                             min: 0
@@ -1434,7 +1434,7 @@ function CostsPage() {
                               const d = new Date(Number(val));
                               return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
                             },
-                            style: { fontSize: '12px', colors: '#64748b' }
+                            style: { fontSize: '14px', colors: '#64748b' }
                           }
                         },
                           tooltip: {
@@ -1503,7 +1503,7 @@ function CostsPage() {
                             colors: '#64748b',
                             fontSize: '11px'
                           },
-                          rotate: -45,
+                          rotate: -20,
                           rotateAlways: false
                         }
                       },

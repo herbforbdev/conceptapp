@@ -20,17 +20,18 @@ const Notifications = () => {
 
     const q = query(
       collection(firestore, 'notifications'), 
-      where('userId', '==', user.uid)
+      where('recipientId', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedNotifications = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      })).sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+      }));
 
       setNotifications(fetchedNotifications);
-      setUnreadCount(fetchedNotifications.filter(n => !n.isRead).length);
+      setUnreadCount(fetchedNotifications.filter(n => !n.read).length);
     });
 
     return () => unsubscribe();
@@ -39,10 +40,10 @@ const Notifications = () => {
   const handleToggle = async () => {
     if (!isOpen) {
       // Mark all as read when opening the dropdown
-      const unread = notifications.filter(n => !n.isRead);
+      const unread = notifications.filter(n => !n.read);
       for (const notif of unread) {
         const notifRef = doc(firestore, 'notifications', notif.id);
-        await updateDoc(notifRef, { isRead: true });
+        await updateDoc(notifRef, { read: true });
       }
     }
     setIsOpen(!isOpen);

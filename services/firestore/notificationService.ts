@@ -1,6 +1,5 @@
 import { firestore } from '@/lib/firebase';
-import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, where, orderBy, onSnapshot, Timestamp, writeBatch } from 'firebase/firestore';
-// // import { emailService } from '../emailService'; // Server-only // Moved to dynamic import to prevent client-side issues
+import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, where, orderBy, onSnapshot, Timestamp, writeBatch, limit } from 'firebase/firestore';
 
 export interface Notification {
   id?: string;
@@ -39,7 +38,7 @@ class NotificationService {
     title: string, 
     message: string, 
     data?: any,
-    sendEmail: boolean = true
+    sendEmail: boolean = false
   ): Promise<string | null> {
     try {
       const notification: Omit<Notification, 'id'> = {
@@ -91,9 +90,8 @@ class NotificationService {
 
       // Get user information for email
       const userDoc = await getDocs(query(
-        collection(firestore, 'users'), 
-        where('uid', '==', recipientId),
-        limit(1)
+        collection(firestore, 'Users'), 
+        where('id', '==', recipientId)
       ));
 
       if (userDoc.empty) return;
@@ -104,77 +102,89 @@ class NotificationService {
 
       let emailSent = false;
 
-      // Send appropriate email based on notification type
-      switch (type) {
-        case 'inventory_alert':
-          if (data?.productName && data?.currentStock && data?.threshold) {
-            emailSent = await emailService.sendLowStockAlert(
-              userEmail, 
-              userName, 
-              data.productName, 
-              data.currentStock, 
-              data.threshold
-            );
-          }
-          break;
+      try {
+        // Only import email service on server side and when email is enabled
+        if (typeof window === 'undefined' && process.env.NEXT_PUBLIC_ENABLE_EMAIL === 'true') {
+          const { emailService } = await import('../emailService');
+          
+          // Send appropriate email based on notification type
+          switch (type) {
+          case 'inventory_alert':
+            if (data?.productName && data?.currentStock && data?.threshold) {
+              emailSent = await emailService.sendLowStockAlert(
+                userEmail, 
+                userName, 
+                data.productName, 
+                data.currentStock, 
+                data.threshold
+              );
+            }
+            break;
 
-        case 'budget_overrun':
-          if (data?.expenseType && data?.currentAmount && data?.budgetAmount) {
-            emailSent = await emailService.sendBudgetOverrunAlert(
-              userEmail, 
-              userName, 
-              data.expenseType, 
-              data.currentAmount, 
-              data.budgetAmount,
-              data.period || 'Ce mois'
-            );
-          }
-          break;
+          case 'budget_overrun':
+            if (data?.expenseType && data?.currentAmount && data?.budgetAmount) {
+              emailSent = await emailService.sendBudgetOverrunAlert(
+                userEmail, 
+                userName, 
+                data.expenseType, 
+                data.currentAmount, 
+                data.budgetAmount,
+                data.period || 'Ce mois'
+              );
+            }
+            break;
 
-        case 'user_invite':
-          if (data?.inviterName && data?.companyName) {
-            emailSent = await emailService.sendUserInvitation(
-              userEmail, 
-              userName, 
-              data.inviterName, 
-              data.companyName
-            );
-          }
-          break;
+          case 'user_invite':
+            if (data?.inviterName && data?.companyName) {
+              emailSent = await emailService.sendUserInvitation(
+                userEmail, 
+                userName, 
+                data.inviterName, 
+                data.companyName
+              );
+            }
+            break;
 
-        case 'access_request':
-          if (data?.action === 'approved' && data?.companyName) {
-            emailSent = await emailService.sendAccessRequestApproved(
-              userEmail, 
-              userName, 
-              data.companyName
-            );
-          } else if (data?.action === 'rejected' && data?.companyName) {
-            emailSent = await emailService.sendAccessRequestRejected(
-              userEmail, 
-              userName, 
-              data.companyName, 
-              data.reason
-            );
-          }
-          break;
+          case 'access_request':
+            if (data?.action === 'approved' && data?.companyName) {
+              emailSent = await emailService.sendAccessRequestApproved(
+                userEmail, 
+                userName, 
+                data.companyName
+              );
+            } else if (data?.action === 'rejected' && data?.companyName) {
+              emailSent = await emailService.sendAccessRequestRejected(
+                userEmail, 
+                userName, 
+                data.companyName, 
+                data.reason
+              );
+            }
+            break;
 
-        case 'weekly_report':
-          if (data?.weekStart && data?.weekEnd && data?.stats) {
-            emailSent = await emailService.sendWeeklyReport(
-              userEmail, 
-              userName, 
-              data.weekStart, 
-              data.weekEnd, 
-              data.stats
-            );
-          }
-          break;
+          case 'weekly_report':
+            if (data?.weekStart && data?.weekEnd && data?.stats) {
+              emailSent = await emailService.sendWeeklyReport(
+                userEmail, 
+                userName, 
+                data.weekStart, 
+                data.weekEnd, 
+                data.stats
+              );
+            }
+            break;
 
-        default:
-          // For system notifications, we could send a generic email
-          console.log(`Email not implemented for notification type: ${type}`);
-          break;
+                      default:
+              // For system notifications, we could send a generic email
+              console.log(`Email not implemented for notification type: ${type}`);
+              break;
+          }
+        } else {
+          console.log('Email service skipped (client side or email disabled)');
+        }
+      } catch (emailError) {
+        console.error('Error with email service:', emailError);
+        // Continue without email - notification will still be created
       }
 
       // Update notification with email status
@@ -453,19 +463,21 @@ class NotificationService {
 
       await batch.commit();
 
-      // Send emails to admins (if preferences allow)
-      for (const admin of adminSnapshot.docs) {
-        const adminData = admin.data();
-        if (adminData.uid) {
-          // Email will be sent by the createNotification method called above
-          await this.sendEmailNotification(
-            '', // We don't have the notification ID for batch operations
-            adminData.uid,
-            type,
-            title,
-            message,
-            data
-          );
+      // Send emails to admins (if preferences allow) - server side only
+      if (typeof window === 'undefined' && process.env.NEXT_PUBLIC_ENABLE_EMAIL === 'true') {
+        for (const admin of adminSnapshot.docs) {
+          const adminData = admin.data();
+          if (adminData.uid) {
+            // Email will be sent by the createNotification method called above
+            await this.sendEmailNotification(
+              '', // We don't have the notification ID for batch operations
+              adminData.uid,
+              type,
+              title,
+              message,
+              data
+            );
+          }
         }
       }
 
@@ -503,16 +515,18 @@ class NotificationService {
       
       await batch.commit();
       
-      // Send emails to admins
-      for (const adminId of adminIds) {
-        await this.sendEmailNotification(
-          '', // notification ID will be generated
-          adminId,
-          'access_request',
-          title,
-          message,
-          { userEmail, userName }
-        );
+      // Send emails to admins - server side only
+      if (typeof window === 'undefined' && process.env.NEXT_PUBLIC_ENABLE_EMAIL === 'true') {
+        for (const adminId of adminIds) {
+          await this.sendEmailNotification(
+            '', // notification ID will be generated
+            adminId,
+            'access_request',
+            title,
+            message,
+            { userEmail, userName }
+          );
+        }
       }
     } catch (error) {
       console.error('Error notifying admins of access request:', error);

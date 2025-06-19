@@ -2245,7 +2245,7 @@ export default function ProductionPage() {
       <div className="grid grid-cols-12 gap-6">
         {/* Production Summary Table - Left Side */}
         <div className="col-span-6">
-          <Card className="border border-red-200 rounded-lg bg-white h-full p-0">
+          <Card className="border border-red-200 rounded-lg bg-white p-0 self-start">
             <div className="px-8 py-8 bg-red-50 border-b border-red-200 flex justify-between items-center rounded-t-2xl">
               <h3 className="text-lg font-semibold text-red-900 rounded-t-2xl">{safeT(t, 'production.summary.title', 'Production Summary')}</h3>
               <div className="flex gap-2">

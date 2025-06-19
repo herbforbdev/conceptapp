@@ -91,6 +91,21 @@ const getTranslatedProductName = (product, t) => {
   return name;
 };
 
+// Helper function to generate month labels
+const generateMonthLabels = (t) => {
+  const monthKeys = [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december'
+  ];
+  return monthKeys.map(key => safeT(t, `months.${key}`, key));
+};
+
+// Safe translation helper
+const safeT = (t, key, fallback) => {
+  const value = t(key);
+  return value !== key ? value : fallback || key;
+};
+
 export default function DashboardPage() {
   const { t: rawT } = useLanguage?.() || { t: (x) => x };
   // Safe t() to avoid rendering objects as React children
@@ -427,19 +442,25 @@ export default function DashboardPage() {
             }]
           },
           salesAndCosts: {
-            labels: [...new Set(salesDataArr.map(sale => {
-              try {
-                if (!sale.date) return 'Invalid date';
-                const date = sale.date.toDate ? sale.date.toDate() : new Date(sale.date);
-                return String(date.toLocaleDateString() || '');
-              } catch (error) {
-                return 'Invalid date';
-              }
-            }))],
+            labels: generateMonthLabels(t),
             datasets: [
               {
                 label: 'Sales (USD)',
-                data: salesDataArr.map(sale => sale.amountUSD || 0),
+                data: (() => {
+                  const monthlySales = new Array(12).fill(0);
+                  salesDataArr.forEach(sale => {
+                    if (sale.date) {
+                      try {
+                        const date = sale.date.toDate ? sale.date.toDate() : new Date(sale.date);
+                        const month = date.getMonth();
+                        monthlySales[month] += sale.amountUSD || 0;
+                      } catch (error) {
+                        // Skip invalid dates
+                      }
+                    }
+                  });
+                  return monthlySales;
+                })(),
                 borderColor: 'rgba(59, 130, 246, 1)',
                 backgroundColor: 'rgba(59, 130, 246, 0.12)',
                 borderWidth: 2,
@@ -447,7 +468,21 @@ export default function DashboardPage() {
               },
               {
                 label: 'Costs (USD)',
-                data: costsDataArr.map(cost => cost.amountUSD || 0),
+                data: (() => {
+                  const monthlyCosts = new Array(12).fill(0);
+                  costsDataArr.forEach(cost => {
+                    if (cost.date) {
+                      try {
+                        const date = cost.date.toDate ? cost.date.toDate() : new Date(cost.date);
+                        const month = date.getMonth();
+                        monthlyCosts[month] += cost.amountUSD || 0;
+                      } catch (error) {
+                        // Skip invalid dates
+                      }
+                    }
+                  });
+                  return monthlyCosts;
+                })(),
                 borderColor: 'rgba(239, 68, 68, 1)',
                 backgroundColor: 'rgba(239, 68, 68, 0.12)',
                 borderWidth: 2,
@@ -735,9 +770,14 @@ export default function DashboardPage() {
     },
     scales: {
       x: {
-        display: false,
-        grid: { display: false },
-        ticks: { display: false }
+        display: true,
+        grid: { color: 'rgba(0,0,0,0.04)' },
+        ticks: {
+          color: '#415A77',
+          font: { size: 11, family: 'inherit' },
+          maxRotation: 45,
+          minRotation: 0
+        }
       },
       y: {
         display: true,

@@ -54,30 +54,80 @@ const typeStyles = {
 // Update chart options to be functions that accept t
 const getChartOptions = (t) => ({
   chart: {
-    type: 'line',
+    type: 'area',
     height: 350,
     toolbar: {
       show: false
+    },
+    background: 'transparent'
+  },
+  dataLabels: {
+    enabled: false
+  },
+  stroke: {
+    curve: 'smooth',
+    width: 5
+  },
+  colors: ['#3b82f6'],
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shade: 'light',
+      type: 'vertical',
+      shadeIntensity: 0.4,
+      gradientToColors: ['#60a5fa'],
+      inverseColors: false,
+      opacityFrom: 0.8,
+      opacityTo: 0.3,
+      stops: [0, 100]
     }
   },
   xaxis: {
-    type: 'datetime', // <-- fix for time series
+    type: 'datetime',
     labels: {
-      formatter: (value) => getTranslatedChartLabel(value, t)
+      formatter: (value) => {
+        const date = new Date(value);
+        return date.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit'
+        });
+      },
+      style: {
+        colors: '#64748b',
+        fontSize: '14px'
+      }
     }
   },
   yaxis: {
     title: {
-      text: t('sales.charts.amount_usd')
+      text: t('sales.charts.amount_usd') || 'Amount (USD)',
+      style: {
+        color: '#64748b'
+      }
     },
     labels: {
-      formatter: (value) => formatCDF(value)
+      formatter: (value) => `$${value.toLocaleString()}`,
+      style: {
+        colors: '#64748b',
+        fontSize: '14px'
+      }
     }
   },
   tooltip: {
+    shared: true,
+    intersect: false,
     y: {
-      formatter: (value) => formatCDF(value)
+      formatter: (value) => `$${value.toLocaleString()} USD`
     }
+  },
+  grid: {
+    show: true,
+    borderColor: '#e5e7eb',
+    strokeDashArray: 0,
+    position: 'back'
+  },
+  legend: {
+    show: false
   }
 });
 
@@ -85,86 +135,89 @@ const getChartOptions = (t) => ({
 const getActivityTypeChartOptions = (t) => ({
   chart: {
     type: 'bar',
-    height: 350,
-    toolbar: { show: false },
-    animations: { enabled: true, easing: 'easeinout', speed: 800 },
+    toolbar: {
+      show: false
+    },
+    height: 350
   },
   plotOptions: {
     bar: {
-      borderRadius: 10,
       horizontal: false,
       columnWidth: '55%',
-      distributed: true,
-      dataLabels: { position: 'top' },
-    },
-  },
-  colors: [
-    function({ value, seriesIndex, w }) {
-      // Gradient blue to purple
-      return 'url(#barGradient)';
-    }
-  ],
-  fill: {
-    type: 'gradient',
-    gradient: {
-      shade: 'light',
-      type: 'vertical',
-      shadeIntensity: 0.4,
-      gradientToColors: ['#a78bfa'],
-      inverseColors: false,
-      opacityFrom: 0.95,
-      opacityTo: 0.85,
-      stops: [0, 100]
+      endingShape: 'rounded',
+      borderRadius: 4,
+      distributed: true
     }
   },
   dataLabels: {
-    enabled: false // No value inside the bar
+    enabled: true,
+    formatter: function (val) {
+      return `$${val.toLocaleString()}`
+    },
+    style: {
+      fontSize: '14px',
+      colors: ['#fff']
+    }
+  },
+  stroke: {
+    show: true,
+    width: 2,
+    colors: ['transparent']
   },
   xaxis: {
-    type: 'category',
+    categories: [],
     labels: {
-      formatter: (value) => getTranslatedChartLabel(value, t),
       style: {
         colors: '#64748b',
-        fontSize: '13px',
-        fontFamily: 'inherit',
-        fontWeight: 500
+        fontSize: '14px'
       }
-    },
-    axisBorder: { show: false },
-    axisTicks: { show: false }
+    }
   },
   yaxis: {
-    labels: {
+    title: {
+      text: t('sales.charts.amount_usd') || 'Amount (USD)',
       style: {
-        colors: '#64748b',
-        fontSize: '13px',
-        fontFamily: 'inherit',
-        fontWeight: 500
-      },
-      formatter: (value) => {
-        return `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+        color: '#64748b'
       }
     },
-    title: {
-      text: t('sales.charts.amount_usd'),
-      style: { color: '#64748b', fontWeight: 600 }
+    labels: {
+      style: {
+        colors: '#64748b'
+      },
+      formatter: function (val) {
+        return `$${val.toLocaleString()}`
+      }
+    }
+  },
+  fill: {
+    opacity: 1,
+    type: 'gradient',
+    gradient: {
+      shade: 'light',
+      type: "vertical",
+      shadeIntensity: 0.25,
+      gradientToColors: undefined,
+      inverseColors: true,
+      opacityFrom: 0.85,
+      opacityTo: 0.85,
+      stops: [50, 100]
     }
   },
   tooltip: {
-    enabled: true,
     y: {
-      formatter: (value) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+      formatter: function (val) {
+        return `$${val.toLocaleString()} USD`;
+      }
     }
   },
-  grid: {
-    borderColor: '#f1f5f9',
-    strokeDashArray: 2,
-    xaxis: { lines: { show: false } },
-    yaxis: { lines: { show: true, opacity: 0.5 } },
-    padding: { top: 0, right: 20, bottom: 0, left: 20 }
+  legend: {
+    position: 'top',
+    horizontalAlign: 'right',
+    floating: true,
+    offsetY: -25,
+    offsetX: -5
   },
-  legend: { show: false },
+  colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 });
 
 // Add helper functions for date handling
@@ -1154,8 +1207,34 @@ export default function SalesPage() {
         {/* Replace the old time period selector with the new component */}
         <ClientOnly>
           <TimePeriodSelector
-            selectedTimePeriod={filters.selectedTimePeriod}
-            onChange={(newPeriod) => handleFilterChange('selectedTimePeriod', newPeriod)}
+            selectedPeriod={filters.selectedTimePeriod}
+            onPeriodChange={(period) => {
+              setFilters(prev => ({
+                ...prev,
+                selectedTimePeriod: period,
+                dateFilters: {
+                  ...prev.dateFilters,
+                  // Reset custom dates when switching away from custom
+                  ...(period !== TIME_PERIODS.CUSTOM && {
+                    startDate: null,
+                    endDate: null
+                  })
+                }
+              }));
+            }}
+            startDate={filters.dateFilters?.startDate || ''}
+            endDate={filters.dateFilters?.endDate || ''}
+            onDateRangeChange={(start, end) => {
+              setFilters(prev => ({
+                ...prev,
+                dateFilters: {
+                  ...prev.dateFilters,
+                  startDate: start,
+                  endDate: end
+                }
+              }));
+            }}
+            className="text-blue-900"
           />
         </ClientOnly>
       </div>
@@ -2097,9 +2176,9 @@ export default function SalesPage() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Sales Trend Chart */}
-        <Card>
-          <h3 className="text-lg font-semibold mb-2 text-[#4c5c68] text-center text-sm">{t('sales.charts.trend')}</h3>
-          <div className="h-[320px]">
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4 text-[#4c5c68] text-center">{t('sales.charts.trend')}</h3>
+          <div className="h-[350px]">
             <ClientOnly>
               {(() => {
                 const salesByDate = periodData.reduce((acc, sale) => {
@@ -2130,7 +2209,7 @@ export default function SalesPage() {
                   <Chart 
                     options={getChartOptions(t)}
                     series={series}
-                    type="line"
+                    type="area"
                     height="100%"
                   />
                 );
@@ -2140,9 +2219,9 @@ export default function SalesPage() {
         </Card>
 
         {/* Sales Distribution Chart */}
-        <Card>
-          <h3 className="text-lg font-semibold mb-2 text-[#4c5c68] text-center text-sm">{t('sales.charts.byActivity')}</h3>
-          <div className="h-[320px] flex items-center justify-center">
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4 text-[#4c5c68] text-center">{t('sales.charts.byActivity')}</h3>
+          <div className="h-[350px]">
             <ClientOnly>
               {(() => {
                 const activitySales = {};
@@ -2165,11 +2244,20 @@ export default function SalesPage() {
                 }
                 const series = [{
                   name: 'Sales',
-                  data: data
+                  data: data.map(item => item.y)
                 }];
+                
+                const chartOptions = {
+                  ...getActivityTypeChartOptions(t),
+                  xaxis: {
+                    ...getActivityTypeChartOptions(t).xaxis,
+                    categories: data.map(item => getTranslatedActivityTypeName({ name: item.x }, t))
+                  }
+                };
+                
                 return (
                   <Chart
-                    options={getActivityTypeChartOptions(t)}
+                    options={chartOptions}
                     series={series}
                     type="bar"
                     height="100%"

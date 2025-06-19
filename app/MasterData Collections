@@ -263,7 +263,21 @@
 
 ---
 
+#### ⚡ **Intrants**
+
+- **ID:** `ZbnIUI2cy5f9UNkRkjgZ`
+- **Name:** Intrants
+- **Description:** Expenses for Intrants
+- **Budget Code:** 10
+
 ---
+
+#### ⚡ **Emballages**
+
+- **ID:** `76AMMBxMiBVYaECheeHB`
+- **Name:** Emballages
+- **Description:** Expenses For Packaging
+- **Budget Code:** 10
 
 ### **Firestore Collections – Activity Types**
 
