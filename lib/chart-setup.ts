@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import annotationPlugin from 'chartjs-plugin-annotation';
 
 ChartJS.register(
   CategoryScale,
@@ -18,5 +19,6 @@ ChartJS.register(
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  annotationPlugin
 ); 

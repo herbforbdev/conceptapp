@@ -22,6 +22,7 @@ import TopCard from "@/components/shared/TopCard";
 import { useLanguage } from "@/context/LanguageContext";
 import { getInventorySummaryTableData } from '@/lib/analysis/dataProcessing';
 import { userService } from '@/services/firestore/userService';
+import '@/lib/chart-setup';
 
 // Dynamic imports for Chart.js
 const LineChart = dynamic(() => import('react-chartjs-2').then(mod => mod.Line), { ssr: false });
@@ -42,22 +43,6 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import annotationPlugin from 'chartjs-plugin-annotation';
-
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-  annotationPlugin
-);
 
 // Client-only wrapper component
 const ClientOnly = ({ children }) => {
