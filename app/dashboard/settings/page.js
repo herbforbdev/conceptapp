@@ -74,25 +74,25 @@ export default function SettingsPage() {
           <div className="xl:col-span-1">
             <Card className="h-fit bg-white/80 border border-[#385e82]">
               <h2 className="text-xl text-[#031b31] font-semibold mb-6">
-                {t('settings.language')}
-              </h2>
+            {t('settings.language')}
+          </h2>
               <div className="flex flex-col gap-4">
                 <label className="text-base text-gray-700 font-medium">
-                  {t('settings.selectLanguage')}:
-                </label>
-                <LanguageSelector />
-              </div>
+              {t('settings.selectLanguage')}:
+            </label>
+            <LanguageSelector />
+          </div>
               <p className="mt-4 text-sm text-gray-500">
-                {t('settings.languageDescription')}
-              </p>
-            </Card>
+            {t('settings.languageDescription')}
+          </p>
+        </Card>
           </div>
 
           {/* Settings Cards - 2/3 width on xl screens */}
           <div className="xl:col-span-2">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {settingsCards.map((card, index) => (
-                <Link key={index} href={card.href}>
+          {settingsCards.map((card, index) => (
+            <Link key={index} href={card.href}>
                   <Card className="hover:shadow-xl transition-all duration-300 bg-white/80 border border-[#385e82] h-full">
                     <div className="flex items-start space-x-4 h-full">
                       <div className={`${card.color} text-white p-4 rounded-xl shadow-md`}>{card.icon}</div>
@@ -102,12 +102,12 @@ export default function SettingsPage() {
                         <div className="flex items-center text-[#385e82] mt-auto">
                           <span className="text-base font-semibold">{t('settings.Configure')}</span>
                           <HiArrowRight className="ml-2 h-5 w-5" />
-                        </div>
-                      </div>
                     </div>
-                  </Card>
-                </Link>
-              ))}
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
             </div>
           </div>
         </div>

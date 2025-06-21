@@ -45,4 +45,50 @@ export const getProductName = (map: Map<string, any>, id: string): string => {
 export const getExpenseTypeName = (map: Map<string, any>, id: string): string => {
   if (!map || !id) return "Unknown";
   return map.get(id)?.name || map.get(id)?.description || "Unknown";
-}; 
+};
+
+export function normalizeProductTypeName(name: string | null | undefined): string {
+  if (!name) {
+    return 'Unknown';
+  }
+
+  const lowerCaseName = name.toLowerCase().trim();
+
+  // Mapping for 'Bottled Water' variations
+  if (
+    lowerCaseName.includes('eau en bouteille') ||
+    lowerCaseName.includes('water bottling') ||
+    lowerCaseName.includes('bottles') ||
+    lowerCaseName.includes('bouteille')
+  ) {
+    return 'Eau en bouteille';
+  }
+
+  // Mapping for 'Ice Blocks' variations
+  if (
+    lowerCaseName.includes('bloc de glace') ||
+    lowerCaseName.includes('ice blocks')
+  ) {
+    return 'Bloc de Glace';
+  }
+
+  // Mapping for 'Ice Cubes' variations
+  if (
+    lowerCaseName.includes('glaçons') ||
+    lowerCaseName.includes('cubes')
+  ) {
+    return 'Glaçons';
+  }
+  
+  // Mapping for 'Bidon d'eau'
+  if (
+    lowerCaseName.includes("bidon d'eau") ||
+    lowerCaseName.includes('water jug')
+  ) {
+    return "Bidon d'eau";
+  }
+
+
+  // Fallback to the original name if no mapping is found
+  return name;
+} 

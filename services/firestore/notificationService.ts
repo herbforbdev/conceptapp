@@ -106,78 +106,78 @@ class NotificationService {
         // Only import email service on server side and when email is enabled
         if (typeof window === 'undefined' && process.env.NEXT_PUBLIC_ENABLE_EMAIL === 'true') {
           const { emailService } = await import('../emailService');
-          
-          // Send appropriate email based on notification type
-          switch (type) {
-          case 'inventory_alert':
-            if (data?.productName && data?.currentStock && data?.threshold) {
-              emailSent = await emailService.sendLowStockAlert(
-                userEmail, 
-                userName, 
-                data.productName, 
-                data.currentStock, 
-                data.threshold
-              );
-            }
-            break;
 
-          case 'budget_overrun':
-            if (data?.expenseType && data?.currentAmount && data?.budgetAmount) {
-              emailSent = await emailService.sendBudgetOverrunAlert(
-                userEmail, 
-                userName, 
-                data.expenseType, 
-                data.currentAmount, 
-                data.budgetAmount,
-                data.period || 'Ce mois'
-              );
-            }
-            break;
+      // Send appropriate email based on notification type
+      switch (type) {
+        case 'inventory_alert':
+          if (data?.productName && data?.currentStock && data?.threshold) {
+            emailSent = await emailService.sendLowStockAlert(
+              userEmail, 
+              userName, 
+              data.productName, 
+              data.currentStock, 
+              data.threshold
+            );
+          }
+          break;
 
-          case 'user_invite':
-            if (data?.inviterName && data?.companyName) {
-              emailSent = await emailService.sendUserInvitation(
-                userEmail, 
-                userName, 
-                data.inviterName, 
-                data.companyName
-              );
-            }
-            break;
+        case 'budget_overrun':
+          if (data?.expenseType && data?.currentAmount && data?.budgetAmount) {
+            emailSent = await emailService.sendBudgetOverrunAlert(
+              userEmail, 
+              userName, 
+              data.expenseType, 
+              data.currentAmount, 
+              data.budgetAmount,
+              data.period || 'Ce mois'
+            );
+          }
+          break;
 
-          case 'access_request':
-            if (data?.action === 'approved' && data?.companyName) {
-              emailSent = await emailService.sendAccessRequestApproved(
-                userEmail, 
-                userName, 
-                data.companyName
-              );
-            } else if (data?.action === 'rejected' && data?.companyName) {
-              emailSent = await emailService.sendAccessRequestRejected(
-                userEmail, 
-                userName, 
-                data.companyName, 
-                data.reason
-              );
-            }
-            break;
+        case 'user_invite':
+          if (data?.inviterName && data?.companyName) {
+            emailSent = await emailService.sendUserInvitation(
+              userEmail, 
+              userName, 
+              data.inviterName, 
+              data.companyName
+            );
+          }
+          break;
 
-          case 'weekly_report':
-            if (data?.weekStart && data?.weekEnd && data?.stats) {
-              emailSent = await emailService.sendWeeklyReport(
-                userEmail, 
-                userName, 
-                data.weekStart, 
-                data.weekEnd, 
-                data.stats
-              );
-            }
-            break;
+        case 'access_request':
+          if (data?.action === 'approved' && data?.companyName) {
+            emailSent = await emailService.sendAccessRequestApproved(
+              userEmail, 
+              userName, 
+              data.companyName
+            );
+          } else if (data?.action === 'rejected' && data?.companyName) {
+            emailSent = await emailService.sendAccessRequestRejected(
+              userEmail, 
+              userName, 
+              data.companyName, 
+              data.reason
+            );
+          }
+          break;
 
-                      default:
-              // For system notifications, we could send a generic email
-              console.log(`Email not implemented for notification type: ${type}`);
-              break;
+        case 'weekly_report':
+          if (data?.weekStart && data?.weekEnd && data?.stats) {
+            emailSent = await emailService.sendWeeklyReport(
+              userEmail, 
+              userName, 
+              data.weekStart, 
+              data.weekEnd, 
+              data.stats
+            );
+          }
+          break;
+
+        default:
+          // For system notifications, we could send a generic email
+          console.log(`Email not implemented for notification type: ${type}`);
+          break;
           }
         } else {
           console.log('Email service skipped (client side or email disabled)');
@@ -465,18 +465,18 @@ class NotificationService {
 
       // Send emails to admins (if preferences allow) - server side only
       if (typeof window === 'undefined' && process.env.NEXT_PUBLIC_ENABLE_EMAIL === 'true') {
-        for (const admin of adminSnapshot.docs) {
-          const adminData = admin.data();
-          if (adminData.uid) {
-            // Email will be sent by the createNotification method called above
-            await this.sendEmailNotification(
-              '', // We don't have the notification ID for batch operations
-              adminData.uid,
-              type,
-              title,
-              message,
-              data
-            );
+      for (const admin of adminSnapshot.docs) {
+        const adminData = admin.data();
+        if (adminData.uid) {
+          // Email will be sent by the createNotification method called above
+          await this.sendEmailNotification(
+            '', // We don't have the notification ID for batch operations
+            adminData.uid,
+            type,
+            title,
+            message,
+            data
+          );
           }
         }
       }
@@ -517,15 +517,15 @@ class NotificationService {
       
       // Send emails to admins - server side only
       if (typeof window === 'undefined' && process.env.NEXT_PUBLIC_ENABLE_EMAIL === 'true') {
-        for (const adminId of adminIds) {
-          await this.sendEmailNotification(
-            '', // notification ID will be generated
-            adminId,
-            'access_request',
-            title,
-            message,
-            { userEmail, userName }
-          );
+      for (const adminId of adminIds) {
+        await this.sendEmailNotification(
+          '', // notification ID will be generated
+          adminId,
+          'access_request',
+          title,
+          message,
+          { userEmail, userName }
+        );
         }
       }
     } catch (error) {

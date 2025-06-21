@@ -75,23 +75,27 @@ export default function CostTrendsPage() {
       const year = d.getFullYear();
       const month = d.getMonth(); // 0-based month
       const sortKey = `${year}-${month.toString().padStart(2, '0')}`; // e.g., "2025-02" for March
-      const label = d.toLocaleString("default", { month: "short", year: "numeric" });
+      
+      // Create consistent month label using month names array
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const label = `${monthNames[month]} ${year}`;
       
       if (!acc[sortKey]) acc[sortKey] = { 
         totalUSD: 0, 
         count: 0,
         year: year,
         month: month,
-        label: label
+        label: label,
+        sortValue: year * 100 + month // Create a simple numeric sort value
       };
       acc[sortKey].totalUSD += cost.amountUSD || 0;
       acc[sortKey].count += 1;
       return acc;
     }, {});
     
-    const sorted = Object.entries(monthly)
-      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-      .map(([, data]) => ({
+    const sorted = Object.values(monthly)
+      .sort((a, b) => a.sortValue - b.sortValue) // Sort by the numeric sort value
+      .map(data => ({
         month: data.label,
         totalUSD: data.totalUSD,
         count: data.count,
@@ -111,7 +115,7 @@ export default function CostTrendsPage() {
     const expenseArr = Object.entries(expenseMap);
 
     const topType = expenseArr.sort((a, b) => b[1] - a[1])[0] || ['', 0];
-    const topMonth = sorted.sort((a, b) => b.totalUSD - a.totalUSD)[0] || { month: '', totalUSD: 0 };
+    const topMonth = [...sorted].sort((a, b) => b.totalUSD - a.totalUSD)[0] || { month: '', totalUSD: 0 };
 
     setMetrics({
       total: total || 0,
@@ -198,9 +202,8 @@ export default function CostTrendsPage() {
   return (
     <div className="p-4 bg-gray-50">
       <div className="mb-4">
-        <Link href="/dashboard/reports" className="inline-flex items-center text-red-700 hover:underline font-medium">
-          <HiArrowNarrowLeft className="mr-2 h-5 w-5" />
-          {t('cost_trends.title')}
+        <Link href="/dashboard/reports" className="inline-flex items-center bg-[#b70000] text-white rounded px-4 py-2 hover:bg-[#ac172d] transition">
+          <HiArrowNarrowLeft className="mr-2 h-5 w-5" /> {t('cost_trends.title')}
         </Link>
       </div>
       <h1 className="text-2xl font-bold mb-6 text-red-700">{t('cost_trends.title')}</h1>

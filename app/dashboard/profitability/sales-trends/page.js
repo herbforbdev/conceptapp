@@ -96,27 +96,36 @@ export default function SalesTrendsPage() {
     // Monthly stats
     const monthly = filtered.reduce((acc, sale) => {
       const d = new Date(sale.date.seconds * 1000);
-      const timestamp = d.getTime();
-      const label = d.toLocaleString("default", { month: "short", year: "numeric" });
-      if (!acc[label]) {
-        acc[label] = { 
+      const year = d.getFullYear();
+      const month = d.getMonth(); // 0-based month
+      const sortKey = `${year}-${month.toString().padStart(2, '0')}`;
+      
+      // Create consistent month label using month names array
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const label = `${monthNames[month]} ${year}`;
+      
+      if (!acc[sortKey]) {
+        acc[sortKey] = { 
           totalUSD: 0, 
           count: 0,
-          timestamp // Store timestamp for sorting
+          year: year,
+          month: month,
+          label: label,
+          sortValue: year * 100 + month // Create a simple numeric sort value
         };
       }
-      acc[label].totalUSD += sale.amountUSD || 0;
-      acc[label].count += 1;
+      acc[sortKey].totalUSD += sale.amountUSD || 0;
+      acc[sortKey].count += 1;
       return acc;
     }, {});
 
-    const sorted = Object.entries(monthly)
-      .sort(([, a], [, b]) => a.timestamp - b.timestamp) // Sort by timestamp
-      .map(([month, data]) => ({
-        month,
+    const sorted = Object.values(monthly)
+      .sort((a, b) => a.sortValue - b.sortValue) // Sort by the numeric sort value
+      .map(data => ({
+        month: data.label,
         totalUSD: data.totalUSD,
         count: data.count,
-        average: data.totalUSD / data.count
+        average: data.count > 0 ? data.totalUSD / data.count : 0
       }));
     setMonthlyData(sorted);
 
@@ -132,7 +141,7 @@ export default function SalesTrendsPage() {
     const productArr = Object.entries(productMap);
 
     const topProduct = productArr.sort((a, b) => b[1] - a[1])[0] || ['', 0];
-    const topMonth = sorted.sort((a, b) => b.totalUSD - a.totalUSD)[0] || { month: '', totalUSD: 0 };
+    const topMonth = [...sorted].sort((a, b) => b.totalUSD - a.totalUSD)[0] || { month: '', totalUSD: 0 };
 
     setMetrics({
       total,
@@ -228,9 +237,8 @@ export default function SalesTrendsPage() {
   return (
     <div className="p-4 bg-gray-50">
       <div className="mb-4">
-        <Link href="/dashboard/reports" className="inline-flex items-center text-blue-700 hover:underline font-medium">
-          <HiArrowNarrowLeft className="mr-2 h-5 w-5" />
-          {t('reports.title')}
+        <Link href="/dashboard/reports" className="inline-flex items-center bg-[#005b96] text-white rounded px-4 py-2 hover:bg-[#03396c] transition">
+          <HiArrowNarrowLeft className="mr-2 h-5 w-5" /> {t('reports.title')}
         </Link>
       </div>
       <h1 className="text-2xl font-bold mb-6 text-blue-700">{t('charts.sales_trends.title')}</h1>

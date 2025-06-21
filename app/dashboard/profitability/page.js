@@ -22,6 +22,9 @@ import {
 import { useMasterData } from "@/hooks/useMasterData";
 import Link from "next/link";
 import AdminOnly from '@/components/AdminOnly';
+import { parseFirestoreDate } from "@/lib/utils/dateUtils.ts";
+import { normalizeProductTypeName } from "@/lib/utils/nameUtils";
+import { Doughnut } from "react-chartjs-2";
 
 // CRITICAL FIX: Add safeT function to prevent object rendering and infinite loops
 const safeT = (t, key, fallback) => {
@@ -38,6 +41,14 @@ const safeT = (t, key, fallback) => {
     console.warn(`Translation error for key "${key}":`, error);
     return String(fallback || key);
   }
+};
+
+// Helper function to safely format numbers and avoid NaN
+const safeFormatNumber = (value, options = { maximumFractionDigits: 0 }) => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return '0';
+  }
+  return value.toLocaleString(undefined, options);
 };
 
 // Register ChartJS components
@@ -58,34 +69,25 @@ const DoughnutChart = dynamic(() => import("react-chartjs-2").then((mod) => mod.
 
 export default function SalesTrendsPage() {
   const { data: sales } = useFirestoreCollection("Sales");
-  const { data: products } = useFirestoreCollection("Products");
-  const { data: activityTypes } = useFirestoreCollection("ActivityTypes");
   const { data: costs } = useFirestoreCollection("Costs");
   const { t } = useLanguage();
   
-  // CRITICAL FIX: Create stable year reference to prevent hydration mismatch
   const currentYear = useMemo(() => new Date().getFullYear(), []);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [activeTab, setActiveTab] = useState("general");
 
   const { products: masterProducts, activityTypes: masterActivityTypes, expenseTypes, productMap, activityTypeMap, expenseTypeMap } = useMasterData();
+  
+  // Use products from the master data map to ensure consistency
+  const products = useMemo(() => (productMap ? Array.from(productMap.values()) : []), [productMap]);
+  const activityTypes = useMemo(() => (activityTypeMap ? Array.from(activityTypeMap.values()) : []), [activityTypeMap]);
 
-  // CRITICAL FIX: Add missing state variables that were causing errors
-  const [yearlyActivityType, setYearlyActivityType] = useState({});
-  const [trendChartData, setTrendChartData] = useState({ labels: [], datasets: [] });
-  const [yearlyDistribution, setYearlyDistribution] = useState({});
-  const [monthlyData, setMonthlyData] = useState([]);
-  const [performanceData, setPerformanceData] = useState({
-    totalSales: 0,
-    bestSellingProduct: null,
-    iceBlocsSales: 0,
-    cubesSales: 0,
-    bottlesSales: 0
-  });
-
-  // Memoized product types for rows
   const productTypes = useMemo(() => {
-    const types = new Set((products || []).map(p => p.producttype).filter(Boolean));
+    const types = new Set(
+      (products || [])
+        .map(p => normalizeProductTypeName(p.producttype))
+        .filter(Boolean)
+    );
     return Array.from(types).filter(type => 
       !type.toLowerCase().includes('packaging') && 
       !type.toLowerCase().includes('emballage')
@@ -99,7 +101,8 @@ export default function SalesTrendsPage() {
 
   // Memoized activity types for rows
   const activityTypeRows = useMemo(() => {
-    return (activityTypes || []).map(a => a.name);
+    const names = (activityTypes || []).map(a => a.name).filter(Boolean);
+    return Array.from(new Set(names));
   }, [activityTypes]);
 
   // Memoized product sales by type/month
@@ -108,35 +111,68 @@ export default function SalesTrendsPage() {
     productTypes.forEach(type => {
       table[type] = Array(12).fill(0);
     });
+
     (sales || []).forEach(sale => {
-      if (!sale.date) return;
-      const d = sale.date.seconds ? new Date(sale.date.seconds * 1000) : new Date(sale.date);
-      if (d.getFullYear() !== selectedYear) return;
-      const product = productMap.get(sale.productId);
-      if (!product || !product.producttype) return;
-      if (!table[product.producttype]) return;
-      table[product.producttype][d.getMonth()] += sale.amountUSD || 0;
+      const d = parseFirestoreDate(sale.date);
+      if (!d || d.getFullYear() !== selectedYear) return;
+      
+      const trimmedProductId = sale.productId?.trim();
+      if (!trimmedProductId) return;
+      
+      let product = productMap.get(trimmedProductId);
+      
+      if (product && !product.producttype) {
+        const masterProduct = masterProducts.find(p => p.id === trimmedProductId);
+        if (masterProduct) {
+          product.producttype = masterProduct.producttype;
+        }
+      }
+      
+      if (!product || !product.producttype || typeof product.producttype !== 'string') {
+        return;
+      }
+      
+      const normalizedProductType = normalizeProductTypeName(product.producttype);
+      if (!table[normalizedProductType]) {
+        return;
+      }
+
+      table[normalizedProductType][d.getMonth()] += sale.amountUSD || 0;
     });
     return table;
-  }, [sales, selectedYear, productTypes, productMap]);
+  }, [sales, selectedYear, productTypes, productMap, masterProducts]);
 
   // Memoized expense costs by type/month
   const expenseTypeTable = useMemo(() => {
     const table = {};
-    expenseTypeRows.forEach(type => {
+    const actualExpenseTypes = new Set();
+    
+    // First pass: collect all actual expense type names from cost records
+    (costs || []).forEach(cost => {
+      const d = parseFirestoreDate(cost.date);
+      if (!d || d.getFullYear() !== selectedYear) return;
+      const expenseType = expenseTypeMap.get(cost.expenseTypeId);
+      if (expenseType && expenseType.name) {
+        actualExpenseTypes.add(expenseType.name);
+      }
+    });
+    
+    // Initialize table with actual expense type names
+    Array.from(actualExpenseTypes).forEach(type => {
       table[type] = Array(12).fill(0);
     });
+    
+    // Second pass: populate the table
     (costs || []).forEach(cost => {
-      if (!cost.date) return;
-      const d = cost.date.seconds ? new Date(cost.date.seconds * 1000) : new Date(cost.date);
-      if (d.getFullYear() !== selectedYear) return;
+      const d = parseFirestoreDate(cost.date);
+      if (!d || d.getFullYear() !== selectedYear) return;
       const expenseType = expenseTypeMap.get(cost.expenseTypeId);
       if (!expenseType || !expenseType.name) return;
       if (!table[expenseType.name]) return;
       table[expenseType.name][d.getMonth()] += cost.amountUSD || 0;
     });
     return table;
-  }, [costs, selectedYear, expenseTypeRows, expenseTypeMap]);
+  }, [costs, selectedYear, expenseTypeMap]);
 
   // Memoized sales by activity type/month
   const activityTypeTable = useMemo(() => {
@@ -145,9 +181,8 @@ export default function SalesTrendsPage() {
       table[type] = Array(12).fill(0);
     });
     (sales || []).forEach(sale => {
-      if (!sale.date) return;
-      const d = sale.date.seconds ? new Date(sale.date.seconds * 1000) : new Date(sale.date);
-      if (d.getFullYear() !== selectedYear) return;
+      const d = parseFirestoreDate(sale.date);
+      if (!d || d.getFullYear() !== selectedYear) return;
       const activityType = activityTypeMap.get(sale.activityTypeId);
       if (!activityType || !activityType.name) return;
       if (!table[activityType.name]) return;
@@ -159,27 +194,28 @@ export default function SalesTrendsPage() {
   // Compute profitability KPIs and chart data
   const [kpi, chartData] = useMemo(() => {
     if (!sales || !costs) return [{}, { labels: [], datasets: [] }];
-    // CRITICAL FIX: Use safeT and stable month labels to prevent infinite renders
-    const months = [
-      safeT(t, 'months.january_short', 'Jan'), safeT(t, 'months.february_short', 'Feb'), safeT(t, 'months.march_short', 'Mar'),
-      safeT(t, 'months.april_short', 'Apr'), safeT(t, 'months.may_short', 'May'), safeT(t, 'months.june_short', 'Jun'),
-      safeT(t, 'months.july_short', 'Jul'), safeT(t, 'months.august_short', 'Aug'), safeT(t, 'months.september_short', 'Sep'),
-      safeT(t, 'months.october_short', 'Oct'), safeT(t, 'months.november_short', 'Nov'), safeT(t, 'months.december_short', 'Dec')
-    ];
+    // Use stable month labels to prevent stale closures
+    const stableMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const salesByMonth = Array(12).fill(0);
     const costsByMonth = Array(12).fill(0);
     let totalRevenue = 0, totalCosts = 0, numSales = 0;
     sales.forEach(sale => {
-      if (!sale.date) return;
-      const d = sale.date.seconds ? new Date(sale.date.seconds * 1000) : new Date(sale.date);
+      const d = parseFirestoreDate(sale.date);
+      if (!d) return;
+
+      // CRITICAL FIX: Filter by selectedYear for KPIs
+      if (d.getFullYear() !== selectedYear) return;
       const m = d.getMonth();
       salesByMonth[m] += sale.amountUSD || 0;
       totalRevenue += sale.amountUSD || 0;
       numSales++;
     });
     costs.forEach(cost => {
-      if (!cost.date) return;
-      const d = cost.date.seconds ? new Date(cost.date.seconds * 1000) : new Date(cost.date);
+      const d = parseFirestoreDate(cost.date);
+      if (!d) return;
+
+      // CRITICAL FIX: Filter by selectedYear for KPIs
+      if (d.getFullYear() !== selectedYear) return;
       const m = d.getMonth();
       costsByMonth[m] += cost.amountUSD || 0;
       totalCosts += cost.amountUSD || 0;
@@ -196,17 +232,17 @@ export default function SalesTrendsPage() {
         avgProfitPerSale
       },
       {
-        labels: months,
+        labels: stableMonths,
         datasets: [
           {
-            label: safeT(t, 'profitability.salesTrends.sales', 'Sales'),
+            label: 'Ventes',
             data: salesByMonth,
             borderColor: 'rgba(59, 130, 246, 1)',
             backgroundColor: 'rgba(59, 130, 246, 0.12)',
             fill: true,
           },
           {
-            label: safeT(t, 'profitability.salesTrends.costs', 'Costs'),
+            label: 'Coûts',
             data: costsByMonth,
             borderColor: 'rgba(239, 68, 68, 1)',
             backgroundColor: 'rgba(239, 68, 68, 0.12)',
@@ -215,226 +251,7 @@ export default function SalesTrendsPage() {
         ]
       }
     ];
-  }, [sales, costs]); // CRITICAL FIX: Removed 't' from dependencies to prevent infinite renders
-
-  useEffect(() => {
-    if (sales && products && activityTypes) {
-      // Process activity type data correctly
-      const activityData = sales.reduce((acc, sale) => {
-        const year = new Date(sale.date.seconds * 1000).getFullYear();
-        const activity = activityTypes.find(at => at.id === sale.activityTypeId);
-        const activityType = activity ? activity.name : 'Other';
-        
-        if (!acc[year]) {
-          acc[year] = {};
-        }
-        if (!acc[year][activityType]) {
-          acc[year][activityType] = { cdf: 0, usd: 0 };
-        }
-        
-        acc[year][activityType].cdf += sale.amountFC || 0;
-        acc[year][activityType].usd += sale.amountUSD || 0;
-        return acc;
-      }, {});
-
-      setYearlyActivityType(activityData);
-
-      // Process monthly data by product type
-      const processProductTypeData = (productType) => {
-        const typeProducts = products.filter(p => p.producttype === productType);
-        const monthlyStats = {};
-        
-        sales.forEach(sale => {
-          if (sale.date) {
-            const product = typeProducts.find(p => p.productid === sale.productId);
-            if (product) {
-              const date = new Date(sale.date.seconds * 1000);
-              const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' });
-              
-              if (!monthlyStats[monthYear]) {
-                monthlyStats[monthYear] = {};
-              }
-              
-              if (!monthlyStats[monthYear][product.productid]) {
-                monthlyStats[monthYear][product.productid] = 0;
-              }
-              
-              monthlyStats[monthYear][product.productid] += sale.amountUSD || 0;
-            }
-          }
-        });
-
-        return monthlyStats;
-      };
-
-      const iceBlocksData = processProductTypeData('Ice Blocks');
-      const iceCubesData = processProductTypeData('Cubes');
-      const iceBottlesData = processProductTypeData('Bottles');
-
-      const months = [...new Set(Object.keys(iceBlocksData))].sort((a, b) => 
-        new Date(a) - new Date(b)
-      );
-
-      const getChartData = (data, productType) => {
-        const productIds = [...new Set(
-          Object.values(data).flatMap(month => Object.keys(month))
-        )];
-
-        const colors = [
-          '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899',
-          '#06b6d4', '#84cc16', '#14b8a6', '#6366f1', '#f43f5e'
-        ];
-
-        return {
-          labels: months,
-          datasets: productIds.map((productId, index) => ({
-            label: productId,
-            data: months.map(month => data[month]?.[productId] || 0),
-            borderColor: colors[index % colors.length],
-            backgroundColor: `${colors[index % colors.length]}20`,
-            fill: true,
-          }))
-        };
-      };
-
-      setTrendChartData({
-        iceBlocks: getChartData(iceBlocksData, 'Ice Blocks'),
-        iceCubes: getChartData(iceCubesData, 'Cubes'),
-        iceBottles: getChartData(iceBottlesData, 'Bottles')
-      });
-
-      // Process yearly distribution data
-      const years = [...new Set(sales.map(sale => 
-        new Date(sale.date.seconds * 1000).getFullYear()
-      ))].sort((a, b) => b - a);
-      setSelectedYear(years[0] || new Date().getFullYear());
-
-      const distributionData = sales.reduce((acc, sale) => {
-        const year = new Date(sale.date.seconds * 1000).getFullYear();
-        const channel = sale.channel || 'Other';
-        
-        if (!acc[year]) {
-          acc[year] = {};
-        }
-        if (!acc[year][channel]) {
-          acc[year][channel] = { cdf: 0, usd: 0 };
-        }
-        
-        acc[year][channel].cdf += sale.amountFC || 0;
-        acc[year][channel].usd += sale.amountUSD || 0;
-        return acc;
-      }, {});
-
-      setYearlyDistribution(distributionData);
-
-      // Process monthly data for the table with CDF amounts
-      const monthlyTableData = sales
-        .filter(sale => new Date(sale.date.seconds * 1000).getFullYear() === selectedYear)
-        .reduce((acc, sale) => {
-          const date = new Date(sale.date.seconds * 1000);
-          const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' });
-          
-          if (!acc[monthYear]) {
-            acc[monthYear] = {
-              totalUSD: 0,
-              totalCDF: 0,
-              count: 0
-            };
-          }
-          
-          acc[monthYear].totalUSD += sale.amountUSD || 0;
-          acc[monthYear].totalCDF += sale.amountFC || 0;
-          acc[monthYear].count += 1;
-          return acc;
-        }, {});
-
-      setMonthlyData(Object.entries(monthlyTableData)
-        .sort((a, b) => new Date(b[0]) - new Date(a[0])));
-    }
-  }, [sales, products, activityTypes, selectedYear]);
-
-  useEffect(() => {
-    if (sales && products) {
-      // Calculate total sales and growth
-      const totalSales = sales.reduce((sum, sale) => sum + (sale.amountUSD || 0), 0);
-      
-      // Calculate sales by product type
-      const productSales = sales.reduce((acc, sale) => {
-        const product = products.find(p => p.productid === sale.productId);
-        if (product) {
-          if (!acc[product.producttype]) {
-            acc[product.producttype] = {
-              name: product.producttype,
-              sales: 0
-            };
-          }
-          acc[product.producttype].sales += sale.amountUSD || 0;
-        }
-        return acc;
-      }, {});
-
-      // Calculate best selling product
-      const bestSellingProduct = Object.values(productSales)
-        .sort((a, b) => b.sales - a.sales)[0];
-
-      // Calculate specific product type sales
-      const iceBlocsSales = productSales['Ice Blocks']?.sales || 0;
-      const cubesSales = productSales['Cubes']?.sales || 0;
-      const bottlesSales = productSales['Bottles']?.sales || 0;
-
-      setPerformanceData(prev => ({
-        ...prev,
-        totalSales,
-        bestSellingProduct,
-        iceBlocsSales,
-        cubesSales,
-        bottlesSales
-      }));
-    }
-  }, [sales, products]);
-
-  useEffect(() => {
-    if (sales) {
-      const monthlyData = sales.reduce((acc, sale) => {
-        if (sale.date) {
-          const date = new Date(sale.date.seconds * 1000);
-          const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' });
-          
-          if (!acc[monthYear]) {
-            acc[monthYear] = {
-              totalUSD: 0,
-              count: 0,
-              average: 0
-            };
-          }
-          
-          acc[monthYear].totalUSD += sale.amountUSD || 0;
-          acc[monthYear].count += 1;
-          acc[monthYear].average = acc[monthYear].totalUSD / acc[monthYear].count;
-        }
-        return acc;
-      }, {});
-
-      const sortedMonthlyData = Object.entries(monthlyData)
-        .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB));
-
-      // CRITICAL FIX: Use safeT outside of dependency and in render
-      const tLabel = safeT(t, 'Sales Trend', 'Sales Trend');
-      
-      setTrendChartData({
-        labels: sortedMonthlyData.map(([month]) => month),
-        datasets: [{
-          label: tLabel,
-          data: sortedMonthlyData.map(([, data]) => data.totalUSD),
-          borderColor: 'rgba(75, 192, 192, 1)',
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          fill: true,
-        }]
-      });
-    }
-  }, [sales]); // CRITICAL FIX: Keep 't' out of dependencies
-
-
+  }, [sales, costs, selectedYear]);
 
   const chartOptions = {
     responsive: true,
@@ -513,27 +330,22 @@ export default function SalesTrendsPage() {
     cutout: '65%'
   };
 
-  // General Profitability Table Data - CRITICAL FIX: Use safeT and remove 't' dependency
+  // General Profitability Table Data - Use stable month labels
   const months = useMemo(() => [
-    safeT(t, 'months.january_short', 'Jan'), safeT(t, 'months.february_short', 'Feb'), safeT(t, 'months.march_short', 'Mar'),
-    safeT(t, 'months.april_short', 'Apr'), safeT(t, 'months.may_short', 'May'), safeT(t, 'months.june_short', 'Jun'),
-    safeT(t, 'months.july_short', 'Jul'), safeT(t, 'months.august_short', 'Aug'), safeT(t, 'months.september_short', 'Sep'),
-    safeT(t, 'months.october_short', 'Oct'), safeT(t, 'months.november_short', 'Nov'), safeT(t, 'months.december_short', 'Dec')
-  ], []); // Empty dependency to prevent infinite renders with stable values
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ], []); // Stable values to prevent re-renders
   const generalTable = useMemo(() => {
     // Group sales/costs by month for selected year
     const salesByMonth = Array(12).fill(0);
     const costsByMonth = Array(12).fill(0);
     (sales || []).forEach(sale => {
-      if (!sale.date) return;
-      const d = sale.date.seconds ? new Date(sale.date.seconds * 1000) : new Date(sale.date);
-      if (d.getFullYear() !== selectedYear) return;
+      const d = parseFirestoreDate(sale.date);
+      if (!d || d.getFullYear() !== selectedYear) return;
       salesByMonth[d.getMonth()] += sale.amountUSD || 0;
     });
     (costs || []).forEach(cost => {
-      if (!cost.date) return;
-      const d = cost.date.seconds ? new Date(cost.date.seconds * 1000) : new Date(cost.date);
-      if (d.getFullYear() !== selectedYear) return;
+      const d = parseFirestoreDate(cost.date);
+      if (!d || d.getFullYear() !== selectedYear) return;
       costsByMonth[d.getMonth()] += cost.amountUSD || 0;
     });
     const profitByMonth = salesByMonth.map((s, i) => s - costsByMonth[i]);
@@ -548,14 +360,14 @@ export default function SalesTrendsPage() {
   const availableYears = useMemo(() => {
     const years = new Set();
     (sales || []).forEach(s => {
-      if (s.date) {
-        const d = s.date.seconds ? new Date(s.date.seconds * 1000) : new Date(s.date);
+      const d = parseFirestoreDate(s.date);
+      if (d) {
         years.add(d.getFullYear());
       }
     });
     (costs || []).forEach(c => {
-      if (c.date) {
-        const d = c.date.seconds ? new Date(c.date.seconds * 1000) : new Date(c.date);
+      const d = parseFirestoreDate(c.date);
+      if (d) {
         years.add(d.getFullYear());
       }
     });
@@ -566,9 +378,8 @@ export default function SalesTrendsPage() {
     <AdminOnly>
       <div className="p-4 bg-gray-50">
         <div className="mb-4">
-          <Link href="/dashboard/reports" className="inline-flex items-center text-purple-700 hover:underline font-medium">
-            <HiArrowNarrowLeft className="mr-2 h-5 w-5" />
-            {safeT(t, 'reports.title', 'Reports')}
+          <Link href="/dashboard/reports" className="inline-flex items-center bg-[#385e82] text-white rounded px-4 py-2 hover:bg-[#052c4f] transition">
+            <HiArrowNarrowLeft className="mr-2 h-5 w-5" /> {safeT(t, 'reports.title', 'Reports')}
           </Link>
         </div>
         {/* Main Stats Card */}
@@ -608,11 +419,11 @@ export default function SalesTrendsPage() {
               </div>
               <div className="bg-blue-50 rounded-xl p-4">
                 <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.profitMargin', 'Profit Margin')}</p>
-                <p className="text-2xl font-semibold text-blue-900">{String(kpi.profitMargin?.toFixed(2) ?? '0.00')}%</p>
+                <p className="text-2xl font-semibold text-blue-900">{String(isNaN(kpi.profitMargin) ? '0.00' : kpi.profitMargin?.toFixed(2) ?? '0.00')}%</p>
               </div>
               <div className="bg-blue-50 rounded-xl p-4">
                 <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.avgProfitPerSale', 'Average Profit Per Sale')}</p>
-                <p className="text-2xl font-semibold text-blue-900">${String(kpi.avgProfitPerSale?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? 0)}</p>
+                <p className="text-2xl font-semibold text-blue-900">${String(isNaN(kpi.avgProfitPerSale) ? '0' : kpi.avgProfitPerSale?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? '0')}</p>
               </div>
             </div>
           </div>
@@ -652,236 +463,276 @@ export default function SalesTrendsPage() {
           </div>
         </Card>
 
-        {/* Tab Content */}
+                {/* Tab Content */}
         {activeTab === "general" && (
-          <Card className="rounded-2xl bg-gradient-to-br from-[#e6eaf0] to-[#f8fafc] border border-[#385e82] shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-bold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.general', 'General Profitability')}</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-center rounded-xl overflow-hidden">
-                <thead className="bg-[#385e82] text-white">
-                  <tr>
-                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-xl"></th>
-                    {months.map((m, i) => (
-                      <th key={i} className="w-16 py-3 px-2 font-bold text-xl">{m}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {[
-                    { label: safeT(t, 'profitability.rows.sales', 'Sales'), data: generalTable.salesByMonth, color: 'text-blue-700' },
-                    { label: safeT(t, 'profitability.rows.costs', 'Costs'), data: generalTable.costsByMonth, color: 'text-red-700' },
-                    { label: safeT(t, 'profitability.rows.profit', 'Profit'), data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
-                  ].map((row, idx) => (
-                    <tr key={row.label} className="">
-                      <td className={`w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-lg ${row.color} truncate whitespace-normal break-words`}>{row.label}</td>
-                      {row.data.map((val, i) => {
-                        // Indicator logic
-                        let indicator = null;
-                        if (i > 0) {
-                          const diff = val - row.data[i - 1];
-                          if (diff > 0) indicator = <span className="ml-1 text-green-600"><HiArrowUp className="inline h-4 w-4" /></span>;
-                          else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
-                        }
-                        return (
-                          <td key={i} className="py-2 px-4 text-lg font-mono text-gray-800">
-                            {String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
-                            {indicator}
-                          </td>
-                        );
-                      })}
+          <Card className="!rounded-2xl">
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.general', 'General Profitability')}</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                  <thead className="bg-[#385e82]/90">
+                    <tr>
+                      <th className="px-6 py-2 font-semibold text-sm text-white text-left"></th>
+                      {months.map((m, i) => (
+                        <th key={i} className="px-6 py-2 font-semibold text-sm text-white">{m}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {[
+                      { label: safeT(t, 'profitability.rows.sales', 'Sales'), data: generalTable.salesByMonth, color: 'text-blue-700' },
+                      { label: safeT(t, 'profitability.rows.costs', 'Costs'), data: generalTable.costsByMonth, color: 'text-red-700', invert: true },
+                      { label: safeT(t, 'profitability.rows.profit', 'Profit'), data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
+                    ].map((row, idx) => (
+                      <tr key={row.label} className="hover:bg-gray-50">
+                        <td className={`px-6 py-2 font-semibold text-sm ${row.color} text-left`}>
+                          {row.label}
+                        </td>
+                        {row.data.map((val, i) => {
+                          let bgClass = "bg-gray-50 text-gray-700";
+                          if (i > 0) {
+                            const diff = val - row.data[i - 1];
+                            if (diff > 0) {
+                              bgClass = row.invert ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700";
+                            } else if (diff < 0) {
+                              bgClass = row.invert ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700";
+                            }
+                          }
+                          return (
+                            <td key={i} className="px-6 py-3 text-sm font-medium">
+                              <span className={`px-3 py-1 rounded-full ${bgClass}`}>
+                                {safeFormatNumber(val)}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                                      ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </Card>
         )}
         {activeTab === "products" && (
-          <Card className="rounded-2xl bg-gradient-to-br from-[#e6eaf0] to-[#f8fafc] border border-[#385e82] shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-bold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.products', 'Product Sales by Month')}</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-center rounded-xl overflow-hidden">
-                <thead className="bg-[#385e82] text-white">
-                  <tr>
-                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-xl"></th>
-                    {months.map((m, i) => (
-                      <th key={i} className="w-16 py-3 px-2 font-bold text-xl">{m}</th>
-                    ))}
-                    <th className="w-16 py-3 px-2 font-bold text-xl">{safeT(t, 'common.total', 'Total')}</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+          <Card className="!rounded-2xl">
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4">{safeT(t, 'profitability.tabs.products', 'Product Sales by Month')}</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                  <thead className="bg-blue-900/80">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold text-sm text-white text-left"></th>
+                      {months.map((m, i) => (
+                        <th key={i} className="px-6 py-2 font-semibold text-sm text-white">{m}</th>
+                      ))}
+                      <th className="px-6 py-2 font-semibold text-sm text-white">{safeT(t, 'common.total', 'Total')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
                   {productTypes.map((type, idx) => {
                     const rowTotal = productTypeTable[type].reduce((sum, val) => sum + val, 0);
                     return (
-                      <tr key={type}>
-                        <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-lg text-blue-900 text-left">
-                          {safeT(t, `products.types.${type.replace(/\s+/g, '')}`, type)}
+                      <tr key={type} className="hover:bg-gray-50">
+                        <td className="px-6 py-2 font-semibold text-sm text-gray-900 text-left">
+                          {safeT(t, `products.types.${type.toLowerCase().replace(/\s+/g, '').replace(/'/g, '_')}`, type)}
                         </td>
                         {productTypeTable[type].map((val, i) => {
-                          let indicator = null;
+                          let bgClass = "bg-gray-50 text-gray-700";
                           if (i > 0) {
                             const diff = val - productTypeTable[type][i - 1];
-                            if (diff > 0) indicator = <span className="ml-1 text-green-600"><HiArrowUp className="inline h-4 w-4" /></span>;
-                            else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
+                            if (diff > 0) {
+                              bgClass = "bg-green-50 text-green-700";
+                            } else if (diff < 0) {
+                              bgClass = "bg-red-50 text-red-700";
+                            }
                           }
                           return (
-                            <td key={i} className="py-2 px-4 text-lg font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
+                            <td key={i} className="px-6 py-2 text-sm font-medium">
+                              <span className={`px-3 py-1 rounded-full ${bgClass}`}>
+                                {safeFormatNumber(val)}
+                              </span>
+                            </td>
                           );
                         })}
-                        <td className="py-2 px-4 text-lg font-mono font-bold text-blue-800 bg-blue-50">
-                          {String(rowTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                        <td className="px-6 py-3 text-base font-semibold font-bold text-blue-800">
+                          <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-900">
+                            {safeFormatNumber(rowTotal)}
+                          </span>
                         </td>
                       </tr>
                     );
                   })}
-                  <tr className="bg-blue-100 border-t-2 border-blue-300">
-                    <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-bold text-lg text-blue-800">
+                  <tr className="bg-blue-900/80 font-bold text-white">
+                    <td className="px-6 py-2 text-base text-left">
                       {safeT(t, 'common.total', 'Total')}
                     </td>
-                    {Array(12).fill(0).map((_, monthIndex) => {
-                      const monthTotal = productTypes.reduce((sum, type) => sum + productTypeTable[type][monthIndex], 0);
-                      return (
-                        <td key={monthIndex} className="py-2 px-4 text-lg font-mono font-bold text-blue-800">
-                          {String(monthTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
-                        </td>
-                      );
-                    })}
-                    <td className="py-2 px-4 text-lg font-mono font-bold text-blue-900 bg-blue-200">
-                      {String(productTypes.reduce((grandTotal, type) => 
-                        grandTotal + productTypeTable[type].reduce((sum, val) => sum + val, 0), 0
-                      ).toLocaleString(undefined, { maximumFractionDigits: 0 }))}
-                    </td>
+                                          {Array(12).fill(0).map((_, monthIndex) => {
+                        const monthTotal = productTypes.reduce((sum, type) => sum + productTypeTable[type][monthIndex], 0);
+                        return (
+                          <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
+                            {safeFormatNumber(monthTotal)}
+                          </td>
+                        );
+                      })}
+                      <td className="px-6 py-1 text-base font-semibold">
+                        {safeFormatNumber(productTypes.reduce((grandTotal, type) => 
+                          grandTotal + productTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                        ))}
+                      </td>
                   </tr>
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </Card>
         )}
         {activeTab === "expenses" && (
-          <Card className="rounded-2xl bg-gradient-to-br from-[#e6eaf0] to-[#f8fafc] border border-[#385e82] shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-bold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.expenses', 'Expenses by Month')}</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-center rounded-xl overflow-hidden">
-                <thead className="bg-[#385e82] text-white">
-                  <tr>
-                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-xl"></th>
-                    {months.map((m, i) => (
-                      <th key={i} className="w-16 py-3 px-2 font-bold text-xl">{m}</th>
-                    ))}
-                    <th className="w-16 py-3 px-2 font-bold text-xl">{safeT(t, 'common.total', 'Total')}</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {expenseTypeRows.map((type, idx) => {
+          <Card className="!rounded-2xl">
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-red-700 mb-4">{safeT(t, 'profitability.tabs.expenses', 'Expenses by Month')}</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                  <thead className="bg-red-300">
+                    <tr>
+                      <th className="px-6 py-2 font-semibold text-sm text-white text-left"></th>
+                      {months.map((m, i) => (
+                        <th key={i} className="px-6 py-2 font-semibold text-sm text-white">{m}</th>
+                      ))}
+                      <th className="px-6 py-2 font-semibold text-sm text-white">{safeT(t, 'common.total', 'Total')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                  {Object.keys(expenseTypeTable).map((type, idx) => {
                     const rowTotal = expenseTypeTable[type].reduce((sum, val) => sum + val, 0);
                     return (
-                      <tr key={type}>
-                        <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-lg text-blue-900 text-left">
+                      <tr key={type} className="hover:bg-gray-50">
+                        <td className="px-6 py-2 font-semibold text-sm text-gray-900 text-left">
                           {safeT(t, `masterData.expenses.types.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
                         </td>
                         {expenseTypeTable[type].map((val, i) => {
-                          let indicator = null;
+                          let bgClass = "bg-gray-50 text-gray-700";
                           if (i > 0) {
                             const diff = val - expenseTypeTable[type][i - 1];
-                            if (diff > 0) indicator = <span className="ml-1 text-green-700"><HiArrowUp className="inline h-4 w-4" /></span>;
-                            else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
+                            if (diff > 0) { // Higher cost is bad
+                              bgClass = "bg-red-50 text-red-700";
+                            } else if (diff < 0) { // Lower cost is good
+                              bgClass = "bg-green-50 text-green-700";
+                            }
                           }
                           return (
-                            <td key={i} className="py-2 px-4 text-lg font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
+                            <td key={i} className="px-6 py-2 text-sm font-medium">
+                              <span className={`px-3 py-1 rounded-full ${bgClass}`}>
+                                {safeFormatNumber(val)}
+                              </span>
+                            </td>
                           );
                         })}
-                        <td className="py-2 px-4 text-lg font-mono font-bold text-blue-900 bg-blue-50">
-                          {String(rowTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
+                        <td className="px-6 py-3 text-base font-semibold font-bold text-red-900">
+                          <span className="px-3 py-1 rounded-full bg-red-50 text-red-900">
+                            {safeFormatNumber(rowTotal)}
+                          </span>
                         </td>
                       </tr>
                     );
                   })}
-                  <tr className="bg-red-100 border-t-2 border-red-300">
-                    <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-bold text-lg text-blue-900">
+                  <tr className="bg-red-300 font-bold text-white">
+                    <td className="px-6 py-1 text-base text-left">
                       {safeT(t, 'common.total', 'Total')}
                     </td>
-                    {Array(12).fill(0).map((_, monthIndex) => {
-                      const monthTotal = expenseTypeRows.reduce((sum, type) => sum + expenseTypeTable[type][monthIndex], 0);
-                      return (
-                        <td key={monthIndex} className="py-2 px-4 text-lg font-mono font-bold text-blue-900">
-                          {String(monthTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
-                        </td>
-                      );
-                    })}
-                    <td className="py-2 px-4 text-lg font-mono font-bold text-blue-900 bg-blue-200">
-                      {String(expenseTypeRows.reduce((grandTotal, type) => 
-                        grandTotal + expenseTypeTable[type].reduce((sum, val) => sum + val, 0), 0
-                      ).toLocaleString(undefined, { maximumFractionDigits: 0 }))}
-                    </td>
+                                          {Array(12).fill(0).map((_, monthIndex) => {
+                        const monthTotal = Object.keys(expenseTypeTable).reduce((sum, type) => sum + expenseTypeTable[type][monthIndex], 0);
+                        return (
+                          <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
+                            {safeFormatNumber(monthTotal)}
+                          </td>
+                        );
+                      })}
+                      <td className="px-6 py-1 text-base font-semibold">
+                        {safeFormatNumber(Object.keys(expenseTypeTable).reduce((grandTotal, type) => 
+                          grandTotal + expenseTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                        ))}
+                      </td>
                   </tr>
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </Card>
         )}
         {activeTab === "activities" && (
-          <Card className="rounded-2xl bg-gradient-to-br from-[#e6eaf0] to-[#f8fafc] border border-[#385e82] shadow-lg p-6 mb-8">
-            <h3 className="text-xl font-bold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.activities', 'Activities by Month')}</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-center rounded-xl overflow-hidden">
-                <thead className="bg-[#385e82] text-white">
-                  <tr>
-                    <th className="w-56 md:w-72 lg:w-80 py-3 px-4 font-bold text-xl"></th>
-                    {months.map((m, i) => (
-                      <th key={i} className="w-16 py-3 px-2 font-bold text-xl">{m}</th>
-                    ))}
-                    <th className="w-16 py-3 px-2 font-bold text-xl">{safeT(t, 'common.total', 'Total')}</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+          <Card className="!rounded-2xl">
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-green-900 mb-4">{safeT(t, 'profitability.tabs.activities', 'Activities by Month')}</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                  <thead className="bg-green-600/50">
+                    <tr>
+                      <th className="px-6 py-3 font-semibold text-sm text-white text-left"></th>
+                      {months.map((m, i) => (
+                        <th key={i} className="px-6 py-3 font-semibold text-sm text-white">{m}</th>
+                      ))}
+                      <th className="px-6 py-3 font-semibold text-sm text-white">{safeT(t, 'common.total', 'Total')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
                   {activityTypeRows.map((type, idx) => {
                     const rowTotal = activityTypeTable[type].reduce((sum, val) => sum + val, 0);
-                    return (
-                      <tr key={type}>
-                        <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-semibold text-lg text-[#385e82]">
-                          {safeT(t, `products.activities.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
-                        </td>
-                        {activityTypeTable[type].map((val, i) => {
-                          let indicator = null;
-                          if (i > 0) {
-                            const diff = val - activityTypeTable[type][i - 1];
-                            if (diff > 0) indicator = <span className="ml-1 text-green-600"><HiArrowUp className="inline h-4 w-4" /></span>;
-                            else if (diff < 0) indicator = <span className="ml-1 text-red-600"><HiArrowDown className="inline h-4 w-4" /></span>;
-                          }
-                          return (
-                            <td key={i} className="py-2 px-4 text-lg font-mono text-gray-800">{String(val.toLocaleString(undefined, { maximumFractionDigits: 0 }))} {indicator}</td>
-                          );
-                        })}
-                        <td className="py-2 px-4 text-lg font-mono font-bold text-[#385e82] bg-[#e6eaf0]">
-                          {String(rowTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  <tr className="bg-[#d1d9e0] border-t-2 border-[#385e82]">
-                    <td className="w-56 md:w-72 lg:w-80 py-2 px-4 font-bold text-lg text-[#385e82]">
-                      {safeT(t, 'common.total', 'Total')}
-                    </td>
-                    {Array(12).fill(0).map((_, monthIndex) => {
-                      const monthTotal = activityTypeRows.reduce((sum, type) => sum + activityTypeTable[type][monthIndex], 0);
-                      return (
-                        <td key={monthIndex} className="py-2 px-4 text-lg font-mono font-bold text-[#385e82]">
-                          {String(monthTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }))}
-                        </td>
+                                          return (
+                        <tr key={type} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 font-semibold text-sm text-green-900 text-left">
+                            {safeT(t, `products.activities.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
+                          </td>
+                          {activityTypeTable[type].map((val, i) => {
+                            let bgClass = "bg-gray-100 text-gray-800";
+                            if (i > 0) {
+                              const diff = val - activityTypeTable[type][i - 1];
+                              if (diff > 0) {
+                                bgClass = "bg-green-50 text-green-700";
+                              } else if (diff < 0) {
+                                bgClass = "bg-red-50 text-red-700";
+                              }
+                            }
+                            return (
+                              <td key={i} className="px-6 py-4 text-sm font-medium">
+                                <span className={`px-3 py-1 rounded-full ${bgClass}`}>
+                                  {safeFormatNumber(val)}
+                                </span>
+                              </td>
+                            );
+                          })}
+                          <td className="px-6 py-3 text-base font-semibold font-bold text-green-900">
+                            <span className="px-3 py-1 rounded-full bg-green-50 text-green-900">
+                              {safeFormatNumber(rowTotal)}
+                            </span>
+                          </td>
+                        </tr>
                       );
                     })}
-                    <td className="py-2 px-4 text-lg font-mono font-bold text-white bg-[#385e82]">
-                      {String(activityTypeRows.reduce((grandTotal, type) => 
-                        grandTotal + activityTypeTable[type].reduce((sum, val) => sum + val, 0), 0
-                      ).toLocaleString(undefined, { maximumFractionDigits: 0 }))}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        )}
+                    <tr className="bg-green-600/50 font-bold text-white">
+                      <td className="px-6 py-4 text-base text-left">
+                        {safeT(t, 'common.total', 'Total')}
+                      </td>
+                      {Array(12).fill(0).map((_, monthIndex) => {
+                        const monthTotal = activityTypeRows.reduce((sum, type) => sum + activityTypeTable[type][monthIndex], 0);
+                        return (
+                          <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
+                            {safeFormatNumber(monthTotal)}
+                          </td>
+                        );
+                      })}
+                      <td className="px-6 py-4 text-base font-semibold">
+                        {safeFormatNumber(activityTypeRows.reduce((grandTotal, type) => 
+                          grandTotal + activityTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                        ))}
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Card>
+          )}
       </div>
     </AdminOnly>
   );

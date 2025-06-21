@@ -3,6 +3,9 @@ export const TIME_PERIODS = {
   YEAR: 'year',
   MONTH: 'month',
   WEEK: 'week',
+  TODAY: 'today',
+  PREVIOUS_MONTH: 'previous_month',
+  QUARTERLY: 'quarterly',
   CUSTOM: 'custom'
 } as const;
 
@@ -13,6 +16,9 @@ export const PERIODS = [
   TIME_PERIODS.YEAR,
   TIME_PERIODS.MONTH,
   TIME_PERIODS.WEEK,
+  TIME_PERIODS.TODAY,
+  TIME_PERIODS.PREVIOUS_MONTH,
+  TIME_PERIODS.QUARTERLY,
   TIME_PERIODS.CUSTOM
 ] as const;
 
@@ -26,6 +32,12 @@ export function getPeriodLabel(period: TimePeriod): string {
       return 'This Month';
     case TIME_PERIODS.WEEK:
       return 'This Week';
+    case TIME_PERIODS.TODAY:
+      return 'Today';
+    case TIME_PERIODS.PREVIOUS_MONTH:
+      return 'Previous Month';
+    case TIME_PERIODS.QUARTERLY:
+      return 'Quarterly';
     case TIME_PERIODS.CUSTOM:
       return 'Custom Range';
     default:

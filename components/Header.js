@@ -28,7 +28,7 @@ export default function Header() {
       {/* Left: Greeting */}
       <div className="flex items-center gap-4 min-w-[260px]">
         <span className="text-2xl font-extrabold text-[#031b31] tracking-tight">
-          {user?.displayName ? `Good morning, ${user.displayName.split(' ')[0]}!` : 'Good morning!'}
+          {user?.displayName ? `Bonjour, ${user.displayName.split(' ')[0]}!` : 'Bonjour!'}
         </span>
       </div>
       {/* Center: Spacer (for symmetry) */}

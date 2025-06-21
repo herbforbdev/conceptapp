@@ -364,6 +364,15 @@ function CostsPage() {
     }).format(amount);
   }
 
+  // Format FC amounts with proper thousands separators and FC suffix
+  function formatFC(amount) {
+    if (!amount) return "0 FC";
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount) + " FC";
+  }
+
   // Move getCurrencySymbol here so it is always defined in the component scope
   function getCurrencySymbol(locale) {
     if (locale === 'fr' || (typeof locale === 'string' && locale.startsWith('fr'))) return 'FC';
@@ -423,7 +432,7 @@ function CostsPage() {
   const filteredCosts = useMemo(() => {
     if (!costs) return [];
     return costs.filter(cost => {
-      const date = cost.date?.toDate ? cost.date.toDate() : new Date(cost.date);
+      const date = toDateObj(cost.date);
       const monthMatch = filters.selectedMonth 
         ? date.getMonth() === parseInt(filters.selectedMonth) - 1 
         : true;
@@ -630,7 +639,7 @@ function CostsPage() {
   const summaryFilteredCosts = useMemo(() => {
     if (!costs) return [];
     return costs.filter(cost => {
-      const costDate = cost.date?.toDate ? cost.date.toDate() : new Date(cost.date);
+      const costDate = toDateObj(cost.date);
       const costMonth = costDate.getMonth();
       const costYear = costDate.getFullYear();
       return costMonth === summaryMonth && costYear === summaryYear;
@@ -653,6 +662,23 @@ function CostsPage() {
 
     return { categories, data };
   }, [summaryFilteredCosts, expenseTypeMap, t]);
+
+  // Calculate costs by activity type using summary filtered costs
+  const costsByActivityType = useMemo(() => {
+    if (!summaryFilteredCosts?.length) return { categories: [], data: [] };
+    
+    const activityTotals = {};
+    summaryFilteredCosts.forEach(cost => {
+      const activity = activityTypeMap.get(cost.activityTypeId);
+      const translatedName = getTranslatedActivityTypeName(activity, t);
+      activityTotals[translatedName] = (activityTotals[translatedName] || 0) + (cost.amountUSD || 0);
+    });
+
+    const categories = Object.keys(activityTotals);
+    const data = categories.map(activity => activityTotals[activity]);
+
+    return { categories, data };
+  }, [summaryFilteredCosts, activityTypeMap, t]);
 
   // 1. Log filteredCosts.length
   useEffect(() => {
@@ -703,7 +729,7 @@ function CostsPage() {
 
     // Group costs by date for the trend chart
     const costsByDate = summaryFilteredCosts.reduce((acc, cost) => {
-      const date = cost.date?.toDate ? cost.date.toDate() : new Date(cost.date);
+      const date = toDateObj(cost.date);
       const timestamp = date.getTime();
       if (!acc[timestamp]) {
         acc[timestamp] = { amountUSD: 0 };
@@ -747,7 +773,7 @@ function CostsPage() {
 
     // Calculate daily average
     const dates = new Set(summaryFilteredCosts.map(cost => {
-      const date = cost.date?.toDate ? cost.date.toDate() : new Date(cost.date);
+      const date = toDateObj(cost.date);
       return date.toISOString().split('T')[0];
     }));
     const dailyAverage = totalUSD / Math.max(dates.size, 1);
@@ -771,7 +797,7 @@ function CostsPage() {
     const currentYear = now.getFullYear();
 
     const currentMonthCosts = summaryFilteredCosts.filter(cost => {
-      const date = cost.date?.toDate ? cost.date.toDate() : new Date(cost.date);
+      const date = toDateObj(cost.date);
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
 
@@ -779,7 +805,7 @@ function CostsPage() {
     const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
     const lastMonthCosts = summaryFilteredCosts.filter(cost => {
-      const date = cost.date?.toDate ? cost.date.toDate() : new Date(cost.date);
+      const date = toDateObj(cost.date);
       return date.getMonth() === lastMonth && date.getFullYear() === lastMonthYear;
     });
 
@@ -1275,287 +1301,386 @@ function CostsPage() {
         )}
       </Card>
 
-      {/* Main Content Grid - Two Cards Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Left Card - Summary Table (untouched) */}
-        <Card className="border border-[#66b2b2]/20 rounded-lg bg-white self-start">
-          <div className="px-8 py-8 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-white uppercase text-left">
-              {safeT(t, 'common.summary', 'Summary')}
-            </h3>
-            <div className="flex items-center gap-4">
-              <div>
-                <Select
-                  value={summaryYear}
-                  onChange={handleSummaryYearChange}
-                  className="text-sm border-purple-200 focus:border-purple-400 focus:ring-purple-400"
-                >
-                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Select
-                  value={summaryMonth}
-                  onChange={handleSummaryMonthChange}
-                  className="text-sm border-[#66b2b2] focus:border-[#66b2b2] focus:ring-[#66b2b2]"
-                >
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {MONTHS[i]}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+      {/* Summary Table - Full Width */}
+      <Card className="border border-[#66b2b2]/20 rounded-lg bg-white mb-6">
+        <div className="px-8 py-8 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-white uppercase text-left">
+            {safeT(t, 'common.summary', 'Summary')}
+          </h3>
+          <div className="flex items-center gap-4">
+            <div>
+              <Select
+                value={summaryYear}
+                onChange={handleSummaryYearChange}
+                className="text-sm border-purple-200 focus:border-purple-400 focus:ring-purple-400"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <Select
+                value={summaryMonth}
+                onChange={handleSummaryMonthChange}
+                className="text-sm border-[#66b2b2] focus:border-[#66b2b2] focus:ring-[#66b2b2]"
+              >
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i} value={i}>
+                    {MONTHS[i]}
+                  </option>
+                ))}
+              </Select>
             </div>
           </div>
-          
-          {/* Summary Table */}
-          <div className="p-0 overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-900 border border-[#004c4c] rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-              <thead className="bg-[#004c4c]">
-                <tr>
-                  <TableHeader label="category" className="text-white" />
-                  <TableHeader label="amountFC" align="right" className="text-white" />
-                  <TableHeader label="amountUSD" align="right" className="text-white" />
-                  <TableHeader label="budget" align="right" className="text-white" />
-                  <TableHeader label={t('costs.percentage', 'Pourcentage')} align="right" className="text-white" />
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-[#004c4c]/50">
-                {(() => {
-                  const totalUSD = Object.values(summaryTableData).reduce((sum, { amountUSD }) => sum + amountUSD, 0);
-                  const totalFC = Object.values(summaryTableData).reduce((sum, { amountFC }) => sum + amountFC, 0);
-
-                  return (
-                    <>
-                      {Object.entries(summaryTableData)
-                        .sort(([, a], [, b]) => b.amountUSD - a.amountUSD)
-                        .map(([type, data]) => {
-                          const percentageOfTotal = (data.amountUSD / totalUSD) * 100;
-                          const isOverBudget = typeof data.budgetCode === 'number' && percentageOfTotal > data.budgetCode;
-                          return (
-                            <tr key={type} className="hover:bg-[#66b2b2]/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
-                              <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
-                                <span className="w-2 h-2 rounded-full bg-[#004c4c] inline-block"></span>
-                                <span>{getTranslatedExpenseTypeName(expenseTypeMap.get(data.expenseTypeId), t)}</span>
-                              </td>
-                              <td className="px-8 py-5 text-right text-green-700 font-semibold">
-                                <span>{data.amountFC.toLocaleString(t('locale'), { style: 'decimal', maximumFractionDigits: 0 })} {getCurrencySymbol(t('locale'))}</span>
-                              </td>
-                              <td className="px-8 py-5 text-right text-green-900 font-semibold">
-                                <span>{data.amountUSD.toLocaleString(t('locale'), { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</span>
-                              </td>
-                              <td className="px-8 py-5 text-right font-semibold">
-                                {typeof data.budgetCode === 'number' ? (
-                                  <span className="bg-[#66b2b2]/20 text-green-800 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
-                                    <span className="w-1 h-1 rounded-full bg-green-500 mr-1"></span>
-                                    {data.budgetCode}%
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-400">—</span>
-                                )}
-                              </td>
-                              <td className={`px-8 py-5 text-right font-semibold`}>
-                                <span className={`bg-${isOverBudget ? 'red' : 'green'}-100 text-${isOverBudget ? 'red' : 'green'}-800 border border-${isOverBudget ? 'red' : 'green'}-200 px-3 py-1.5 rounded-full text-xs inline-flex items-center transition-colors duration-200`}>
-                                  <span className={`w-1 h-1 rounded-full bg-purple-500 mr-1`}></span>
-                                  {percentageOfTotal.toFixed(1)}%
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      <tr className="bg-[#004c4c] text-base font-bold text-white border-t-2 border-[#004c4c]">
-                        <td className="px-8 py-5 rounded-bl-xl flex items-center space-x-2">
-                          <span className="w-2 h-2 rounded-full bg-[#004c4c] inline-block"></span>
-                          <span>Total</span>
-                        </td>
-                        <td className="px-8 py-5 text-right text-white">
-                          <span>{totalFC.toLocaleString(t('locale'), { style: 'decimal', maximumFractionDigits: 0 })} {getCurrencySymbol(t('locale'))}</span>
-                        </td>
-                        <td className="px-8 py-5 text-right text-white">
-                          <span>{totalUSD.toLocaleString(t('locale'), { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</span>
-                        </td>
-                        <td className="px-8 py-5 text-right">
-                          <span></span>
-                        </td>
-                        <td className="px-8 py-5 text-right rounded-br-xl">
-                          <span></span>
-                        </td>
-                      </tr>
-                    </>
-                  );
-                })()}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-        {/* Right Card - Stack Trend and Costs by Type Charts */}
-        <div className="flex flex-col gap-6 flex-1">
-          {/* Costs Trend Chart (moved up) */}
-          <Card className="border border-[#66b2b2]/20">
-            <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg">
-              <h3 className="text-lg font-semibold text-center text-white">
-                {safeT(t, 'cost_trends.title', 'Cost Trends')}
-              </h3>
-            </div>
-            <div className="p-4">
-              <div className="h-[300px]">
-                <ClientOnly>
-                  {(() => {
-                    if (!chartData?.byType) return null;
-                    return (
-                      <Chart
-                        options={{
-                          ...chartData.byType.options,
-                          chart: {
-                            type: 'area',
-                            background: 'transparent',
-                            toolbar: { show: false }
-                          },
-                          colors: ['#008080'],
-                          yaxis: {
-                            labels: {
-                              formatter: (val) => val % 1 === 0 ? val.toFixed(0) : val.toFixed(2),
-                              style: { fontSize: '14px', colors: '#64748b' }
-                            },
-                            tickAmount: 6,
-                            min: 0
-                          },
-                                                  dataLabels: {
-                          enabled: false
-                        },
-                        xaxis: {
-                          type: 'datetime',
-                          labels: {
-                            formatter: (val) => {
-                              const d = new Date(Number(val));
-                              return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-                            },
-                            style: { fontSize: '14px', colors: '#64748b' }
-                          }
-                        },
-                          tooltip: {
-                            y: {
-                              formatter: (val) => val % 1 === 0 ? val.toFixed(0) : val.toFixed(2)
-                            },
-                            x: {
-                              formatter: (val) => {
-                                const d = new Date(Number(val));
-                                return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-                              }
-                            }
-                          }
-                        }}
-                        series={[{
-                          name: safeT(t, 'common.total', 'Total'),
-                          data: chartData.byType.series[0]?.data || []
-                        }]}
-                        type="area"
-                        height="100%"
-                      />
-                    );
-                  })()}
-                </ClientOnly>
-              </div>
-            </div>
-          </Card>
-
-          {/* Costs by Type Chart (bar) */}
-          <Card className="border border-[#66b2b2]/20">
-            <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] text-white">
-              <h3 className="text-lg font-semibold text-center text-white">
-                {safeT(t, 'common.costs_by_type', 'Costs by Type')}
-              </h3>
-            </div>
-            <div className="p-4">
-              <div className="h-[300px]">
-                {costsByType.data.length > 0 ? (
-                  <Chart
-                    options={{
-                      chart: {
-                        type: 'bar',
-                        height: '100%',
-                        toolbar: { show: false },
-                        background: 'transparent'
-                      },
-                      plotOptions: {
-                        bar: {
-                          horizontal: false,
-                          columnWidth: '55%',
-                          borderRadius: 4,
-                        }
-                      },
-                      dataLabels: {
-                        enabled: false
-                      },
-                      stroke: {
-                        show: true,
-                        width: 2,
-                        colors: ['transparent']
-                      },
-                      xaxis: {
-                        categories: costsByType.categories,
-                        labels: {
-                          style: {
-                            colors: '#64748b',
-                            fontSize: '11px'
-                          },
-                          rotate: -20,
-                          rotateAlways: false
-                        }
-                      },
-                      yaxis: {
-                        title: {
-                          text: safeT(t, 'common.amount_usd', 'Amount (USD)'),
-                          style: {
-                            fontSize: '12px'
-                          }
-                        },
-                        labels: {
-                          formatter: (value) => {
-                            if (value >= 1000000) return `$${(value/1000000).toFixed(1)}M`;
-                            if (value >= 1000) return `$${(value/1000).toFixed(1)}K`;
-                            return `$${value.toFixed(0)}`;
-                          }
-                        }
-                      },
-                      fill: {
-                        opacity: 1
-                      },
-                      colors: ['#008080'],
-                      tooltip: {
-                        y: {
-                          formatter: (value) => {
-                            return value.toLocaleString('en-US', {
-                              style: 'currency',
-                              currency: 'USD',
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            });
-                          }
-                        }
-                      }
-                    }}
-                    series={[{
-                      name: safeT(t, 'common.costs_by_type', 'Costs by Type'),
-                      data: costsByType.data
-                    }]}
-                    type="bar"
-                    height="100%"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400">
-                    {safeT(t, 'common.no_data', 'No data available')}
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
         </div>
-      </div>
+        
+        {/* Summary Table */}
+        <div className="p-0 overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-900 border border-[#004c4c] rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+            <thead className="bg-[#004c4c]">
+              <tr>
+                <TableHeader label="category" className="text-white" />
+                <TableHeader label="amountFC" align="right" className="text-white" />
+                <TableHeader label="amountUSD" align="right" className="text-white" />
+                <TableHeader label="budget" align="right" className="text-white" />
+                <TableHeader label={t('costs.percentage', 'Pourcentage')} align="right" className="text-white" />
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-[#004c4c]/50">
+              {(() => {
+                const totalUSD = Object.values(summaryTableData).reduce((sum, { amountUSD }) => sum + amountUSD, 0);
+                const totalFC = Object.values(summaryTableData).reduce((sum, { amountFC }) => sum + amountFC, 0);
+
+                return (
+                  <>
+                    {Object.entries(summaryTableData)
+                      .sort(([, a], [, b]) => b.amountUSD - a.amountUSD)
+                      .map(([type, data]) => {
+                        const percentageOfTotal = (data.amountUSD / totalUSD) * 100;
+                        const isOverBudget = typeof data.budgetCode === 'number' && percentageOfTotal > data.budgetCode;
+                        return (
+                          <tr key={type} className="hover:bg-[#66b2b2]/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
+                            <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
+                              <span className="w-2 h-2 rounded-full bg-[#004c4c] inline-block"></span>
+                              <span>{getTranslatedExpenseTypeName(expenseTypeMap.get(data.expenseTypeId), t)}</span>
+                            </td>
+                                                         <td className="px-8 py-5 text-right text-green-700 font-semibold font-mono">
+                               <span>{formatFC(data.amountFC)}</span>
+                             </td>
+                             <td className="px-8 py-5 text-right text-green-900 font-semibold font-mono">
+                               <span>{data.amountUSD.toLocaleString(t('locale'), { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</span>
+                             </td>
+                            <td className="px-8 py-5 text-right font-semibold">
+                              {typeof data.budgetCode === 'number' ? (
+                                <span className="bg-[#66b2b2]/20 text-green-800 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
+                                  <span className="w-1 h-1 rounded-full bg-green-500 mr-1"></span>
+                                  {data.budgetCode}%
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">—</span>
+                              )}
+                            </td>
+                            <td className={`px-8 py-5 text-right font-semibold`}>
+                              <span className={`bg-${isOverBudget ? 'red' : 'green'}-100 text-${isOverBudget ? 'red' : 'green'}-800 border border-${isOverBudget ? 'red' : 'green'}-200 px-3 py-1.5 rounded-full text-xs inline-flex items-center transition-colors duration-200`}>
+                                <span className={`w-1 h-1 rounded-full bg-purple-500 mr-1`}></span>
+                                {percentageOfTotal.toFixed(1)}%
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    <tr className="bg-[#004c4c] text-base font-bold text-white border-t-2 border-[#004c4c]">
+                      <td className="px-8 py-5 rounded-bl-xl flex items-center space-x-2">
+                        <span className="w-2 h-2 rounded-full bg-[#004c4c] inline-block"></span>
+                        <span>Total</span>
+                      </td>
+                                             <td className="px-8 py-5 text-right text-white font-mono">
+                         <span>{formatFC(totalFC)}</span>
+                       </td>
+                       <td className="px-8 py-5 text-right text-white font-mono">
+                         <span>{totalUSD.toLocaleString(t('locale'), { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</span>
+                       </td>
+                      <td className="px-8 py-5 text-right">
+                        <span></span>
+                      </td>
+                      <td className="px-8 py-5 text-right rounded-br-xl">
+                        <span></span>
+                      </td>
+                    </tr>
+                  </>
+                );
+              })()}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Costs by Type Chart (bar) */}
+      <Card className="border border-[#66b2b2]/20 mb-6">
+        <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] text-white">
+          <h3 className="text-lg font-semibold text-center text-white">
+            {safeT(t, 'common.costs_by_type', 'Costs by Type')}
+          </h3>
+        </div>
+        <div className="p-4">
+          <div className="h-[300px]">
+            {costsByType.data.length > 0 ? (
+              <Chart
+                options={{
+                  chart: {
+                    type: 'bar',
+                    height: '100%',
+                    toolbar: { show: false },
+                    background: 'transparent'
+                  },
+                  plotOptions: {
+                    bar: {
+                      horizontal: false,
+                      columnWidth: '55%',
+                      borderRadius: 4,
+                    }
+                  },
+                  dataLabels: {
+                    enabled: false
+                  },
+                  stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                  },
+                  xaxis: {
+                    categories: costsByType.categories,
+                    labels: {
+                      style: {
+                        colors: '#64748b',
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                      },
+                      rotate: -20,
+                      rotateAlways: false
+                    }
+                  },
+                  yaxis: {
+                    title: {
+                      text: safeT(t, 'common.amount_usd', 'Amount (USD)'),
+                      style: {
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                      }
+                    },
+                    labels: {
+                      formatter: (value) => {
+                        if (value >= 1000000) return `$${(value/1000000).toFixed(1)}M`;
+                        if (value >= 1000) return `$${(value/1000).toFixed(1)}K`;
+                        return `$${value.toFixed(0)}`;
+                      }
+                    }
+                  },
+                  fill: {
+                    opacity: 1
+                  },
+                  colors: ['#008080'],
+                  tooltip: {
+                    y: {
+                      formatter: (value) => {
+                        return value.toLocaleString('en-US', {
+                          style: 'currency',
+                          currency: 'USD',
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        });
+                      }
+                    }
+                  }
+                }}
+                series={[{
+                  name: safeT(t, 'common.costs_by_type', 'Costs by Type'),
+                  data: costsByType.data
+                }]}
+                type="bar"
+                height="100%"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                {safeT(t, 'common.no_data', 'No data available')}
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+             {/* Costs Trend Chart */}
+       <Card className="border border-[#66b2b2]/20 mb-6">
+         <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg">
+           <h3 className="text-lg font-semibold text-center text-white">
+             {safeT(t, 'cost_trends.title', 'Cost Trends')}
+           </h3>
+         </div>
+         <div className="p-4">
+           <div className="h-[300px]">
+             <ClientOnly>
+               {(() => {
+                 if (!chartData?.byType) return null;
+                 return (
+                   <Chart
+                     options={{
+                       ...chartData.byType.options,
+                       chart: {
+                         type: 'area',
+                         background: 'transparent',
+                         toolbar: { show: false }
+                       },
+                       colors: ['#008080'],
+                       yaxis: {
+                         labels: {
+                           formatter: (val) => val % 1 === 0 ? val.toFixed(0) : val.toFixed(2),
+                           style: { fontSize: '14px', colors: '#64748b', fontWeight: 'bold' }
+                         },
+                         tickAmount: 6,
+                         min: 0
+                       },
+                                               dataLabels: {
+                       enabled: false
+                     },
+                     xaxis: {
+                       type: 'datetime',
+                       labels: {
+                         formatter: (val) => {
+                           const d = new Date(Number(val));
+                           return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                         },
+                         style: { fontSize: '14px', colors: '#64748b', fontWeight: 'bold' }
+                       }
+                     },
+                       tooltip: {
+                         y: {
+                           formatter: (val) => val % 1 === 0 ? val.toFixed(0) : val.toFixed(2)
+                         },
+                         x: {
+                           formatter: (val) => {
+                             const d = new Date(Number(val));
+                             return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                           }
+                         }
+                       }
+                     }}
+                     series={[{
+                       name: safeT(t, 'common.total', 'Total'),
+                       data: chartData.byType.series[0]?.data || []
+                     }]}
+                     type="area"
+                     height="100%"
+                   />
+                 );
+               })()}
+             </ClientOnly>
+           </div>
+         </div>
+       </Card>
+
+       {/* Costs by Activity Type Chart */}
+       <Card className="border border-[#66b2b2]/20">
+         <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] text-white">
+           <h3 className="text-lg font-semibold text-center text-white">
+             {safeT(t, 'common.costs_by_activity', 'Costs by Activity Type')}
+           </h3>
+         </div>
+         <div className="p-4">
+           <div className="h-[300px]">
+             {costsByActivityType.data.length > 0 ? (
+               <Chart
+                 options={{
+                   chart: {
+                     type: 'bar',
+                     height: '100%',
+                     toolbar: { show: false },
+                     background: 'transparent'
+                   },
+                   plotOptions: {
+                     bar: {
+                       horizontal: true,
+                       columnWidth: '60%',
+                       borderRadius: 8,
+                     }
+                   },
+                   dataLabels: {
+                     enabled: true,
+                     style: {
+                       colors: ['#FFFFFF'],
+                       fontSize: '14px',
+                       fontWeight: 'bold'
+                     },
+                     formatter: (value) => {
+                       if (value >= 1000000) return `$${(value/1000000).toFixed(1)}M`;
+                       if (value >= 1000) return `$${(value/1000).toFixed(1)}K`;
+                       return `$${value.toFixed(0)}`;
+                     }
+                   },
+                   stroke: {
+                     show: true,
+                     width: 2,
+                     colors: ['transparent']
+                   },
+                   xaxis: {
+                     categories: costsByActivityType.categories,
+                     labels: {
+                       formatter: (value) => {
+                         if (value >= 1000000) return `$${(value/1000000).toFixed(1)}M`;
+                         if (value >= 1000) return `$${(value/1000).toFixed(1)}K`;
+                         return `$${value.toFixed(0)}`;
+                       },
+                       style: {
+                         colors: '#004c4c',
+                         fontSize: '12px',
+                         fontWeight: 'bold'
+                       }
+                     }
+                   },
+                   yaxis: {
+                     labels: {
+                       style: {
+                         colors: '#004c4c',
+                         fontSize: '12px',
+                         fontWeight: 'bold'
+                       }
+                     }
+                   },
+                   fill: {
+                     opacity: 1
+                   },
+                   colors: ['#66b2b2', '#008080', '#004c4c', '#b2d8d8', '#4a9a9a', '#2d6b6b', '#7dc4c4', '#336b6b'],
+                   tooltip: {
+                     y: {
+                       formatter: (value) => {
+                         return value.toLocaleString('en-US', {
+                           style: 'currency',
+                           currency: 'USD',
+                           minimumFractionDigits: 2,
+                           maximumFractionDigits: 2
+                         });
+                       }
+                     }
+                   },
+                   legend: {
+                     show: false
+                   }
+                 }}
+                 series={[{
+                   name: safeT(t, 'common.costs_by_activity', 'Coûts par Activité'),
+                   data: costsByActivityType.data
+                 }]}
+                 type="bar"
+                 height="100%"
+               />
+             ) : (
+               <div className="flex items-center justify-center h-full text-gray-400">
+                 {safeT(t, 'common.no_data', 'No data available')}
+               </div>
+             )}
+           </div>
+         </div>
+       </Card>
 
 
     </div>

@@ -95,9 +95,8 @@ export default function ExchangeRatesPage() {
     <AdminOnly>
       <div className="p-4 bg-gray-50 min-h-screen">
         <div className="mb-4">
-          <Link href="/dashboard/reports" className="inline-flex items-center text-green-700 hover:underline font-medium">
-            <HiArrowNarrowLeft className="mr-2 h-5 w-5" />
-            {t('reports.title')}
+          <Link href="/dashboard/reports" className="inline-flex items-center bg-green-700 text-white rounded px-4 py-2 hover:bg-green-900 transition">
+            <HiArrowNarrowLeft className="mr-2 h-5 w-5" /> {t('reports.title')}
           </Link>
         </div>
 

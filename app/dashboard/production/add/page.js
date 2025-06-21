@@ -6,6 +6,7 @@ import { Card, Button, Select, TextInput } from "flowbite-react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { useMasterData } from '@/hooks/useMasterData';
+import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
 import Link from 'next/link';
 import { HiPlus, HiTrash, HiDuplicate } from 'react-icons/hi';
 import { useLanguage } from '@/context/LanguageContext';
@@ -18,6 +19,9 @@ export default function AddProductionPage() {
   const router = useRouter();
   const { products, activityTypes, productMap, activityTypeMap, loading: masterLoading } = useMasterData();
   const { t } = useLanguage();
+
+  // Get existing production data for duplicate checking
+  const { data: existingProduction } = useFirestoreCollection("Production");
 
   // Memoize deduplicated activity types
   const memoizedActivityTypes = useMemo(() => {
@@ -451,8 +455,39 @@ export default function AddProductionPage() {
     }]);
   };
 
+  // Check for duplicate entries
+  const checkForDuplicates = (entries) => {
+    if (!existingProduction || existingProduction.length === 0) return null;
+    
+    for (const entry of entries) {
+      const entryDate = new Date(entry.date).toDateString();
+      
+      const duplicate = existingProduction.find(production => {
+        const productionDate = production.date?.toDate ? production.date.toDate().toDateString() : new Date(production.date).toDateString();
+        return productionDate === entryDate && 
+               production.activityTypeId === entry.activityTypeId && 
+               production.productId === entry.productId;
+      });
+      
+      if (duplicate) {
+        const activityName = activityTypeMap.get(entry.activityTypeId)?.name || t('common.unknownActivity');
+        const productName = productMap.get(entry.productId)?.productid || t('common.unknownProduct');
+        return t('production.add.error.duplicateEntry', { productName, activityName, date: entryDate });
+      }
+    }
+    return null;
+  };
+
   const handleSubmit = async () => {
     if (entries.length === 0) { setError(t('production.add.error.addAtLeastOne')); return; }
+    
+    // Check for duplicates before processing
+    const duplicateError = checkForDuplicates(entries);
+    if (duplicateError) {
+      setError(duplicateError);
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       for (const entry of entries) {

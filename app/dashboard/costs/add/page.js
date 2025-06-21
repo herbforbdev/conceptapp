@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, Button, Select, TextInput } from "flowbite-react";
 import { addCost } from '@/services/firestore/costsService';
 import { useMasterData } from '@/hooks/useMasterData';
+import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
 import Link from 'next/link';
 import { HiPlus, HiTrash, HiDuplicate } from 'react-icons/hi';
 import { useLanguage } from '@/context/LanguageContext';
@@ -24,6 +25,10 @@ function toCamelCase(str) {
 export default function AddCostPage() {
   const router = useRouter();
   const { expenseTypes, activityTypes, expenseTypeMap, activityTypeMap, loading: masterLoading } = useMasterData();
+  
+  // Get existing costs data for duplicate checking
+  const { data: existingCosts } = useFirestoreCollection("Costs");
+  
   const [entries, setEntries] = useState([{
     id: Date.now(),
     date: new Date().toISOString().split('T')[0],
@@ -79,8 +84,39 @@ export default function AddCostPage() {
     });
   };
 
+  // Check for duplicate entries
+  const checkForDuplicates = (entries) => {
+    if (!existingCosts || existingCosts.length === 0) return null;
+    
+    for (const entry of entries) {
+      const entryDate = new Date(entry.date).toDateString();
+      
+      const duplicate = existingCosts.find(cost => {
+        const costDate = cost.date?.toDate ? cost.date.toDate().toDateString() : new Date(cost.date).toDateString();
+        return costDate === entryDate && 
+               cost.activityTypeId === entry.activityTypeId && 
+               cost.expenseTypeId === entry.expenseTypeId;
+      });
+      
+      if (duplicate) {
+        const activityName = activityTypeMap.get(entry.activityTypeId)?.name || t('common.unknownActivity');
+        const expenseTypeName = expenseTypeMap.get(entry.expenseTypeId)?.name || t('common.unknownExpenseType');
+        return t('costs.add.error.duplicateEntry', { expenseTypeName, activityName, date: entryDate });
+      }
+    }
+    return null;
+  };
+
   const handleSubmit = async () => {
     if (entries.length === 0) { setError(t('costs.add.error.addAtLeastOne')); return; }
+    
+    // Check for duplicates before processing
+    const duplicateError = checkForDuplicates(entries);
+    if (duplicateError) {
+      setError(duplicateError);
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       for (const entry of entries) {

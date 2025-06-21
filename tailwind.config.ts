@@ -66,12 +66,7 @@ export default {
   			}
   		},
   		fontFamily: {
-  			sans: [
-  				'Spline Sans',
-  				'Helvetica',
-  				'Arial',
-  				'sans-serif'
-  			]
+  			sans: ['"Spline Sans"', 'sans-serif'],
   		},
   		fontSize: {
   			xs: '.75rem',

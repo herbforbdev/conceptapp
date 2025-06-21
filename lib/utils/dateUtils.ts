@@ -5,7 +5,7 @@ export interface DateRange {
   endDate: Date;
 }
 
-export function getDefaultDateRange(period: string): DateRange {
+function getDefaultDateRange(period: string): DateRange {
   const now = new Date();
   const startDate = new Date();
   const endDate = new Date();
@@ -72,7 +72,7 @@ export function getDefaultDateRange(period: string): DateRange {
   return { startDate, endDate };
 }
 
-export function formatDate(date: Date | string): string {
+function formatDate(date: Date | string): string {
   const currentDate = new Date(date);
   return currentDate.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -81,11 +81,11 @@ export function formatDate(date: Date | string): string {
   });
 }
 
-export function formatDateForInput(date: Date): string {
+function formatDateForInput(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
-export function getDatesBetween(startDate: Date, endDate: Date): Date[] {
+function getDatesBetween(startDate: Date, endDate: Date): Date[] {
   const dates: Date[] = [];
   let currentDate = new Date(startDate);
 
@@ -97,8 +97,41 @@ export function getDatesBetween(startDate: Date, endDate: Date): Date[] {
   return dates;
 }
 
-export function isValidDateRange(startDate: Date, endDate: Date): boolean {
+function isValidDateRange(startDate: Date, endDate: Date): boolean {
   return startDate <= endDate && 
          !isNaN(startDate.getTime()) && 
          !isNaN(endDate.getTime());
-} 
+}
+
+function parseFirestoreDate(date: any): Date | null {
+  if (!date) return null;
+  // Firestore Timestamp object
+  if (date.toDate) return date.toDate();
+  // ISO 8601 string or other string formats
+  if (typeof date === 'string') {
+    const parsed = new Date(date);
+    // Check if the date is valid
+    if (!isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+  // Milliseconds from epoch
+  if (typeof date === 'number') {
+    return new Date(date);
+  }
+  // If it's already a Date object
+  if (date instanceof Date) {
+    return date;
+  }
+  console.warn("Unsupported date type:", typeof date, date);
+  return null;
+}
+
+export {
+  getDefaultDateRange,
+  formatDate,
+  formatDateForInput,
+  getDatesBetween,
+  isValidDateRange,
+  parseFirestoreDate
+}; 

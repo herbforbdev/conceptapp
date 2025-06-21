@@ -30,6 +30,9 @@ export default function AddSalePage() {
     loading: masterDataLoading 
   } = useMasterData();
 
+  // Get existing sales data for duplicate checking
+  const { data: existingSales } = useFirestoreCollection("Sales");
+
   // Quick entry mode settings (currently disabled)
   const quickMode = false;
   const lockedFields = {
@@ -268,9 +271,40 @@ export default function AddSalePage() {
     setEntries(prev => prev.filter(entry => entry.id !== id));
   };
 
+  // Check for duplicate entries
+  const checkForDuplicates = (entries) => {
+    if (!existingSales || existingSales.length === 0) return null;
+    
+    for (const entry of entries) {
+      const entryDate = new Date(entry.date).toDateString();
+      
+      const duplicate = existingSales.find(sale => {
+        const saleDate = sale.date?.toDate ? sale.date.toDate().toDateString() : new Date(sale.date).toDateString();
+        return saleDate === entryDate && 
+               sale.activityTypeId === entry.activityTypeId && 
+               sale.productId === entry.productId;
+      });
+      
+      if (duplicate) {
+        const activityName = activityTypeMap.get(entry.activityTypeId)?.name || t('common.unknownActivity');
+        const productName = productMap.get(entry.productId)?.productid || t('common.unknownProduct');
+        return t('sales.add.error.duplicateEntry', { productName, activityName, date: entryDate });
+      }
+    }
+    return null;
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
     if (entries.length === 0) { setError(t('sales.add.error.addAtLeastOne')); return; }
+    
+    // Check for duplicates before processing
+    const duplicateError = checkForDuplicates(entries);
+    if (duplicateError) {
+      setError(duplicateError);
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       for (const entry of entries) {
