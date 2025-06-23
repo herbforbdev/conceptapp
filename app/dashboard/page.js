@@ -905,78 +905,169 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 3. Third row: left = table, right = vertical card */}
+        {/* 3. Bottom Section: Three Cards - Top 3s, Stock Overview, and Image */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Left: Top 3s card */}
-          <div className="rounded-2xl bg-white shadow-lg p-6 flex flex-col gap-6 lg:col-span-1">
-            <div>
-              <div className="text-lg font-bold mb-2 text-[#385e82]">{t('dashboard.top_products')}</div>
-              <ul className="flex flex-col gap-2">
-                {productsLoading ? (
-                  <li className="text-gray-400 italic animate-pulse">{t('common.loading')}</li>
-                ) : topProducts.length === 0 ? (
-                  <li className="text-gray-400 italic">{t('dashboard.no_data')}</li>
-                ) : topProducts.map((prod, idx) => {
-                  // Debug log for the structure of prod and products
-                  if (process.env.NODE_ENV !== 'production') {
-                    // eslint-disable-next-line no-console
-                    console.log('TopProducts entry:', prod, 'All products:', products);
-                  }
-                  const prodKey = prod.productId || prod.productid;
-                  const matchedProduct = products?.find(p =>
-                    String(p.id).trim().toLowerCase() === String(prod.productId ?? prod.productid ?? prodKey).trim().toLowerCase() ||
-                    String(p.productid).trim().toLowerCase() === String(prod.productId ?? prod.productid ?? prodKey).trim().toLowerCase()
-                  );
-                  if (!matchedProduct) {
-                    if (process.env.NODE_ENV !== 'production') {
-                      // eslint-disable-next-line no-console
-                      console.warn('TopProducts: No product found for prodKey', prodKey, 'Available ids:', products?.map(p => p.id), 'Available productids:', products?.map(p => p.productid));
-                    }
-                  }
-                  return (
-                    <li key={prodKey || idx} className="flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2">
-                      <span className="font-semibold text-gray-800">
-                        {getTranslatedProductName(matchedProduct, t) || t('common.unknown')}
-                      </span>
-                      <span className="font-bold text-blue-700">{String(prod.usd?.toLocaleString() || 0)} USD</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-            <div>
-              <div className="text-lg font-bold mb-2 text-[#385e82]">{t('dashboard.top_expenses')}</div>
-              <ul className="flex flex-col gap-2">
-                {topExpenses.length === 0 ? (
-                  <li className="text-gray-400 italic">{t('dashboard.no_data')}</li>
-                ) : topExpenses.map((exp, idx) => (
-                  <li key={exp.expenseType || idx} className="flex items-center justify-between bg-red-50 rounded-lg px-3 py-2">
-                    <span className="font-semibold text-gray-800">{exp.expenseType}</span>
-                    <span className="font-bold text-red-700">{String(exp.usd?.toLocaleString() || 0)} USD</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          {/* Middle: Stock overview cards stacked */}
-          <div className="flex flex-col gap-4 lg:col-span-1">
-            <div className="rounded-2xl bg-[#031b31] text-white shadow-xl p-6 flex flex-col gap-4">
-              <div className="text-lg font-bold mb-2">{t('dashboard.kpi.stock_overview')}</div>
-              <div className="grid grid-cols-2 gap-3">
-                {stockOverview.map(item => (
-                  <div key={item.key} className="flex flex-col items-center bg-white/10 rounded-lg p-3">
-                    <span className="text-xs text-gray-100 mb-1">{item.label}</span>
-                    <span className="text-2xl font-extrabold">{String(item.value?.toLocaleString() ?? 0)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* Card 1: Top 3s with Toggle */}
+          <TopThreeCard 
+            topProducts={topProducts}
+            topExpenses={topExpenses}
+            productsLoading={productsLoading}
+            products={products}
+            t={t}
+            getTranslatedProductName={getTranslatedProductName}
+          />
+          
+          {/* Card 2: Stock Overview with Toggle */}
+          <StockOverviewCard 
+            stockOverview={stockOverview}
+            t={t}
+          />
+          
+          {/* Card 3: Image Card */}
+          <ImageCard />
         </div>
       </div>
     </div>
   );
 }
+
+// Top Three Card Component with Toggle
+const TopThreeCard = ({ topProducts, topExpenses, productsLoading, products, t, getTranslatedProductName }) => {
+  const [showProducts, setShowProducts] = useState(true);
+
+  return (
+    <div className="rounded-2xl bg-white shadow-xl p-6 h-80 flex flex-col">
+      {/* Toggle Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-[#031b31]">
+          {showProducts ? t('dashboard.top_products') : t('dashboard.top_expenses')}
+        </h3>
+        <button
+          onClick={() => setShowProducts(!showProducts)}
+          className="px-3 py-1 rounded-full bg-[#031b31] text-white text-xs font-medium hover:bg-[#031b31]/90 transition-colors"
+        >
+          {showProducts ? 'Expenses' : 'Products'}
+        </button>
+      </div>
+
+      {/* Content with Animation */}
+      <div className="flex-1 overflow-hidden">
+        <motion.div
+          key={showProducts ? 'products' : 'expenses'}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="h-full"
+        >
+          {showProducts ? (
+            <ul className="flex flex-col gap-2">
+              {productsLoading ? (
+                <li className="text-gray-400 italic animate-pulse">{t('common.loading')}</li>
+              ) : topProducts.length === 0 ? (
+                <li className="text-gray-400 italic">{t('dashboard.no_data')}</li>
+              ) : topProducts.slice(0, 3).map((prod, idx) => {
+                const prodKey = prod.productId || prod.productid;
+                const matchedProduct = products?.find(p =>
+                  String(p.id).trim().toLowerCase() === String(prod.productId ?? prod.productid ?? prodKey).trim().toLowerCase() ||
+                  String(p.productid).trim().toLowerCase() === String(prod.productId ?? prod.productid ?? prodKey).trim().toLowerCase()
+                );
+                return (
+                  <li key={prodKey || idx} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-3 border-l-4 border-[#031b31]">
+                    <span className="font-semibold text-[#031b31] text-sm">
+                      {getTranslatedProductName(matchedProduct, t) || t('common.unknown')}
+                    </span>
+                    <span className="font-bold text-[#031b31]">{String(prod.usd?.toLocaleString() || 0)} USD</span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {topExpenses.length === 0 ? (
+                <li className="text-gray-400 italic">{t('dashboard.no_data')}</li>
+              ) : topExpenses.slice(0, 3).map((exp, idx) => (
+                <li key={exp.expenseType || idx} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-3 border-l-4 border-[#031b31]">
+                  <span className="font-semibold text-[#031b31] text-sm">{exp.expenseType}</span>
+                  <span className="font-bold text-[#031b31]">{String(exp.usd?.toLocaleString() || 0)} USD</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+// Stock Overview Card Component with Toggle
+const StockOverviewCard = ({ stockOverview, t }) => {
+  const [showPackaging, setShowPackaging] = useState(false);
+
+  const productStock = stockOverview.filter(item => ['blockIce', 'cubeIce', 'waterBottling'].includes(item.key));
+  const packagingStock = stockOverview.filter(item => item.key === 'packaging');
+
+  return (
+    <div className="rounded-2xl bg-[#031b31] text-white shadow-xl p-6 h-80 flex flex-col">
+      {/* Toggle Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold">
+          {showPackaging ? 'Packaging Stock' : 'Product Stock'}
+        </h3>
+        <button
+          onClick={() => setShowPackaging(!showPackaging)}
+          className="px-3 py-1 rounded-full bg-white text-[#031b31] text-xs font-medium hover:bg-gray-100 transition-colors"
+        >
+          {showPackaging ? 'Products' : 'Packaging'}
+        </button>
+      </div>
+
+      {/* Content with Animation */}
+      <div className="flex-1">
+        <motion.div
+          key={showPackaging ? 'packaging' : 'products'}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="h-full"
+        >
+          {showPackaging ? (
+            <div className="grid grid-cols-1 gap-4 h-full">
+              {packagingStock.map(item => (
+                <div key={item.key} className="flex flex-col items-center justify-center bg-white/10 rounded-lg p-4 h-full">
+                  <span className="text-sm text-gray-200 mb-2">{item.label}</span>
+                  <span className="text-3xl font-extrabold">{String(item.value?.toLocaleString() ?? 0)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 h-full">
+              {productStock.map(item => (
+                <div key={item.key} className="flex items-center justify-between bg-white/10 rounded-lg p-4">
+                  <span className="text-sm text-gray-200">{item.label}</span>
+                  <span className="text-xl font-bold">{String(item.value?.toLocaleString() ?? 0)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+// Image Card Component
+const ImageCard = () => {
+  return (
+    <div className="rounded-2xl bg-white shadow-xl overflow-hidden h-80 flex items-center justify-center">
+      <img 
+        src="/IM-Glacons 1.JPG" 
+        alt="Ice Concept Product" 
+        className="object-cover h-full w-full"
+      />
+    </div>
+  );
+};
+
 // Updated TopCard component with iconBg and sparkline props
 const TopCard = ({ title, amount, subAmount, icon, iconBg, sparkline, children }) => (
   <div className="flex flex-col py-4 px-5 shadow-md rounded-2xl h-36 bg-white transition-all hover:scale-105 hover:shadow-xl">

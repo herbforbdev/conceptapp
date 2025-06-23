@@ -941,10 +941,10 @@
       "types": {
         
         "maintenance_et_reparations_des_equipements_roulants": "Maintenance et Réparations des Équipements Roulants",
-        
+        "maintenance_et_réparations_des_équipements_roulants": "Maintenance et Réparations des Équipements Roulants",
         "constructionRealEstateRepairs": "Construction & Réparations Immobilières",
         "construction_&_real_estate_repairs": "Construction & Réparations Immobilières",
-        
+        "maintenance_et_réparations_des_machines": "Maintenance et Réparations des Machines",
         "maintenanceRepairsOfMachines": "Entretien & Réparations des Machines",
         "maintenance_&_repairs_of_machines": "Entretien & Réparations des Machines",
         
@@ -952,13 +952,13 @@
         
         "maintenanceRepairsOfRollingEquipment": "Entretien & Réparations de l'Équipement Roulant",
         "maintenance_&_repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
-        "équipement_roulants": "Carburant Équipements Roulant",
-        "quipement_roulants": "Carburant Équipements Roulant",
-        "quipementRoulants": "Carburant Équipements Roulant",
+        "équipement_roulants": "Carburant Engins Roulant",
+        "quipement_roulants": "Carburant Engins Roulant",
+        "quipementRoulants": "Carburant Engins Roulant",
         
         "socialCharges": "Charges Sociales",
         
-        "rollingEquipment": "Carburant Équipements Roulant",
+        "rollingEquipment": "Carburant Engins Roulant",
         
         "medicalCare": "Soins Médicaux",
         "generatorFuel": "Carburant Générateur",
@@ -986,34 +986,34 @@
         "construction___real_estate_repairs": "Construction & Réparations Immobilières",
         "maintenance___repairs_of_machines": "Entretien & Réparations des Machines",
         
-        "rolling_equipment": "Carburant Équipements Roulant",
+        "rolling_equipment": "Carburant Engins Roulant",
         
         "emballages": "Emballages",
         
-        "équipements_roulant": "Carburant Équipements Roulant",
-        "équipement_roulant": "Carburant Équipements Roulant",
+        "équipements_roulant": "Carburant Engins Roulant",
+        "équipement_roulant": "Carburant Engins Roulant",
         
         "maintenance___repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
         "carburant_générateur": "Carburant Générateur",
         
-        "personnel": "Personnel",
+        "personnel": "Charges du Personnel",
         "dépenses_diverses": "Dépenses Diverses",
         "soins_médicaux": "Soins Médicaux",
         
         "entretien___réparations_des_machines": "Entretien & Réparations des Machines",
         "construction___réparations_immobilières": "Construction & Réparations Immobilières",
         
-        "equipement_roulant": "Carburant Équipements Roulant",
+        "equipement_roulant": "Carburant Engins Roulant",
         
         "entretien___reparations_des_machines": "Entretien & Réparations des Machines",
         "construction___reparations_immobilieres": "Construction & Réparations Immobilières",
         "emballages_": "Emballages",
         "generator_fuel": "Carburant Générateur",
         "tax_charges": "Charges Fiscales",
-        "staff": "Personnel",
+        "staff": "Charges du Personnel",
         "miscellaneous_expenses": "Dépenses Diverses",
         "medical_care": "Soins Médicaux",
-        "equipement_roulants": "Carburant Équipements Roulant",
+        "equipement_roulants": "Carburant Engins Roulant",
         "social_charges": "Charges Sociales",
         "intrants": "Intrants",
         "maintenance_repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
@@ -1022,7 +1022,7 @@
         "monthlycommitment": "Engagement Mensuel",
         "maintenancerepairsofrollingequipment": "Entretien & Réparations de l'Équipement Roulant",
         "generatorfuel": "Carburant Générateur",
-        "equipementroulants": "Carburant Équipements Roulants",
+        "equipementroulants": "Carburant Engins Roulants",
         "miscellaneousexpenses": "Dépenses Diverses",
         "maintenancerepairsofmachines": "Entretien & Réparations de Machines",
         "taxcharges": "Charges Fiscales",
@@ -1038,7 +1038,7 @@
         "charges_fiscales": "Charges Fiscales",
         "depenses_diverses": "Dépenses Diverses",
         "soins_medicaux": "Soins Médicaux",
-        "equipements_roulant": "Carburant Équipements Roulant",
+        "equipements_roulant": "Carburant Engins Roulant",
         "charges_sociales": "Charges Sociales",
         "entretien_reparations_de_lequipement_roulant": "Entretien & Réparations de l'Équipement Roulant",
         "entretien_reparations_des_machines": "Entretien & Réparations des Machines"

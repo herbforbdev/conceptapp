@@ -175,7 +175,7 @@ export default function AddCostPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard/costs')}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-[#008080] bg-[#008080]/30 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {t('costs.add.backToCosts')}
@@ -203,7 +203,7 @@ export default function AddCostPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-900 rounded-lg">
               <thead>
-                <tr className="bg-gradient-to-r from-green-50 to-green-100">
+                <tr className="bg-gradient-to-r from-[#66b2b2]/50 to-[#66b2b2] rounded-xl">
                   <th className="px-3 py-4 font-semibold text-green-900 text-xs uppercase tracking-wider">{t('costs.fields.date')}</th>
                   <th className="px-3 py-4 font-semibold text-green-900 text-xs uppercase tracking-wider">{t('costs.fields.activityType')}</th>
                   <th className="px-3 py-4 font-semibold text-green-900 text-xs uppercase tracking-wider">{t('costs.fields.expenseType')}</th>
@@ -283,7 +283,7 @@ export default function AddCostPage() {
                           className="bg-green-100 text-green-600 hover:bg-green-200 border border-green-200"
                           onClick={() => duplicateEntry(entry.id)}
                         >
-                          <HiDuplicate className="h-4 w-4" />
+                          <HiDuplicate className="h-4 w-4 text-[#008080]" />
                         </Button>
                         {entries.length > 1 && (
                           <Button
@@ -305,7 +305,7 @@ export default function AddCostPage() {
             <div className="flex justify-between items-center">
               <Button 
                 onClick={addNewRow} 
-                className="bg-white hover:bg-green-50 text-green-600 border border-green-200 shadow-sm transition-colors duration-200"
+                className="bg-white hover:bg-green-50 text-[#008080] border border-[#008080] shadow-sm transition-colors duration-200"
               >
                 <HiPlus className="mr-2" /> {t('costs.add.addEntry')}
               </Button>
@@ -318,7 +318,7 @@ export default function AddCostPage() {
                 <Button 
                   onClick={handleSubmit} 
                   disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700 text-white shadow-sm transition-colors duration-200 disabled:bg-green-400"
+                  className="bg-[#008080] hover:bg-green-700 text-white shadow-sm transition-colors duration-200 disabled:bg-green-400"
                 >
                   {isSubmitting ? (
                     <>

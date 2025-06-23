@@ -1,0 +1,27 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+🎯 Moving Forward - Small Updates & Feature Additions
+
+Preserve Existing Functionality ✅
+Never modify working features unless explicitly requested
+Always test that existing functionality remains intact
+Use surgical, minimal code changes
+
+Incremental Improvements ✅
+Small, focused updates rather than large refactors
+Build on the solid foundation we've established
+Maintain the clean architecture and patterns
+
+Consistent Patterns ✅
+Follow the established translation patterns
+Use the same styling and component structures
+Maintain the existing code organization
+
+Production-First Mindset ✅
+Always ensure changes work in production
+Test thoroughly before committing
+
+Keep performance and user experience as priorities

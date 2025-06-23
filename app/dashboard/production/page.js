@@ -1075,7 +1075,14 @@ export default function ProductionPage() {
       const date = prod.date?.toDate ? prod.date.toDate() : new Date(prod.date);
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
-      return month === summaryMonth && year === summaryYear;
+      
+      // Check year match
+      const yearMatches = year === summaryYear;
+      
+      // Check month match - if summaryMonth is empty string, include all months
+      const monthMatches = summaryMonth === "" || summaryMonth === 0 || month === summaryMonth;
+      
+      return yearMatches && monthMatches;
     });
   }, [productions, summaryMonth, summaryYear]);
 

@@ -39,14 +39,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0]">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md px-4"
+        className="w-full max-w-4xl flex bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden"
       >
-        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-[#385e82]/10">
+        {/* Left Side - Form */}
+        <div className="w-1/2 p-8">
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
@@ -102,7 +103,7 @@ export default function Login() {
               <p className="text-sm text-[#415A77]">
                 Pas encore d&apos;accès?{' '}
                 <Link href="/request-access" className="text-[#385e82] hover:underline font-medium">
-                                      Demander l&apos;accès
+                  Demander l&apos;accès
                 </Link>
               </p>
             </div>
@@ -119,12 +120,17 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Background Decoration */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#385e82]/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#385e82]/5 rounded-full blur-3xl" />
+        {/* Right Side - Image */}
+        <div className="w-1/2 hidden md:block">
+          <img src="/IM-Bidon Transparent 2.jpg" alt="Login Image" className="object-contain h-full w-full" />
         </div>
       </motion.div>
+
+      {/* Background Decoration */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#385e82]/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#385e82]/5 rounded-full blur-3xl" />
+      </div>
     </div>
   );
 }

@@ -44,6 +44,20 @@ import {
   Filler
 } from 'chart.js';
 
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
 // Client-only wrapper component
 const ClientOnly = ({ children }) => {
   const [mounted, setMounted] = useState(false);
