@@ -71,7 +71,7 @@ export interface Inventory {
   date: Date;
   initialQuantity: number;
   modifiedAt?: Date;
-  movementType: 'IN' | 'OUT' | 'ADJUSTMENT';
+  movementType: 'OPENING' | 'IN' | 'OUT' | 'ADJUSTMENT';
   productId: string;
   productName?: string;
   quantityMoved: number;

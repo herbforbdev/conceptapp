@@ -392,7 +392,7 @@ export default function AddSalePage() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard/sales')}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-gray-900 bg-blue-100"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {t('sales.add.backToSales')}

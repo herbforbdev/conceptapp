@@ -7,7 +7,7 @@ import Link from "next/link";
 import dynamic from 'next/dynamic';
 import { 
   HiRefresh, HiTrendingUp, HiTrendingDown, 
-  HiTrash, HiPencil, HiPlus, HiInbox, HiChevronDown, HiCube, HiClipboardList, HiArchive, HiCheck, HiX 
+  HiTrash, HiPencil, HiPlus, HiInbox, HiChevronDown, HiCube, HiClipboardList, HiArchive, HiCheck, HiX, HiCollection 
 } from "react-icons/hi";
 import { PiBeerBottleFill } from "react-icons/pi";
 import { FaIndustry, FaCubes } from "react-icons/fa";
@@ -23,6 +23,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { getInventorySummaryTableData } from '@/lib/analysis/dataProcessing';
 import { userService } from '@/services/firestore/userService';
 import '@/lib/chart-setup';
+import OpeningStockModal from '@/components/inventory/OpeningStockModal';
+import QuickAdjustmentModal from '@/components/inventory/QuickAdjustmentModal';
 
 // Dynamic imports for Chart.js
 const LineChart = dynamic(() => import('react-chartjs-2').then(mod => mod.Line), { ssr: false });
@@ -610,9 +612,10 @@ export default function InventoryPage() {
   const [productsList, setProductsList] = useState([]);
   const [movementTypes] = useState([
     { value: "", label: t('inventory.table.allMovementTypes') },
+    { value: "OPENING", label: t('inventory.table.opening', 'Opening Stock') },
     { value: "IN", label: t('inventory.table.stockIn') },
     { value: "OUT", label: t('inventory.table.stockOut') },
-    { value: "ADJUSTMENT", label: t('inventory.table.stockAdjustment') }
+    { value: "ADJUSTMENT", label: t('inventory.table.adjustment') }
   ]);
 
   // Add editing state
@@ -631,6 +634,13 @@ export default function InventoryPage() {
 
   // Add source filter state
   const [selectedSource, setSelectedSource] = useState("");
+  
+  // Opening stock modal state (CORRECT PLACEMENT)
+  const [showOpeningStockModal, setShowOpeningStockModal] = useState(false);
+  
+  // Quick adjustment modal state
+  const [showQuickAdjustmentModal, setShowQuickAdjustmentModal] = useState(false);
+  
   const sourceOptions = [
     { value: "", label: t('inventory.source.all', 'All Sources') },
     { value: "production", label: t('inventory.source.production', 'Production') },
@@ -792,6 +802,11 @@ export default function InventoryPage() {
   const handleRefresh = useCallback(() => {
     router.refresh();
   }, [router]);
+  
+  // Add function to handle quick adjustment success
+  const handleQuickAdjustmentSuccess = useCallback(() => {
+    handleRefresh();
+  }, [handleRefresh]);
 
   // Apply filters whenever filter criteria change
   useEffect(() => {
@@ -942,7 +957,7 @@ export default function InventoryPage() {
     }
   };
 
-  // Memoized filtered products for dropdown - prevent duplicates
+  // Memoized filtered products for dropdown - prevent duplicates and exclude packaging
   const filteredProducts = useMemo(() => {
     // Create a Map to ensure uniqueness by ID
     const uniqueProducts = new Map();
@@ -951,14 +966,28 @@ export default function InventoryPage() {
       .filter(product => {
         // Basic validation
         if (!product || !product.producttype) return false;
-        // Include all main and packaging products
-        const productType = product.producttype;
+        
+        // Filter by selected activity type if one is selected
+        if (selectedActivityType && product.activitytypeid !== selectedActivityType) {
+          return false;
+        }
+        
+        // Exclude packaging products - they're handled separately in inventory
+        const productType = product.producttype || '';
+        const isPackaging = 
+          productType.includes('Packaging') ||
+          productType.includes('Emballage') ||
+          product.productid?.includes('Package');
+        
+        if (isPackaging) return false;
+        
+        // Include only main products
         const isMainProduct = 
           productType === 'Block Ice' || 
           productType === 'Cube Ice' ||
           productType === 'Water Bottling';
-        const isPackaging = productType?.toLowerCase().includes('packaging');
-        return isMainProduct || isPackaging;
+        
+        return isMainProduct;
       })
       .forEach(product => {
         if (!uniqueProducts.has(product.id)) {
@@ -969,7 +998,7 @@ export default function InventoryPage() {
     // Convert back to array and sort
     return Array.from(uniqueProducts.values())
       .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
-  }, [productMap]);
+  }, [productMap, selectedActivityType]);
 
   // Update getProductName function to handle direct product IDs
   const getProductName = useCallback((productId) => {
@@ -1413,7 +1442,9 @@ export default function InventoryPage() {
       const movedQty = Number(editingData.quantityMoved) || 0;
       let remainingQty = initialQty;
       
-      if (editingData.movementType === "IN") {
+      if (editingData.movementType === "OPENING") {
+        remainingQty = movedQty; // Opening stock = quantity moved
+      } else if (editingData.movementType === "IN") {
         remainingQty = initialQty + movedQty;
       } else if (editingData.movementType === "OUT") {
         remainingQty = initialQty - movedQty;
@@ -1517,6 +1548,8 @@ export default function InventoryPage() {
     const movedQty = Number(editingData.quantityMoved) || 0;
 
     switch (editingData.movementType) {
+      case 'OPENING':
+        return movedQty;
       case 'IN':
         return initialQty + movedQty;
       case 'OUT':
@@ -1704,55 +1737,32 @@ export default function InventoryPage() {
   );
 
   return (
-    <div className="p-4">
+    <div className="min-h-screen p-4 md:p-8">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold">{t('inventory.dashboard')}</h1>
-        
-        {/* Time Period Filter */}
-        <div className="flex items-center gap-4">
-          <Select
-            value={selectedTimePeriod}
-            onChange={(e) => {
-              e.preventDefault();
-              setSelectedTimePeriod(e.target.value);
-            }}
-            className="w-40 bg-white border-purple-200 text-purple-900 focus:border-purple-500 focus:ring-purple-500"
+        <h1 className="text-2xl font-bold text-purple-900">{t('inventory.title')}</h1>
+        <div className="flex items-center gap-2">
+          {/* Add Opening Stock Button */}
+          <Button
+            color="purple"
+            size="sm"
+            onClick={() => setShowOpeningStockModal(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-3"
           >
-            <option value={TIME_PERIODS.ALL}>{t('timePeriods.all')}</option>
-            <option value={TIME_PERIODS.YEAR}>{t('timePeriods.thisYear')}</option>
-            <option value={TIME_PERIODS.MONTH}>{t('timePeriods.thisMonth')}</option>
-            <option value={TIME_PERIODS.WEEK}>{t('timePeriods.thisWeek')}</option>
-            <option value={TIME_PERIODS.CUSTOM}>{t('timePeriods.custom')}</option>
-          </Select>
+            <HiCollection className="h-4 w-4 mr-2" />
+            {t('inventory.actions.setupOpening')}
+          </Button>
           
-          {selectedTimePeriod === TIME_PERIODS.CUSTOM && (
-            <div className="flex items-center gap-2">
-              <TextInput
-                type="date"
-                value={dateFilters.startDate}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setDateFilters(prev => ({
-                    ...prev,
-                    startDate: e.target.value
-                  }));
-                }}
-              />
-              <span>{t('filters.to')}</span>
-              <TextInput
-                type="date"
-                value={dateFilters.endDate}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setDateFilters(prev => ({
-                    ...prev,
-                    endDate: e.target.value
-                  }));
-                }}
-              />
-            </div>
-          )}
+          {/* Add Quick Adjustment Button */}
+          <Button
+            color="warning"
+            size="sm"
+            onClick={() => setShowQuickAdjustmentModal(true)}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-medium px-3"
+          >
+            <HiRefresh className="h-4 w-4 mr-2" />
+            {t('inventory.actions.quickAdjust')}
+          </Button>
         </div>
       </div>
 
@@ -1768,38 +1778,38 @@ export default function InventoryPage() {
       {/* Top Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         <TopCard
-          title={t('inventory.summary.totalInventory') || 'Total Inventory'}
-          value={`${(stockStats?.totalInventory || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
+          title={t('inventory.summary.totalInventory')}
+          value={`${(stockStats?.totalInventory || 0).toLocaleString()} ${t('charts.axes.units')}`}
           icon={<HiInbox size={16} />}
           type="totalInventory"
         />
         <TopCard
-          title={t('inventory.summary.monthlyMovements') || 'Monthly Movements'}
-          value={`${stockStats?.monthlyMovements || 0} ${t('metrics.per_day') || 'per day'}`}
+          title={t('inventory.summary.monthlyMovements')}
+          value={`${stockStats?.monthlyMovements || 0} ${t('metrics.per_day')}`}
           icon={<HiRefresh size={16} />}
           type="monthlyMovements"
         />
         <TopCard 
-          title={t('inventory.summary.blockIceStock') || 'Block Ice Stock'}
-          value={`${(stockStats?.blockIceStock || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
+          title={t('inventory.summary.blockIceStock')}
+          value={`${(stockStats?.blockIceStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
           icon={<HiCube size={16} />}
           type="blockIce"
         />
         <TopCard 
-          title={t('inventory.summary.cubeIceStock') || 'Cube Ice Stock'}
-          value={`${(stockStats?.cubeIceStock || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
+          title={t('inventory.summary.cubeIceStock')}
+          value={`${(stockStats?.cubeIceStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
           icon={<HiCube size={16} />}
           type="cubeIce"
         />
         <TopCard 
-          title={t('inventory.summary.waterBottlingStock') || 'Water Bottling Stock'}
-          value={`${(stockStats?.waterBottlingStock || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
+          title={t('inventory.summary.waterBottlingStock')}
+          value={`${(stockStats?.waterBottlingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
           icon={<PiBeerBottleFill size={16} />}
           type="waterBottling"
         />
         <TopCard 
-          title={t('inventory.summary.packagingStock') || 'Packaging Stock'}
-          value={`${(stockStats?.packagingStock || 0).toLocaleString()} ${t('charts.axes.units') || 'units'}`}
+          title={t('inventory.summary.packagingStock')}
+          value={`${(stockStats?.packagingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
           icon={<HiArchive size={16} />}
           type="packaging"
         />
@@ -2269,7 +2279,7 @@ export default function InventoryPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-center font-mono font-semibold text-[#4c5c68]">
+                    <td className="px-6 py-4 text-center font-semibold text-[#4c5c68]">
                       {editingId === record.id ? (
                         <TextInput
                           type="number"
@@ -2305,7 +2315,7 @@ export default function InventoryPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-center font-mono font-semibold text-green-600">
+                    <td className="px-6 py-4 text-center font-semibold text-green-600">
                       {editingId === record.id ? (
                         <TextInput
                           type="number"
@@ -2358,15 +2368,33 @@ export default function InventoryPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-center font-mono">
+                    <td className="px-6 py-4 text-center">
                       {(() => {
-                        switch (record.source) {
-                          case 'production': return t('inventory.source.production', 'Production');
-                          case 'consumption': return t('inventory.source.consumption', 'Consommation');
-                          case 'sales': return t('inventory.source.sales', 'Vente');
-                          case 'manual': return t('inventory.source.manual', 'Manuel');
-                          default: return '';
-                        }
+                        const getSourceStyle = (source) => {
+                          switch (source) {
+                            case 'production': return 'bg-green-100 text-green-800 border border-green-200';
+                            case 'consumption': return 'bg-orange-100 text-orange-800 border border-orange-200';
+                            case 'sales': return 'bg-blue-100 text-blue-800 border border-blue-200';
+                            case 'manual': return 'bg-purple-100 text-purple-800 border border-purple-200';
+                            default: return 'bg-gray-100 text-gray-800 border border-gray-200';
+                          }
+                        };
+                        
+                        const sourceText = (() => {
+                          switch (record.source) {
+                            case 'production': return t('inventory.source.production');
+                            case 'consumption': return t('inventory.source.consumption');
+                            case 'sales': return t('inventory.source.sales');
+                            case 'manual': return t('inventory.source.manual');
+                            default: return record.source || '';
+                          }
+                        })();
+                        
+                        return (
+                          <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getSourceStyle(record.source)}`}>
+                            {sourceText}
+                          </span>
+                        );
                       })()}
                     </td>
                   </tr>
@@ -2418,7 +2446,7 @@ export default function InventoryPage() {
                 {/* Threshold Controls */}
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-purple-700">{t('inventory.thresholds.iceCubes')}:</label>
+                    <label className="text-sm text-purple-700">{t('inventory.summary.thresholdCubeIce')}:</label>
                     <input
                       type="number"
                       value={thresholds.iceCubes}
@@ -2427,7 +2455,7 @@ export default function InventoryPage() {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-purple-700">{t('inventory.thresholds.bottles')}:</label>
+                    <label className="text-sm text-purple-700">{t('inventory.summary.thresholdWaterBottling')}:</label>
                     <input
                       type="number"
                       value={thresholds.bottles}
@@ -2554,7 +2582,7 @@ export default function InventoryPage() {
                             drawTime: 'afterDatasetsDraw',
                             label: {
                               display: true,
-                              content: t('inventory.thresholds.warning'),
+                              content: t('inventory.charts.warningThreshold'),
                               position: 'end',
                               backgroundColor: '#DC2626',
                               color: 'white',
@@ -2593,7 +2621,19 @@ export default function InventoryPage() {
         </div>
       </div>
 
-
+      {/* Add Opening Stock Modal */}
+      <OpeningStockModal
+        isOpen={showOpeningStockModal}
+        onClose={() => setShowOpeningStockModal(false)}
+        onSuccess={handleRefresh}
+      />
+      
+      {/* Add Quick Adjustment Modal */}
+      <QuickAdjustmentModal
+        isOpen={showQuickAdjustmentModal}
+        onClose={() => setShowQuickAdjustmentModal(false)}
+        onSuccess={handleQuickAdjustmentSuccess}
+      />
     </div>
   );
 }

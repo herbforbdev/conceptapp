@@ -520,13 +520,13 @@ export default function SalesTrendsPage() {
               <h3 className="text-lg font-semibold text-blue-900 mb-4">{safeT(t, 'profitability.tabs.products', 'Product Sales by Month')}</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-                  <thead className="bg-blue-900/80">
+                  <thead style={{backgroundColor: '#6a2020'}}>
                     <tr>
-                      <th className="px-6 py-4 font-semibold text-sm text-white text-left"></th>
+                      <th className="px-6 py-4 font-semibold text-base text-white text-left"></th>
                       {months.map((m, i) => (
-                        <th key={i} className="px-6 py-2 font-semibold text-sm text-white">{m}</th>
+                        <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
                       ))}
-                      <th className="px-6 py-2 font-semibold text-sm text-white">{safeT(t, 'common.total', 'Total')}</th>
+                      <th className="px-6 py-2 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -534,36 +534,39 @@ export default function SalesTrendsPage() {
                     const rowTotal = productTypeTable[type].reduce((sum, val) => sum + val, 0);
                     return (
                       <tr key={type} className="hover:bg-gray-50">
-                        <td className="px-6 py-2 font-semibold text-sm text-gray-900 text-left">
+                        <td className="px-6 py-2 font-semibold text-base text-gray-900 text-left">
                           {safeT(t, `products.types.${type.toLowerCase().replace(/\s+/g, '').replace(/'/g, '_')}`, type)}
                         </td>
                         {productTypeTable[type].map((val, i) => {
-                          let bgClass = "bg-gray-50 text-gray-700";
-                          if (i > 0) {
-                            const diff = val - productTypeTable[type][i - 1];
-                            if (diff > 0) {
-                              bgClass = "bg-green-50 text-green-700";
-                            } else if (diff < 0) {
-                              bgClass = "bg-red-50 text-red-700";
+                          let bgClass = "text-gray-700";
+                          let bgStyle = {backgroundColor: '#f2eddd'};
+                                                      if (i > 0) {
+                              const diff = val - productTypeTable[type][i - 1];
+                              if (diff > 0) {
+                                bgClass = "bg-green-50 text-green-700";
+                                bgStyle = {};
+                              } else if (diff < 0) {
+                                bgClass = "bg-red-50 text-red-700";
+                                bgStyle = {};
+                              }
                             }
-                          }
-                          return (
-                            <td key={i} className="px-6 py-2 text-sm font-medium">
-                              <span className={`px-3 py-1 rounded-full ${bgClass}`}>
-                                {safeFormatNumber(val)}
-                              </span>
-                            </td>
-                          );
+                            return (
+                              <td key={i} className="px-6 py-2 text-base font-medium">
+                                <span className={`px-3 py-1 rounded-full ${bgClass}`} style={bgStyle}>
+                                  {safeFormatNumber(val)}
+                                </span>
+                              </td>
+                            );
                         })}
-                        <td className="px-6 py-3 text-base font-semibold font-bold text-blue-800">
-                          <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-900">
+                        <td className="px-6 py-3 text-base font-semibold font-bold" style={{color: '#6a2020'}}>
+                          <span className="px-3 py-1 rounded-full text-white" style={{backgroundColor: '#a16363'}}>
                             {safeFormatNumber(rowTotal)}
                           </span>
                         </td>
                       </tr>
                     );
                   })}
-                  <tr className="bg-blue-900/80 font-bold text-white">
+                  <tr className="font-bold text-white" style={{backgroundColor: '#6a2020'}}>
                     <td className="px-6 py-2 text-base text-left">
                       {safeT(t, 'common.total', 'Total')}
                     </td>
@@ -595,11 +598,11 @@ export default function SalesTrendsPage() {
                 <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
                   <thead className="bg-red-300">
                     <tr>
-                      <th className="px-6 py-2 font-semibold text-sm text-white text-left"></th>
+                      <th className="px-6 py-2 font-semibold text-base text-white text-left"></th>
                       {months.map((m, i) => (
-                        <th key={i} className="px-6 py-2 font-semibold text-sm text-white">{m}</th>
+                        <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
                       ))}
-                      <th className="px-6 py-2 font-semibold text-sm text-white">{safeT(t, 'common.total', 'Total')}</th>
+                      <th className="px-6 py-2 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -607,7 +610,7 @@ export default function SalesTrendsPage() {
                     const rowTotal = expenseTypeTable[type].reduce((sum, val) => sum + val, 0);
                     return (
                       <tr key={type} className="hover:bg-gray-50">
-                        <td className="px-6 py-2 font-semibold text-sm text-gray-900 text-left">
+                        <td className="px-6 py-2 font-semibold text-base text-gray-900 text-left">
                           {safeT(t, `masterData.expenses.types.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
                         </td>
                         {expenseTypeTable[type].map((val, i) => {
@@ -621,7 +624,7 @@ export default function SalesTrendsPage() {
                             }
                           }
                           return (
-                            <td key={i} className="px-6 py-2 text-sm font-medium">
+                            <td key={i} className="px-6 py-2 text-base font-medium">
                               <span className={`px-3 py-1 rounded-full ${bgClass}`}>
                                 {safeFormatNumber(val)}
                               </span>
@@ -668,11 +671,11 @@ export default function SalesTrendsPage() {
                 <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
                   <thead className="bg-green-600/50">
                     <tr>
-                      <th className="px-6 py-3 font-semibold text-sm text-white text-left"></th>
+                      <th className="px-6 py-3 font-semibold text-base text-white text-left"></th>
                       {months.map((m, i) => (
-                        <th key={i} className="px-6 py-3 font-semibold text-sm text-white">{m}</th>
+                        <th key={i} className="px-6 py-3 font-semibold text-base text-white">{m}</th>
                       ))}
-                      <th className="px-6 py-3 font-semibold text-sm text-white">{safeT(t, 'common.total', 'Total')}</th>
+                      <th className="px-6 py-3 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -680,7 +683,7 @@ export default function SalesTrendsPage() {
                     const rowTotal = activityTypeTable[type].reduce((sum, val) => sum + val, 0);
                                           return (
                         <tr key={type} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 font-semibold text-sm text-green-900 text-left">
+                          <td className="px-6 py-4 font-semibold text-base text-green-900 text-left">
                             {safeT(t, `products.activities.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
                           </td>
                           {activityTypeTable[type].map((val, i) => {
@@ -694,7 +697,7 @@ export default function SalesTrendsPage() {
                               }
                             }
                             return (
-                              <td key={i} className="px-6 py-4 text-sm font-medium">
+                              <td key={i} className="px-6 py-4 text-base font-medium">
                                 <span className={`px-3 py-1 rounded-full ${bgClass}`}>
                                   {safeFormatNumber(val)}
                                 </span>

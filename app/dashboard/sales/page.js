@@ -140,6 +140,10 @@ const getActivityTypeChartOptions = (t) => ({
     },
     height: 350
   },
+  theme: {
+    mode: 'light',
+    palette: 'palette1'
+  },
   plotOptions: {
     bar: {
       horizontal: false,
@@ -191,17 +195,7 @@ const getActivityTypeChartOptions = (t) => ({
   },
   fill: {
     opacity: 1,
-    type: 'gradient',
-    gradient: {
-      shade: 'light',
-      type: "vertical",
-      shadeIntensity: 0.25,
-      gradientToColors: undefined,
-      inverseColors: true,
-      opacityFrom: 0.85,
-      opacityTo: 0.85,
-      stops: [50, 100]
-    }
+    type: 'solid'
   },
   tooltip: {
     y: {
@@ -211,11 +205,13 @@ const getActivityTypeChartOptions = (t) => ({
     }
   },
   legend: {
+    show: true,
     position: 'top',
     horizontalAlign: 'right',
-    floating: true,
-    offsetY: -25,
-    offsetX: -5
+    floating: false,
+    labels: {
+      colors: '#000000'
+    }
   },
   colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 });
@@ -616,11 +612,14 @@ export default function SalesPage() {
   // Summary period state for filtering by year/month
   const [summaryPeriod, setSummaryPeriod] = useState({
     year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1
+    month: 0 // 0 = All Months, 1+ = specific month
   });
 
   // Product type filter for summary tables
   const [selectedProductType, setSelectedProductType] = useState('');
+  
+  // Active tab state for summary tables
+  const [activeTab, setActiveTab] = useState('products');
 
   // Time period states
   const [selectedTimePeriod, setSelectedTimePeriod] = useState(TIME_PERIODS.MONTH);
@@ -679,6 +678,7 @@ export default function SalesPage() {
 
   // Month names for dropdown
   const MONTHS = useMemo(() => [
+    t('filters.allMonths', 'All Months'),
     t('months.january', 'January'),
     t('months.february', 'February'),
     t('months.march', 'March'),
@@ -807,9 +807,12 @@ export default function SalesPage() {
     return Array.from(types).sort();
   }, [productMap]);
 
-  // Set default product type to Block Ice when data loads
+  // Track if initial product type has been set
+  const [hasSetInitialProductType, setHasSetInitialProductType] = useState(false);
+
+  // Set default product type to Block Ice when data loads (only once)
   useEffect(() => {
-    if (uniqueProductTypes.length > 0 && !selectedProductType) {
+    if (uniqueProductTypes.length > 0 && !hasSetInitialProductType) {
       // Find Block Ice or Bloc de glace in the available types
       const blockIceType = uniqueProductTypes.find(type => 
         type === 'Block Ice' || 
@@ -823,8 +826,9 @@ export default function SalesPage() {
       } else {
         setSelectedProductType(uniqueProductTypes[0]);
       }
+      setHasSetInitialProductType(true);
     }
-  }, [uniqueProductTypes, selectedProductType]);
+  }, [uniqueProductTypes, hasSetInitialProductType]);
 
   // Helper function to get unique products by activity type
   const getUniqueProductsByActivityType = useCallback((activityTypeId) => {
@@ -857,22 +861,41 @@ export default function SalesPage() {
 
   // Update filteredProducts to use the new helper
   const filteredProducts = useMemo(() => {
+    let products;
+    
     if (!filters.selectedActivityType) {
-      // If no activity type selected, show all main products
-      return Array.from(uniqueProductIds)
+      // If no activity type selected, show all products (excluding packaging)
+      products = Array.from(uniqueProductIds)
         .filter(product => {
-          if (!product || !product.producttype) return false;
-          const isMainProduct = 
-            product.producttype === 'Block Ice' || 
-            product.producttype === 'Cube Ice' ||
-            product.producttype === 'Water Bottling';
-          return isMainProduct;
-        })
-        .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
+          if (!product || !product.productid) return false;
+          
+          // Exclude packaging products - never sold
+          const productType = product.producttype || '';
+          const isPackaging = 
+            productType.includes('Packaging') ||
+            productType.includes('Emballage') ||
+            product.productid?.includes('Package');
+            
+          return !isPackaging;
+        });
+    } else {
+      // If activity type is selected, show only products for that activity (excluding packaging)
+      products = getUniqueProductsByActivityType(filters.selectedActivityType)
+        .filter(product => {
+          if (!product || !product.productid) return false;
+          
+          // Exclude packaging products - never sold
+          const productType = product.producttype || '';
+          const isPackaging = 
+            productType.includes('Packaging') ||
+            productType.includes('Emballage') ||
+            product.productid?.includes('Package');
+            
+          return !isPackaging;
+        });
     }
 
-    // If activity type is selected, show only products for that activity
-    return getUniqueProductsByActivityType(filters.selectedActivityType);
+    return products.sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
   }, [uniqueProductIds, filters.selectedActivityType, getUniqueProductsByActivityType]);
 
   // 3. Add calculateSalesMetrics as a memoized function
@@ -888,7 +911,8 @@ export default function SalesPage() {
     const totalSales = {
       count: filteredSales.length,
       amountUSD: filteredSales.reduce((sum, sale) => sum + (sale.amountUSD || 0), 0),
-      amountFC: filteredSales.reduce((sum, sale) => sum + (sale.amountFC || 0), 0)
+      amountFC: filteredSales.reduce((sum, sale) => sum + (sale.amountFC || 0), 0),
+      amountCDF: filteredSales.reduce((sum, sale) => sum + (sale.amountFC || 0), 0)
     };
 
     // 2. Average Daily Sales
@@ -1037,6 +1061,14 @@ export default function SalesPage() {
 
   // Compute data filtered by summary period (year & month)
   const periodData = useMemo(() => {
+    // If month is 0 (All Months), filter by year only
+    if (summaryPeriod.month === 0) {
+      return filterByPeriod(filteredSalesData.data, {
+        type: 'year',
+        year: summaryPeriod.year
+      });
+    }
+    
     return filterByPeriod(filteredSalesData.data, {
       type: 'month',
       year: summaryPeriod.year,
@@ -1094,11 +1126,11 @@ export default function SalesPage() {
               <div className="min-h-screen p-8 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading data...</p>
+          <p className="text-gray-600">{t('sales.loading.title')}</p>
           <p className="text-sm text-gray-500 mt-2">
-            {!sales && 'Loading sales...'}
-            {!products && 'Loading products...'}
-            {!activityTypes && 'Loading activity types...'}
+            {!sales && t('sales.loading.sales')}
+            {!products && t('sales.loading.products')}
+            {!activityTypes && t('sales.loading.activityTypes')}
           </p>
         </div>
       </div>
@@ -1295,12 +1327,12 @@ export default function SalesPage() {
       {/* Sales Records Table with Merged Filters */}
       <Card className="mb-6 bg-white border-2 border-gray-300">
         {/* Enhanced Header with Actions and Filters */}
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 rounded-t-2xl">
+        <div className="border-b border-gray-200 rounded-t-2xl" style={{backgroundColor: '#f6f2ec'}}>
           <div className="p-6">
             <div className="flex flex-col lg:flex-row justify-between gap-4 mb-6 rounded-t-2xl">
               <div>
-                <h5 className="text-xl font-bold leading-none text-blue-900 uppercase mb-1">{t('sales.records')}</h5>
-                <p className="text-sm text-blue-600">{t('sales.overview')}</p>
+                <h5 className="text-xl font-bold leading-none text-gray-900 uppercase mb-1">{t('sales.records')}</h5>
+                <p className="text-sm text-gray-700">{t('sales.overview')}</p>
               </div>
               <div className="flex items-center gap-2">
                 {selectedItems.length > 0 && (
@@ -1323,7 +1355,7 @@ export default function SalesPage() {
                   color="gray"
                   size="sm"
                   onClick={handleRefresh}
-                  className="bg-blue-100 text-blue-600 hover:bg-blue-200 font-medium px-3"
+                  className="bg-amber-100 text-amber-600 hover:bg-amber-200 font-medium px-3"
                 >
                   <HiRefresh className="h-4 w-4" />
                 </Button>
@@ -1331,7 +1363,7 @@ export default function SalesPage() {
                   <Button 
                     color="primary" 
                     size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3"
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-3"
                   >
                     <HiPlus className="h-4 w-4" />
                   </Button>
@@ -1452,7 +1484,7 @@ export default function SalesPage() {
         {/* Table Section (unchanged) */}
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
           <table className="w-full text-sm text-left text-gray-900">
-            <thead className="bg-blue-700 text-white">
+            <thead className="text-stone-50" style={{backgroundColor: '#e6d9c9'}}>
               <tr>
                 <th className="px-6 py-3">
                   <input
@@ -1466,32 +1498,32 @@ export default function SalesPage() {
                         setSelectedItems([]);
                       }
                     }}
-                    className="h-4 w-4 text-blue-600 border-blue-300 rounded"
+                    className="h-4 w-4 text-amber-600 border-amber-300 rounded"
                   />
                 </th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-blue-800" onClick={() => handleSort('date')}>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:opacity-80" onClick={() => handleSort('date')}>
                   <div className="flex items-center">{t('sales.fields.date')}{sortConfig.key === 'date' && (<span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>)}</div>
                 </th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-blue-800" onClick={() => handleSort('product')}>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:opacity-80" onClick={() => handleSort('product')}>
                   <div className="flex items-center">{t('sales.fields.product')}{sortConfig.key === 'product' && (<span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>)}</div>
                 </th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-blue-800" onClick={() => handleSort('channel')}>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:opacity-80" onClick={() => handleSort('channel')}>
                   <div className="flex items-center">{t('sales.fields.channel')}{sortConfig.key === 'channel' && (<span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>)}</div>
                 </th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-blue-800" onClick={() => handleSort('activityType')}>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:opacity-80" onClick={() => handleSort('activityType')}>
                   <div className="flex items-center">{t('sales.fields.activityType')}{sortConfig.key === 'activityType' && (<span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>)}</div>
                 </th>
-                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-blue-800" onClick={() => handleSort('amountFC')}>
+                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:opacity-80" onClick={() => handleSort('amountFC')}>
                   <div className="flex items-center justify-center">{t('sales.fields.amountFC')}{sortConfig.key === 'amountFC' && (<span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>)}</div>
                 </th>
                 <th className="px-6 py-3 font-semibold text-center">{t('sales.fields.exchangeRate')}</th>
-                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-blue-800" onClick={() => handleSort('amountUSD')}>
+                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:opacity-80" onClick={() => handleSort('amountUSD')}>
                   <div className="flex items-center justify-center">{t('sales.fields.amountUSD')}{sortConfig.key === 'amountUSD' && (<span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>)}</div>
                 </th>
                 <th className="px-6 py-3 font-semibold text-center">{t('sales.common.actions')}</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-blue-100">
+            <tbody className="bg-white divide-stone-300">
               {filteredSalesData.data
                 .sort((a, b) => {
                   const direction = sortConfig.direction === 'asc' ? 1 : -1;
@@ -1529,7 +1561,7 @@ export default function SalesPage() {
                   (currentPage - 1) * entriesPerPage,
                   currentPage * entriesPerPage
                 ).map((sale) => (
-                  <tr key={sale.id} className="hover:bg-blue-50">
+                  <tr key={sale.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
@@ -1541,7 +1573,7 @@ export default function SalesPage() {
                             setSelectedItems(prev => [...prev, sale.id]);
                           }
                         }}
-                        className="h-4 w-4 text-blue-600 border-blue-300 rounded"
+                        className="h-4 w-4 text-stone-600 border-stone-300 rounded"
                       />
                     </td>
                     {editingRow === sale.id ? (
@@ -1562,7 +1594,7 @@ export default function SalesPage() {
                               setEditingData(prev => ({ 
                                 ...prev, 
                                 productId: e.target.value,
-                                productName: selectedProduct?.productid || 'Unknown Product'
+                                productName: selectedProduct?.productid || t('sales.table.unknownProduct')
                               }));
                             }}
                             className="w-full"
@@ -1775,7 +1807,7 @@ export default function SalesPage() {
 
           {/* Pagination */}
           {filteredSalesData.data.length > entriesPerPage && (
-            <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-blue-100">
+            <div className="flex justify-between items-center px-6 py-4 border-t border-gray-200" style={{backgroundColor: '#eee5db'}}>
               <span className="text-sm text-gray-700">
                 {t('sales.table.showing', {
                   start: (currentPage - 1) * entriesPerPage + 1,
@@ -1789,7 +1821,8 @@ export default function SalesPage() {
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="bg-blue-100 text-blue-600 hover:bg-blue-200 disabled:bg-blue-50 disabled:text-blue-400 shadow-sm"
+                  className="text-gray-700 hover:opacity-80 disabled:opacity-50 shadow-sm border border-gray-300" 
+                  style={{backgroundColor: '#f6f2ec'}}
                 >
                   {t('sales.table.previous')}
                 </Button>
@@ -1798,7 +1831,8 @@ export default function SalesPage() {
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredSalesData.data.length / entriesPerPage)))}
                   disabled={currentPage === Math.ceil(filteredSalesData.data.length / entriesPerPage)}
-                  className="bg-blue-100 text-blue-600 hover:bg-blue-200 disabled:bg-blue-50 disabled:text-blue-400 shadow-sm"
+                  className="text-gray-700 hover:opacity-80 disabled:opacity-50 shadow-sm border border-gray-300"
+                  style={{backgroundColor: '#f6f2ec'}}
                 >
                   {t('sales.table.next')}
                 </Button>
@@ -1809,16 +1843,16 @@ export default function SalesPage() {
       </Card>
 
       {/* Summary Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="mb-6">
         {/* Year & Month Selector */}
-        <div className="lg:col-span-3 flex flex-col md:flex-row justify-start md:justify-between items-center gap-4 bg-white p-4 rounded-lg shadow">
+        <div className="flex flex-col md:flex-row justify-start md:justify-between items-center gap-4 bg-white p-4 rounded-lg shadow mb-4">
           <div className="flex gap-2 w-full md:w-auto">
             <Select
               value={summaryPeriod.year}
               onChange={(e) => {
                 setSummaryPeriod(prev => ({ ...prev, year: parseInt(e.target.value) }));
               }}
-              className="w-32 bg-white border-blue-200 text-blue-900 focus:border-blue-500 focus:ring-blue-500"
+              className="w-18 bg-white border-amber-200 text-amber-900 focus:border-amber-500 focus:ring-amber-500"
             >
               {availableYears.map(year => (
                 <option key={year} value={year}>{year}</option>
@@ -1829,189 +1863,199 @@ export default function SalesPage() {
               onChange={(e) => {
                 setSummaryPeriod(prev => ({ ...prev, month: parseInt(e.target.value) }));
               }}
-              className="w-32 bg-white border-blue-200 text-blue-900 focus:border-blue-500 focus:ring-blue-500"
+              className="w-34 bg-white border-amber-200 text-amber-900 focus:border-amber-500 focus:ring-amber-500"
             >
               {MONTHS.map((name, idx) => (
-                <option key={idx} value={idx + 1}>{name}</option>
+                <option key={idx} value={idx}>{name}</option>
               ))}
             </Select>
           </div>
         </div>
-
-        {/* Sales by Product Summary Table */}
-        <Card className="lg:col-span-1">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-blue-900">{t('sales.summary.byProduct')}</h3>
-            <Select
-              value={selectedProductType}
-              onChange={(e) => setSelectedProductType(e.target.value)}
-              className="w-40 bg-white border-blue-200 text-blue-900 focus:border-blue-500 focus:ring-blue-500"
-              size="sm"
-            >
-              <option value="">{t('filters.allProducts')}</option>
-              {uniqueProductTypes.map(type => {
-                // Enhanced translation key mapping for both French and English types
-                let translationKey;
-                const lowerType = type.toLowerCase();
-                
-                if (type === 'Block Ice' || type === 'Bloc de glace' || type === 'Bloc de Glace' || lowerType.includes('bloc')) {
-                  translationKey = 'products.types.blockIce';
-                } else if (type === 'Cube Ice' || type === 'Glaçons' || lowerType.includes('glaçon')) {
-                  translationKey = 'products.types.cubeIce';
-                } else if (type === 'Water Bottling' || type === 'Eau en bouteille' || lowerType.includes('eau en bouteille')) {
-                  translationKey = 'products.types.waterBottling';
-                } else if (type === 'Water Cans' || type === 'Bidon d\'eau' || type === 'Bidon D\'Eau' || lowerType.includes('bidon')) {
-                  translationKey = 'products.types.waterCans';
-                } else if (lowerType.includes('packaging') || lowerType.includes('emballage')) {
-                  if (lowerType.includes('cube') || lowerType.includes('glaçon')) {
-                    translationKey = 'products.types.packagingForIceCube';
-                  } else if (lowerType.includes('water') || lowerType.includes('eau')) {
-                    translationKey = 'products.types.packagingForWaterBottling';
-                  } else {
-                    translationKey = 'products.types.packaging';
-                  }
-                } else {
-                  translationKey = `products.types.${type.toLowerCase().replace(/\s+/g, '')}`;
-                }
-                
-                return (
-                  <option key={type} value={type}>
-                    {t(translationKey) || type}
-                  </option>
-                );
-              })}
-            </Select>
+        
+        {/* Tabbed Summary Tables */}
+        <Card className="overflow-hidden">
+          {/* Tabs Navigation */}
+          <div className="border-b border-gray-200">
+            <nav className="flex -mb-px" aria-label="Tabs">
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`${
+                  activeTab === 'products'
+                    ? "border-amber-600 text-stone-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center py-4 px-6 border-b-2 font-medium`}
+              >
+                {t('sales.summary.byProduct')}
+              </button>
+              <button
+                onClick={() => setActiveTab('activities')}
+                className={`${
+                  activeTab === 'activities'
+                    ? "border-amber-500 text-stone-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center py-4 px-6 border-b-2 font-medium`}
+              >
+                {t('sales.summary.byActivityType')}
+              </button>
+              <button
+                onClick={() => setActiveTab('channels')}
+                className={`${
+                  activeTab === 'channels'
+                    ? "border-green-300 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } flex items-center py-4 px-6 border-b-2 font-medium`}
+              >
+                {t('sales.summary.byChannel')}
+              </button>
+            </nav>
           </div>
+          
+          {/* Tab Content */}
+          <div className="p-6">
+            {/* Products Tab */}
+            {activeTab === 'products' && (
+              <div>
+                          <h3 className="text-lg font-semibold mb-4 text-gray-900">{t('sales.summary.byProduct')}</h3>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-900">
-              <thead className="bg-blue-50">
+            <table className="w-full text-left text-gray-900">
+                             <thead className="rounded-lg" style={{backgroundColor: '#f6f2ec'}}>
+                 <tr>
+                   <th className="px-6 py-3 font-semibold text-base text-gray-900 text-left">{t('sales.fields.product')}</th>
+                   <th className="px-6 py-3 font-semibold text-base text-gray-900 text-center">{t('sales.fields.amountUSD')}</th>
+                   <th className="px-6 py-3 font-semibold text-base text-gray-900 text-center">{t('common.amount_cdf')}</th>
+                   <th className="px-6 py-3 font-semibold text-base text-gray-900 text-center">{t('sales.summary.percentageOfTotal')}</th>
+                 </tr>
+               </thead>
+                             <tbody className="divide-y divide-gray-200">
+                 {(() => {
+                   const metrics = calculateSalesMetrics(periodData);
+                   
+                   // Group sales by individual products, then by product type
+                   const productSalesMap = periodData.reduce((acc, sale) => {
+                     const product = productMap.get(sale.productId);
+                     if (!product) return acc;
+                     
+                     const productType = product.producttype || t('sales.summary.unknownType');
+                     const productName = product.productid || t('sales.summary.unknownProduct');
+                     
+                     if (!acc[productType]) acc[productType] = {};
+                     if (!acc[productType][productName]) {
+                       acc[productType][productName] = { 
+                         totalUSD: 0, 
+                         totalCDF: 0, 
+                         product 
+                       };
+                     }
+                     
+                     acc[productType][productName].totalUSD += sale.amountUSD || 0;
+                     acc[productType][productName].totalCDF += sale.amountFC || 0;
+                     return acc;
+                   }, {});
+
+                   const rows = [];
+                   
+                   // Process each product type
+                   Object.entries(productSalesMap)
+                     .sort(([a], [b]) => a.localeCompare(b))
+                     .forEach(([productType, products]) => {
+                       // Calculate product type totals
+                       const productTypeUSD = Object.values(products).reduce((sum, p) => sum + p.totalUSD, 0);
+                       const productTypeCDF = Object.values(products).reduce((sum, p) => sum + p.totalCDF, 0);
+                       
+                       // Add product type header with totals
+                       rows.push(
+                         <tr key={`header-${productType}`} style={{backgroundColor: '#fdfbf9'}}>
+                           <td className="px-6 py-3 font-semibold text-base text-gray-900">
+                             {productType}
+                           </td>
+                           <td className="px-6 py-3 font-semibold text-base text-center">
+                             <span className="inline-block rounded-lg px-3 py-2 font-semibold text-gray-900 shadow-sm border border-gray-200" style={{backgroundColor: '#e6d9c9'}}>
+                               {productTypeUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
+                             </span>
+                           </td>
+                           <td className="px-6 py-3 font-semibold text-base text-center">
+                             <span className="inline-block rounded-lg px-3 py-2 font-semibold text-gray-900 shadow-sm border border-gray-200" style={{backgroundColor: '#eee5db'}}>
+                               {productTypeCDF.toLocaleString('en-US',{style:'currency',currency:'CDF',maximumFractionDigits:0})}
+                             </span>
+                           </td>
+                           <td className="px-6 py-3 font-semibold text-base text-center">
+                             <span className="inline-block rounded-lg px-3 py-2 font-semibold text-gray-900 shadow-sm border border-gray-200" style={{backgroundColor: '#f6f2ec'}}>
+                               {metrics.totalSales.amountUSD > 0 ? ((productTypeUSD / metrics.totalSales.amountUSD) * 100).toFixed(1) : 0}%
+                             </span>
+                           </td>
+                         </tr>
+                       );
+                       
+                       // Add individual products for this type
+                       Object.entries(products)
+                         .sort(([a], [b]) => a.localeCompare(b))
+                         .forEach(([productName, data]) => {
+                           rows.push(
+                             <tr key={`${productType}-${productName}`} className="hover:bg-gray-50">
+                               <td className="px-6 py-3 font-normal text-base text-gray-900 text-left pl-12">
+                                 {getTranslatedProductName(data.product, t)}
+                               </td>
+                               <td className="px-6 py-3 font-normal text-base text-center">
+                                 <span className="inline-block rounded-lg px-3 py-2 font-normal text-gray-900 shadow-sm border border-gray-200" style={{backgroundColor: '#f6f2ec'}}>
+                                   {data.totalUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
+                                 </span>
+                               </td>
+                               <td className="px-6 py-3 font-normal text-base text-center">
+                                 <span className="inline-block rounded-lg px-3 py-2 font-normal text-gray-900 shadow-sm border border-gray-200" style={{backgroundColor: '#f6f2ec'}}>
+                                   {(data.totalCDF || 0).toLocaleString('en-US',{style:'currency',currency:'CDF',maximumFractionDigits:0})}
+                                 </span>
+                               </td>
+                               <td className="px-6 py-3 text-center font-normal text-base text-gray-900">
+                                 <span className="inline-block rounded-lg px-3 py-2 font-normal text-gray-900 shadow-sm border border-gray-200" style={{backgroundColor: '#f6f2ec'}}>
+                                   {metrics.totalSales.amountUSD > 0 ? ((data.totalUSD / metrics.totalSales.amountUSD) * 100).toFixed(1) : 0}%
+                                 </span>
+                               </td>
+                             </tr>
+                           );
+                         });
+                     });
+
+                   // Add total row
+                   rows.push(
+                     <tr key="total" className="font-semibold border-t-2 border-gray-300" style={{backgroundColor: '#f6f2ec'}}>
+                       <td className="px-6 py-3 text-base text-left text-gray-900 font-semibold">Total</td>
+                       <td className="px-6 py-3 text-base text-center">
+                         <span className="inline-block rounded-lg px-3 py-2 font-semibold text-gray-900 shadow-md border border-gray-200" style={{backgroundColor: '#eee5db'}}>
+                           {metrics.totalSales.amountUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
+                         </span>
+                       </td>
+                       <td className="px-6 py-3 text-base text-center">
+                         <span className="inline-block rounded-lg px-3 py-2 font-semibold text-gray-900 shadow-md border border-gray-200" style={{backgroundColor: '#f6f2ec'}}>
+                           {(metrics.totalSales.amountCDF || 0).toLocaleString('en-US',{style:'currency',currency:'CDF',maximumFractionDigits:0})}
+                         </span>
+                       </td>
+                       <td className="px-6 py-3 text-base text-center text-gray-900 font-semibold"></td>
+                     </tr>
+                   );
+
+                   return rows;
+                 })()}
+               </tbody>
+             </table>
+          </div>
+                </div>
+              )}
+            
+            {/* Activities Tab */}
+            {activeTab === 'activities' && (
+              <div>
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">{t('sales.summary.byActivityType')}</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-gray-900">
+              <thead className="rounded-lg" style={{backgroundColor: '#f8efe6'}}>
                 <tr>
-                  <th className="px-6 py-3 font-semibold">{t('sales.fields.product')}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{t('sales.fields.amountUSD')}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{t('sales.summary.percentageOfTotal')}</th>
+                  <th className="px-6 py-3 font-semibold text-left text-amber-900">{t('sales.fields.activityType')}</th>
+                  <th className="px-6 py-3 font-semibold text-center text-amber-900">{t('sales.fields.amountUSD')}</th>
+                  <th className="px-6 py-3 font-semibold text-center text-amber-900">{t('common.amount_cdf')}</th>
+                  <th className="px-6 py-3 font-semibold text-center text-amber-900">{t('sales.summary.percentageOfTotal')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-blue-100">
-                {(() => {
-                  // Metrics for selected period
-                  const metrics = calculateSalesMetrics(periodData);
-                  
-                  // Enhanced product type filtering to support both French and English
-                  const filteredPeriodData = selectedProductType 
-                    ? periodData.filter(sale => {
-                        const product = productMap.get(sale.productId);
-                        const productType = product?.producttype;
-                        
-                        // Direct match
-                        if (productType === selectedProductType) return true;
-                        
-                        // Cross-language matching
-                        const lowerSelected = selectedProductType.toLowerCase();
-                        const lowerProduct = productType?.toLowerCase() || '';
-                        
-                        // Block Ice matching
-                        if ((lowerSelected.includes('block') || lowerSelected.includes('bloc')) && 
-                            (lowerProduct.includes('block') || lowerProduct.includes('bloc'))) {
-                          return true;
-                        }
-                        
-                        // Cube Ice matching  
-                        if ((lowerSelected.includes('cube') || lowerSelected.includes('glaçon')) && 
-                            (lowerProduct.includes('cube') || lowerProduct.includes('glaçon'))) {
-                          return true;
-                        }
-                        
-                        // Water Bottling matching
-                        if ((lowerSelected.includes('water bottling') || lowerSelected.includes('eau en bouteille')) && 
-                            (lowerProduct.includes('water bottling') || lowerProduct.includes('eau en bouteille'))) {
-                          return true;
-                        }
-                        
-                        // Water Cans matching
-                        if ((lowerSelected.includes('water can') || lowerSelected.includes('bidon')) && 
-                            (lowerProduct.includes('water can') || lowerProduct.includes('bidon'))) {
-                          return true;
-                        }
-                        
-                        return false;
-                      })
-                    : periodData;
-                  
-                  const productSales = filteredPeriodData.reduce((acc, sale) => {
-                    const product = productMap.get(sale.productId);
-                    const productName = product?.productid || 'Unknown Product';
-                    if (!acc[productName]) acc[productName] = { totalUSD: 0, product };
-                    acc[productName].totalUSD += sale.amountUSD || 0;
-                    return acc;
-                  }, {});
-
-                  // Calculate total for filtered data
-                  const filteredTotal = Object.values(productSales).reduce((sum, data) => sum + data.totalUSD, 0);
-
-                  const rows = Object.entries(productSales)
-                    .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
-                    .slice(0, 4) // Limit to 4 rows for consistent height
-                    .map(([productName, data]) => (
-                      <tr key={productName} className="hover:bg-blue-50">
-                        <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedProductName(data.product, t)}</td>
-                        <td className="px-6 py-4 font-semibold text-sm text-center">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {data.totalUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 font-semibold text-sm text-center">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {filteredTotal > 0 ? ((data.totalUSD / filteredTotal) * 100).toFixed(1) : 0}%
-                          </span>
-                        </td>
-                      </tr>
-                    ));
-                  
-                  // Add empty rows to maintain consistent height (4 rows total)
-                  const emptyRowsNeeded = Math.max(0, 4 - rows.length);
-                  for (let i = 0; i < emptyRowsNeeded; i++) {
-                    rows.push(
-                      <tr key={`empty-${i}`} className="h-12">
-                        <td className="px-6 py-4">&nbsp;</td>
-                        <td className="px-6 py-4">&nbsp;</td>
-                        <td className="px-6 py-4">&nbsp;</td>
-                      </tr>
-                    );
-                  }
-                  
-                  return (
-                    <>
-                      {rows}
-                      <tr className="bg-blue-50 font-semibold border-t-2 border-blue-200">
-                        <td className="px-6 py-4 text-base">Total</td>
-                        <td className="px-6 py-4 text-base text-center">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {filteredTotal.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-base text-center">100%</td>
-                      </tr>
-                    </>
-                  );
-                })()}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-        {/* Sales by Activity Type Table */}
-        <Card className="lg:col-span-1">
-          <h3 className="text-lg font-semibold mb-4 text-blue-900">{t('sales.summary.byActivityType')}</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-900">
-              <thead className="bg-blue-50">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">{t('sales.fields.activityType')}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{t('sales.fields.amountUSD')}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{t('sales.summary.percentageOfTotal')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-blue-100">
+              <tbody className="divide-y divide-gray-200">
                 {(() => {
                   const metrics = calculateSalesMetrics(periodData);
                   // Group sales by activityTypeId
@@ -2019,8 +2063,9 @@ export default function SalesPage() {
                     const activityType = activityTypeMap.get(sale.activityTypeId);
                     const normalizedName = activityType?.name ? activityType.name.toLowerCase().replace(/\s+/g, '_') : null;
                     const key = normalizedName || 'undefined';
-                    if (!acc[key]) acc[key] = { totalUSD: 0, activityType };
+                    if (!acc[key]) acc[key] = { totalUSD: 0, totalCDF: 0, activityType };
                     acc[key].totalUSD += sale.amountUSD || 0;
+                    acc[key].totalCDF += sale.amountFC || 0;
                     return acc;
                   }, {});
                   const rows = Object.entries(activitySalesMap)
@@ -2028,36 +2073,46 @@ export default function SalesPage() {
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
                     .slice(0, 5) // Limit to 5 rows for consistent height
                     .map(([key, data]) => (
-                      <tr key={key} className="hover:bg-blue-50">
-                        <td className="px-6 py-4 font-semibold text-sm text-blue-900">{getTranslatedActivityTypeName(data.activityType, t)}</td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-green-900 shadow-sm border border-green-100">
+                      <tr key={key} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 font-normal text-amber-900 text-left">{getTranslatedActivityTypeName(data.activityType, t)}</td>
+                        <td className="px-6 py-4 font-normal text-center">
+                          <span className="inline-block rounded-lg px-3 py-2 font-normal text-amber-900 shadow-sm border" style={{backgroundColor: '#f4ebe2', borderColor: '#e3c7ab'}}>
                             {data.totalUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-center font-semibold text-sm text-blue-900">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {metrics.totalSales.amountUSD>0?((data.totalUSD/metrics.totalSales.amountUSD)*100).toFixed(1):0}%
+                        <td className="px-6 py-4 font-normal text-center">
+                          <span className="inline-block rounded-lg px-3 py-2 font-normal text-amber-900 shadow-sm border" style={{backgroundColor: '#f4ebe2', borderColor: '#e3c7ab'}}>
+                            {(data.totalCDF || 0).toLocaleString('en-US',{style:'currency',currency:'CDF',maximumFractionDigits:0})}
                           </span>
                         </td>
+                                                 <td className="px-6 py-4 text-center font-medium text-gray-900">
+                           <span className="inline-block rounded-lg px-3 py-2 font-medium text-amber-900 shadow-sm border" style={{backgroundColor: '#f4ebe2', borderColor: '#e3c7ab'}}>
+                             {metrics.totalSales.amountUSD>0?((data.totalUSD/metrics.totalSales.amountUSD)*100).toFixed(1):0}%
+                           </span>
+                         </td>
                       </tr>
                     ));
                   // Add fallback for unknown/missing activityTypeId
                   const unknown = activitySalesMap['undefined'];
                   if (unknown && unknown.totalUSD > 0 && rows.length < 5) {
                     rows.push(
-                      <tr key="unknown" className="hover:bg-blue-50">
-                        <td className="px-6 py-4 font-semibold text-sm text-blue-900">{t('common.undefined', 'Non défini')}</td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
+                      <tr key="unknown" className="hover:bg-gray-50">
+                        <td className="px-6 py-4 font-medium text-gray-900 text-center">{t('common.undefined', 'Non défini')}</td>
+                        <td className="px-6 py-4 font-medium text-center">
+                          <span className="inline-block rounded-lg px-3 py-2 font-medium text-amber-900 shadow-sm border" style={{backgroundColor: '#e3c7ab', borderColor: '#e1c4a5'}}>
                             {unknown.totalUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-center font-semibold text-sm text-blue-900">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
-                            {metrics.totalSales.amountUSD>0?((unknown.totalUSD/metrics.totalSales.amountUSD)*100).toFixed(1):0}%
+                        <td className="px-6 py-4 font-medium text-center">
+                          <span className="inline-block rounded-lg px-3 py-2 font-medium text-amber-900 shadow-sm border" style={{backgroundColor: '#e5ceb7', borderColor: '#e3c7ab'}}>
+                            {(unknown.totalCDF || 0).toLocaleString('en-US',{style:'currency',currency:'CDF',maximumFractionDigits:0})}
                           </span>
                         </td>
+                                                 <td className="px-6 py-4 text-center font-medium text-gray-900">
+                           <span className="inline-block rounded-lg px-3 py-2 font-semibold text-amber-900 shadow-sm border" style={{backgroundColor: '#e1c4a5', borderColor: '#e3c7ab'}}>
+                             {metrics.totalSales.amountUSD>0?((unknown.totalUSD/metrics.totalSales.amountUSD)*100).toFixed(1):0}%
+                           </span>
+                         </td>
                       </tr>
                     );
                   }
@@ -2070,6 +2125,7 @@ export default function SalesPage() {
                         <td className="px-6 py-4">&nbsp;</td>
                         <td className="px-6 py-4">&nbsp;</td>
                         <td className="px-6 py-4">&nbsp;</td>
+                        <td className="px-6 py-4">&nbsp;</td>
                       </tr>
                     );
                   }
@@ -2077,14 +2133,19 @@ export default function SalesPage() {
                   return (
                     <>
                       {rows}
-                      <tr className="bg-blue-50 font-semibold border-t-2 border-blue-200">
-                        <td className="px-6 py-4 text-base">Total </td>
+                      <tr className="font-semibold border-t-2" style={{backgroundColor: '#f8efe6', borderColor: '#e3c7ab'}}>
+                        <td className="px-6 py-4 text-base text-left text-amber-900">Total </td>
                         <td className="px-6 py-4 text-base text-center">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
+                          <span className="inline-block rounded-lg px-3 py-2 font-semibold text-amber-900 shadow-md border" style={{backgroundColor: '#e1c4a5', borderColor: '#e3c7ab'}}>
                             {metrics.totalSales.amountUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2})}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-base text-center">100%</td>
+                        <td className="px-6 py-4 text-base text-center">
+                          <span className="inline-block rounded-lg px-3 py-2 font-semibold text-amber-900 shadow-md border" style={{backgroundColor: '#e3c7ab', borderColor: '#e1c4a5'}}>
+                            {(metrics.totalSales.amountCDF || 0).toLocaleString('en-US',{style:'currency',currency:'CDF',maximumFractionDigits:0})}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-base text-center text-amber-900 font-bold"></td>
                       </tr>
                     </>
                   );
@@ -2092,21 +2153,24 @@ export default function SalesPage() {
               </tbody>
             </table>
           </div>
-        </Card>
-
-        {/* Sales by Channel Table */}
-        <Card className="lg:col-span-1">
-          <h3 className="text-lg font-semibold mb-4 text-blue-900">{t('sales.summary.byChannel')}</h3>
+                </div>
+              )}
+            
+            {/* Channels Tab */}
+            {activeTab === 'channels' && (
+              <div>
+          <h3 className="text-lg font-semibold mb-4 text-green-900">{t('sales.summary.byChannel')}</h3>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-900">
-              <thead className="bg-blue-50">
+            <table className="w-full text-left text-gray-900">
+              <thead className="bg-green-50 rounded-lg">
                 <tr>
-                  <th className="px-6 py-3 font-semibold">{t('sales.fields.channel')}</th>
-                  <th className="px-6 py-3 font-semibold text-right">{t('sales.fields.amountUSD')}</th>
-                  <th className="px-6 py-3 font-semibold text-right">{t('sales.summary.percentageOfTotal')}</th>
+                  <th className="px-6 py-3 font-semibold text-left">{t('sales.fields.channel')}</th>
+                  <th className="px-6 py-3 font-semibold text-center">{t('sales.fields.amountUSD')}</th>
+                  <th className="px-6 py-3 font-semibold text-center">{t('common.amount_cdf')}</th>
+                  <th className="px-6 py-3 font-semibold text-center">{t('sales.summary.percentageOfTotal')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-blue-100">
+              <tbody className="divide-y divide-green-100">
                 {(() => {
                   const metrics = calculateSalesMetrics(periodData);
                   const channelSales = periodData.reduce((acc, sale) => {
@@ -2114,10 +2178,12 @@ export default function SalesPage() {
                     if (!acc[channel]) {
                       acc[channel] = {
                         totalUSD: 0,
+                        totalCDF: 0,
                         count: 0
                       };
                     }
                     acc[channel].totalUSD += sale.amountUSD || 0;
+                    acc[channel].totalCDF += sale.amountFC || 0;
                     acc[channel].count++;
                     return acc;
                   }, {});
@@ -2125,15 +2191,20 @@ export default function SalesPage() {
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
                     .slice(0, 5) // Limit to 5 rows for consistent height
                     .map(([channel, data]) => (
-                      <tr key={channel} className="hover:bg-blue-50">
-                        <td className="px-6 py-4 font-semibold text-sm text-blue-900">{t(`sales.channels.${channel}`, channel)}</td>
-                        <td className="px-6 py-4 text-center font-semibold text-sm text-blue-900">
-                          <span className="inline-block rounded-lg bg-green-50 px-3 py-2 font-semibold text-green-900 shadow-sm border border-green-100">
+                      <tr key={channel} className="hover:bg-green-50">
+                        <td className="px-6 py-4 font-normal text-green-900 text-left">{t(`sales.channels.${channel}`, channel)}</td>
+                        <td className="px-6 py-4 text-center font-normal text-green-900">
+                          <span className="inline-block rounded-lg bg-green-50 px-3 py-2 font-normal text-green-900 shadow-sm border border-green-100">
                             {String(data.totalUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }))}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-center font-semibold text-sm text-blue-900">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
+                        <td className="px-6 py-4 text-center font-normal text-green-900">
+                          <span className="inline-block rounded-lg bg-green-50 px-3 py-2 font-normal text-green-900 shadow-sm border border-green-100">
+                            {String((data.totalCDF || 0).toLocaleString('en-US', { style: 'currency', currency: 'CDF', maximumFractionDigits: 0 }))}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center font-medium text-green-900">
+                          <span className="inline-block rounded-lg bg-green-50 px-3 py-2 font-medium text-green-900 shadow-sm border border-green-100">
                             {String(((data.totalUSD / metrics.totalSales.amountUSD) * 100).toFixed(1))}%
                           </span>
                         </td>
@@ -2148,6 +2219,7 @@ export default function SalesPage() {
                         <td className="px-6 py-4">&nbsp;</td>
                         <td className="px-6 py-4">&nbsp;</td>
                         <td className="px-6 py-4">&nbsp;</td>
+                        <td className="px-6 py-4">&nbsp;</td>
                       </tr>
                     );
                   }
@@ -2155,20 +2227,28 @@ export default function SalesPage() {
                   return (
                     <>
                       {rows}
-                      <tr className="bg-blue-50 font-semibold border-t-2 border-blue-200">
-                        <td className="px-6 py-4 text-base">Total</td>
+                      <tr className="bg-green-50 font-semibold border-t-2 border-green-200">
+                        <td className="px-6 py-4 text-base text-left">Total</td>
                         <td className="px-6 py-4 text-base text-center">
-                          <span className="inline-block rounded-lg bg-blue-50 px-3 py-2 font-semibold text-blue-900 shadow-sm border border-blue-100">
+                          <span className="inline-block rounded-lg bg-green-50 px-3 py-2 font-semibold text-green-900 shadow-sm border border-green-100">
                             {String(metrics.totalSales.amountUSD.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}))}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-base text-center">100%</td>
+                        <td className="px-6 py-4 text-base text-center">
+                          <span className="inline-block rounded-lg bg-green-50 px-3 py-2 font-semibold text-green-900 shadow-sm border border-green-100">
+                            {String((metrics.totalSales.amountCDF || 0).toLocaleString('en-US',{style:'currency',currency:'CDF',maximumFractionDigits:0}))}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 bg-green-50 text-base text-center shadow-sm border border-green-100"></td>
                       </tr>
                     </>
                   );
                 })()}
               </tbody>
             </table>
+          </div>
+                </div>
+              )}
           </div>
         </Card>
       </div>
@@ -2196,7 +2276,7 @@ export default function SalesPage() {
                 }, {});
                 const sortedEntries = Object.entries(salesByDate).sort(([a], [b]) => Number(a) - Number(b));
                 if (sortedEntries.length === 0) {
-                  return <div className="h-full flex items-center justify-center text-gray-400">No data available</div>;
+                  return <div className="h-full flex items-center justify-center text-gray-400">{t('common.noData', 'Pas de données')}</div>;
                 }
                 const series = [{
                   name: 'Sales',
@@ -2240,7 +2320,7 @@ export default function SalesPage() {
                   .sort((a, b) => b.y - a.y)
                   .slice(0, 6);
                 if (data.length === 0) {
-                  return <div className="text-gray-400">No data</div>;
+                  return <div className="text-gray-400">{t('common.noData', 'Pas de données')}</div>;
                 }
                 const series = [{
                   name: 'Sales',

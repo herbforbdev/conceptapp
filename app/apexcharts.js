@@ -57,6 +57,11 @@ function Chart({ options, series, type, width, height }) {
     theme: {
       mode: 'light'
     },
+    legend: {
+      labels: {
+        colors: '#000000'
+      }
+    },
     stroke: {
       curve: 'smooth',
       width: 2

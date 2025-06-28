@@ -60,7 +60,7 @@ export interface Inventory {
   id: string;
   date: Date;
   productId: string;
-  movementType: 'In' | 'Out' | 'Adjustment';
+  movementType: 'OPENING' | 'IN' | 'OUT' | 'ADJUSTMENT';
   initialQuantity: number;
   quantityMoved: number;
   remainingQuantity: number;

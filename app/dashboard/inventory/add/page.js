@@ -270,7 +270,9 @@ export default function AddInventoryPage() {
         const initialQty = Number(updated.initialQuantity) || 0;
         const movedQty = Number(updated.quantityMoved) || 0;
         
-        if (updated.movementType === "IN") {
+        if (updated.movementType === "OPENING") {
+          updated.remainingQuantity = movedQty; // Opening stock = quantity moved
+        } else if (updated.movementType === "IN") {
           updated.remainingQuantity = initialQty + movedQty;
         } else if (updated.movementType === "OUT") {
           updated.remainingQuantity = initialQty - movedQty;
@@ -516,6 +518,7 @@ export default function AddInventoryPage() {
                         className="w-full text-sm focus:ring-purple-500 focus:border-purple-500 rounded-lg"
                       >
                         <option value="">{t('inventory.filters.allMovementTypes')}</option>
+                        <option value="OPENING">{t('inventory.table.opening', 'Opening Stock')}</option>
                         <option value="IN">{t('inventory.table.stockIn')}</option>
                         <option value="OUT">{t('inventory.table.stockOut')}</option>
                         <option value="ADJUSTMENT">{t('inventory.table.adjustment')}</option>

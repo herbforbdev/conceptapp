@@ -24,7 +24,7 @@ export default function Header() {
   };
 
   return (
-    <header className="w-full flex items-center justify-between px-8 py-4 bg-white rounded-2xl shadow-lg border border-[#cdd7df] mt-4 mb-8 mx-auto max-w-[98vw] min-h-[72px] sticky top-4 z-40">
+    <header className="w-full flex items-center justify-between px-8 py-4 bg-white rounded-2xl shadow-lg border border-[#cdd7df] mt-4 mb-1 mx-auto max-w-[98vw] min-h-[72px] sticky top-4 z-40">
       {/* Left: Greeting */}
       <div className="flex items-center gap-4 min-w-[260px]">
         <span className="text-2xl font-extrabold text-[#031b31] tracking-tight">

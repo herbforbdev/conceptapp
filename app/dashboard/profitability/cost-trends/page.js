@@ -59,7 +59,9 @@ export default function CostTrendsPage() {
   useEffect(() => {
     if (!costs || !expenseTypes) return;
 
-    const years = [...new Set(costs.map(c => new Date(c.date.seconds * 1000).getFullYear()))].sort((a, b) => b - a);
+    const years = [...new Set(costs.map(c => new Date(c.date.seconds * 1000).getFullYear()))]
+      .filter(year => !isNaN(year))
+      .sort((a, b) => b - a);
     setAvailableYears(years);
     
     // Filter costs based on selected year and month
@@ -77,7 +79,7 @@ export default function CostTrendsPage() {
       const sortKey = `${year}-${month.toString().padStart(2, '0')}`; // e.g., "2025-02" for March
       
       // Create consistent month label using month names array
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Dec'];
       const label = `${monthNames[month]} ${year}`;
       
       if (!acc[sortKey]) acc[sortKey] = { 
@@ -203,7 +205,7 @@ export default function CostTrendsPage() {
     <div className="p-4 bg-gray-50">
       <div className="mb-4">
         <Link href="/dashboard/reports" className="inline-flex items-center bg-[#b70000] text-white rounded px-4 py-2 hover:bg-[#ac172d] transition">
-          <HiArrowNarrowLeft className="mr-2 h-5 w-5" /> {t('cost_trends.title')}
+          <HiArrowNarrowLeft className="mr-2 h-5 w-5" /> {t('reports.title')}
         </Link>
       </div>
       <h1 className="text-2xl font-bold mb-6 text-red-700">{t('cost_trends.title')}</h1>

@@ -56,7 +56,8 @@
     "summary": "Summary",
     "costs_by_type": "Costs by type",
     "transactions": "Transactions",
-    "Pourcentage": "Percentage"
+    "Pourcentage": "Percentage",
+    "adding": "Adding..."
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -366,26 +367,8 @@
     }
   },
   "inventory": {
-    "title": "Inventory",
-    "dashboard": {
-      "top_products": "Top 3 Best-Selling Products",
-      "top_expenses": "Top 3 Expenses",
-      "no_data": "No data available",
-      "summary": {
-        "title": "Summary",
-        "productivity": "Productivity",
-        "growth": "Growth"
-      },
-      "kpi": {
-        "title": "Key Performance Indicators",
-        "production": "Production",
-        "inventory": "Inventory",
-        "costs": "Costs",
-        "sales": "Sales"
-      },
-      "sales_trend": "Sales Trend",
-      "costs_trend": "Cost Trend"
-    },
+    "title": "Inventory Management",
+    "dashboard": "Inventory Dashboard",
     "fields": {
       "product": "Product",
       "year": "Year",
@@ -410,7 +393,9 @@
       "delete": "Delete",
       "edit": "Edit",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "setupOpening": "Setup Opening Stock",
+      "quickAdjust": "Quick Adjust"
     },
     "filters": {
       "activityType": "Activity Type",
@@ -442,7 +427,8 @@
       "stockOut": "Stock Out",
       "adjustment": "Adjustment",
       "stockAdjustment": "Stock Adjustment",
-      "activityType": "Activity Type"
+      "activityType": "Activity Type",
+      "opening": "Opening Stock"
     },
     "add": {
       "title": "Add Inventory Movement",
@@ -508,6 +494,48 @@
       "source": "Source",
       "addNew": "Add new source",
       "edit": "Edit source"
+    },
+    "openingStock": {
+      "title": "Setup Opening Stock",
+      "info": {
+        "title": "One-time Setup",
+        "description": "This establishes the starting inventory for a product. Only needed once per product."
+      },
+      "fields": {
+        "quantity": "Opening Quantity"
+      },
+      "actions": {
+        "add": "Add Opening Stock"
+      },
+      "error": {
+        "fillAllFields": "Please fill all required fields",
+        "positiveQuantity": "Quantity must be positive",
+        "alreadyExists": "Opening stock already exists for this product",
+        "failed": "Failed to add opening stock"
+      }
+    },
+    "quickAdjustment": {
+      "title": "Quick Stock Adjustment",
+      "info": {
+        "title": "Daily Reconciliation",
+        "description": "Quickly adjust stock levels to match actual inventory counts. Use positive numbers to increase stock, negative to decrease."
+      },
+      "fields": {
+        "quantity": "Adjustment Quantity",
+        "quantityHint": "+/- numbers",
+        "quantityHelp": "Positive to add stock, negative to reduce stock",
+        "reason": "Reason (Optional)",
+        "reasonPlaceholder": "e.g., Physical count correction, damaged goods, etc."
+      },
+      "actions": {
+        "adjust": "Adjust Stock",
+        "adjusting": "Adjusting..."
+      },
+      "error": {
+        "fillAllFields": "Please fill all required fields",
+        "nonZeroQuantity": "Adjustment quantity cannot be zero",
+        "failed": "Failed to add adjustment"
+      }
     }
   },
   "production": {

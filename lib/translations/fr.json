@@ -62,7 +62,10 @@
     "transactions": "Transactions",
     "costs_by_type": "Coûts par Type",
     "costs_by_activity": "Coûts par Activité",
-    "Pourcentage": "Pourcentage"
+    "Pourcentage": "Pourcentage",
+    "select": "Sélectionner...",
+    "cancel": "Annuler",
+    "adding": "Ajout en cours..."
   },
   "navigation": {
     "dashboard": "Tableau de bord",
@@ -391,148 +394,103 @@
   },
     
   "inventory": {
-    "title": "Inventaire",
-    "dashboard": {
-      "top_products": "Top 3 produits les plus vendus",
-      "top_expenses": "Top 3 des dépenses",
-      "no_data": "Aucune donnée disponible",
-      "summary": {
-        "title": "Résumé",
-        "productivity": "Productivité",
-        "growth": "Croissance"
-      },
-      "kpi": {
-        "title": "Indicateurs clés de performance",
-        "production": "Production",
-        "inventory": "Inventaire",
-        "costs": "Coûts",
-        "sales": "Ventes"
-      },
-      "sales_trend": "Tendance des ventes",
-      "costs_trend": "Tendance des coûts"
+    "title": "Gestion des Stocks",
+    "dashboard": "Tableau de Bord Inventaire",
+    "table": {
+      "opening": "Stock d'Ouverture",
+      "stockIn": "Entrée de Stock",
+      "stockOut": "Sortie de Stock", 
+      "adjustment": "Ajustement",
+      "movementType": "Type de Mouvement",
+      "selectMovementType": "Sélectionner le Type de Mouvement",
+      "allMovementTypes": "Tous les Types de Mouvement"
     },
-    "fields": {
-      "product": "Produit",
-      "year": "Année",
-      "month": "Mois",
-      "quantity": "Quantité",
-      "unitPrice": "Prix unitaire",
-      "totalPrice": "Prix total",
-      "date": "Date"
-    },
-    "records": {
-      "title": "Registre d'inventaire",
-      "loading": "Chargement des enregistrements d'inventaire...",
-      "noRecords": "Aucun enregistrement d'inventaire trouvé correspondant aux filtres sélectionnés.",
-      "showing": "Affichage de",
-      "to": "à",
-      "of": "sur",
-      "entries": "entrées"
+    "charts": {
+      "waterCansPackaging": "Emballage pour Bidon d'eau",
+      "waterBottlingPackaging": "Emballage pour Eau en bouteille",
+      "cubeIcePackaging": "Emballage pour Glaçons",
+      "warningThreshold": "Seuil de déclenchement"
     },
     "actions": {
-      "refresh": "Actualiser",
-      "add": "Ajouter",
-      "delete": "Supprimer",
-      "edit": "Modifier",
-      "previous": "Précédent",
-      "next": "Suivant"
+      "setupOpening": "Configurer Stock d'Ouverture",
+      "quickAdjust": "Ajustement Rapide"
+    },
+    "openingStock": {
+      "title": "Configurer Stock d'Ouverture",
+      "info": {
+        "title": "Configuration Unique",
+        "description": "Ceci établit l'inventaire de départ pour un produit. Nécessaire seulement une fois par produit."
+      },
+      "fields": {
+        "quantity": "Quantité d'Ouverture"
+      },
+      "actions": {
+        "add": "Ajouter Stock d'Ouverture"
+      },
+      "error": {
+        "fillAllFields": "Veuillez remplir tous les champs requis",
+        "positiveQuantity": "La quantité doit être positive",
+        "alreadyExists": "Le stock d'ouverture existe déjà pour ce produit",
+        "failed": "Échec de l'ajout du stock d'ouverture"
+      }
+    },
+    "quickAdjustment": {
+      "title": "Ajustement Rapide de Stock",
+      "info": {
+        "title": "Réconciliation Quotidienne",
+        "description": "Ajustez rapidement les niveaux de stock pour correspondre aux comptes d'inventaire réels. Utilisez des nombres positifs pour augmenter le stock, négatifs pour diminuer."
+      },
+      "fields": {
+        "quantity": "Quantité d'Ajustement",
+        "quantityHint": "nombres +/-",
+        "quantityHelp": "Positif pour ajouter du stock, négatif pour réduire le stock",
+        "reason": "Raison (Optionnel)",
+        "reasonPlaceholder": "ex., Correction de comptage physique, marchandises endommagées, etc."
+      },
+      "actions": {
+        "adjust": "Ajuster le Stock",
+        "adjusting": "Ajustement en cours..."
+      },
+      "error": {
+        "fillAllFields": "Veuillez remplir tous les champs requis",
+        "nonZeroQuantity": "La quantité d'ajustement ne peut pas être zéro",
+        "failed": "Échec de l'ajout de l'ajustement"
+      }
     },
     "filters": {
-      "activityType": "Type d'activité",
+      "activityType": "Type d'Activité",
       "product": "Produit",
-      "movementType": "Type de mouvement",
+      "movementType": "Type de Mouvement",
       "allMonths": "Tous les mois",
-      "fromMonth": "De mois",
-      "toMonth": "À mois",
+      "fromMonth": "Du mois",
+      "toMonth": "Au mois",
       "allYears": "Toutes les années",
       "allActivityTypes": "Tous les types d'activité",
       "allProducts": "Tous les produits",
       "allMovementTypes": "Tous les types de mouvement",
-      "selectMonth": "Sélectionner un mois",
-      "selectYear": "Sélectionner une année"
+      "selectMonth": "Sélectionner le mois",
+      "selectYear": "Sélectionner l'année"
     },
-    "table": {
+    "fields": {
       "date": "Date",
       "product": "Produit",
-      "movementType": "Type de mouvement",
-      "initialQuantity": "Qté initiale",
-      "quantityMoved": "Qté déplacée",
-      "remaining": "Restant",
-      "actions": "Actions",
-      "source": "Source",
-      "stockIn": "Entrée en stock",
-      "stockOut": "Sortie de stock",
-      "adjustment": "Ajustement",
-      "stockAdjustment": "Ajustement de stock",
-      "activityType": "Type d'activité"
-    },
-    "add": {
-      "title": "Ajouter un mouvement d'inventaire",
-      "selectProduct": "Sélectionner un produit",
-      "selectType": "Sélectionner un type",
-      "addRow": "Ajouter une ligne",
-      "submit": "Soumettre",
-      "addDescription": "Ajoutez de nouveaux mouvements d'inventaire",
-      "backToInventory": "Retour à l'inventaire",
-      "entry": "entrée",
-      "entries": "entrées",
-      "currentStock": "Stock actuel",
-      "noProducts": "Aucun produit disponible pour ce type d'activité",
-      "error": {
-        "addAtLeastOne": "Ajoutez au moins un mouvement d'inventaire",
-        "selectDate": "Veuillez sélectionner une date pour toutes les entrées",
-        "selectMovementType": "Veuillez sélectionner un type de mouvement pour toutes les entrées",
-        "selectActivityType": "Veuillez sélectionner un type d'activité pour toutes les entrées",
-        "selectProduct": "Veuillez sélectionner un produit pour toutes les entrées",
-        "quantityMoved": "La quantité déplacée doit être supérieure à 0 pour toutes les entrées",
-        "failed": "Échec de l'ajout des mouvements d'inventaire"
-      }
-    },
-    "edit": {
-      "title": "Modifier le mouvement d'inventaire",
-      "currentStock": "Stock actuel pour",
-      "maxQuantity": "Maximum : {value} unités"
+      "activityType": "Type d'Activité"
     },
     "summary": {
+      "title": "Résumé de l'inventaire",
+      "product": "Produit",
+      "quantity": "Quantité",
+      "stock": "Stock",
+      "percentageTotal": "% du total",
       "totalInventory": "Inventaire total",
       "monthlyMovements": "Mouvements mensuels",
-      "blockIceStock": "Stock de Bloc de Glace",
+      "blockIceStock": "Stock de Glace en Blocs",
       "cubeIceStock": "Stock de Glaçons",
       "waterBottlingStock": "Stock d'Eau en bouteille",
-      "packagingStock": "Stock d'Emballages",
-      "stock": "Stock",
-      "iceCubeProducts": "Produits Glaçons",
-      "waterBottlingProducts": "Produits Eau en bouteille"
-    },
-    "initial_quantity": "Quantité initiale",
-    "quantity_moved": "Quantité déplacée",
-    "remaining_quantity": "Quantité restante",
-    "movement_type": "Type de mouvement",
-    "stock_in": "Entrée en stock",
-    "stock_out": "Sortie de stock",
-    "adjustment": "Ajustement",
-    "thresholds": {
-      "iceCubes": "Seuil pour Glaçons",
-      "bottles": "Seuil pour Bouteilles",
-      "warning": "Seuil d'avertissement"
-    },
-    "charts": {
-      "iceCubePackaging": "Stock d'Emballage pour Glaçons",
-      "waterBottlingPackaging": "Stock d'Emballage pour Eau en bouteille",
-      "waterCansPackaging": "Stock d'Emballage pour Bidons d'Eau",
-      "threshold": "Seuil"
-    },
-    "source": {
-      "title": "Source",
-      "all": "Toutes les sources",
-      "production": "Production",
-      "consumption": "Consommation",
-      "sales": "Ventes",
-      "manual": "Manuel",
-      "description": "Source des données",
-      "source": "Source",
-      "addNew": "Ajouter une nouvelle source",
-      "edit": "Modifier la source"
+      "packagingStock": "Stock d'Emballage",
+      "thresholdCubeIce": "Seuil de Glaçons",
+      "thresholdWaterBottling": "Seuil d'Eau en bouteille",
+      "thresholdWaterCans": "Seuil de Bidon d'eau"
     }
   },
   "production": {
@@ -647,7 +605,9 @@
       "byActivity": "Ventes par type d'activité",
       "byChannel": "Ventes par canal",
       "percentageOfTotal": "Pourcentage du total",
-      "byActivityType": "Ventes par type d'activité"
+      "byActivityType": "Ventes par type d'activité",
+      "unknownType": "Type inconnu",
+      "unknownProduct": "Produit inconnu"
     },
     "filters": {
       "channel": "Canal",
@@ -674,6 +634,7 @@
       "data": "Chargement des données...",
       "sales": "Chargement des ventes...",
       "products": "Chargement des produits...",
+      "title": "Chargement des données...",
       "activityTypes": "Chargement des types d'activité..."
     },
     "actions": {
@@ -690,7 +651,8 @@
       "next": "Suivant",
       "of": "sur",
       "entries": "entrées",
-      "quantitySold": "Quantité vendue"
+      "quantitySold": "Quantité vendue",
+      "unknownProduct": "Produit inconnu"
     },
     "metrics": {
       "totalSales": "Ventes totales",
@@ -995,7 +957,7 @@
         
         "maintenance___repairs_of_rolling_equipment": "Entretien & Réparations de l'Équipement Roulant",
         "carburant_générateur": "Carburant Générateur",
-        
+        "charges_du_personnel": "Charges du Personnel",
         "personnel": "Charges du Personnel",
         "dépenses_diverses": "Dépenses Diverses",
         "soins_médicaux": "Soins Médicaux",

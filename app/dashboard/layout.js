@@ -17,11 +17,11 @@ export default function DashboardLayout({ children }) {
         <Header toggleSidebar={toggleSidebar} />
 
         {/* Main content area: add top and bottom margin for header and footer */}
-        <div className="flex flex-1 pt-8 md:pt-12 pb-16 bg-transparent">
+        <div className="flex flex-1 pt-4 md:pt-6 pb-16 bg-transparent">
           {/* Sidebar: fixed on small screens, with top & bottom offsets */}
           <Sidebar isOpen={sidebarOpen} />
           {/* Main page content */}
-          <main className="flex-1 p-8 bg-[#fffafa]">
+          <main className="flex-1 p-2 md:p-4 bg-[#fffafa]">
             {children}
           </main>
         </div>

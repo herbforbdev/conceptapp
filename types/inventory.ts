@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 
-export type MovementType = 'IN' | 'OUT' | 'ADJUSTMENT';
+export type MovementType = 'OPENING' | 'IN' | 'OUT' | 'ADJUSTMENT';
 
 export interface InventoryEntry {
   id: string;
@@ -13,7 +13,7 @@ export interface InventoryEntry {
   productName: string;
   activityTypeId: string;
   activityTypeName: string;
-  source?: 'production' | 'consumption' | 'sales' | 'manual';
+  source?: 'opening' | 'production' | 'consumption' | 'sales' | 'manual';
   relatedId?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
