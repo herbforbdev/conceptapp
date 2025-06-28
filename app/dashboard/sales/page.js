@@ -842,60 +842,40 @@ export default function SalesPage() {
         // Match activity ID - Trim whitespace from both IDs
         const matchesActivity = (product.activitytypeid || '').trim() === activityTypeId.trim();
         
-        // Check product type - CASE SENSITIVE MATCH
-        const productType = product.producttype;
-        const isMainProduct = 
-          productType === 'Block Ice' || 
-          productType === 'Cube Ice' ||
-          productType === 'Water Bottling';
-        
-        // Exclude packaging - CASE SENSITIVE MATCH
+        // Exclude packaging products - these are never sold
+        const productType = product.producttype || '';
         const isNotPackaging = 
-          !productType?.includes('Packaging') &&
+          !productType.includes('Packaging') &&
+          !productType.includes('Emballage') &&
           !product.productid?.includes('Package');
 
-        return matchesActivity && isMainProduct && isNotPackaging;
+        return matchesActivity && isNotPackaging;
       })
       .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
   }, [uniqueProductIds]);
 
   // Update filteredProducts to use the new helper
   const filteredProducts = useMemo(() => {
-    let products;
-    
     if (!filters.selectedActivityType) {
       // If no activity type selected, show all products (excluding packaging)
-      products = Array.from(uniqueProductIds)
+      return Array.from(uniqueProductIds)
         .filter(product => {
           if (!product || !product.productid) return false;
           
           // Exclude packaging products - never sold
           const productType = product.producttype || '';
-          const isPackaging = 
-            productType.includes('Packaging') ||
-            productType.includes('Emballage') ||
-            product.productid?.includes('Package');
+          const isNotPackaging = 
+            !productType.includes('Packaging') &&
+            !productType.includes('Emballage') &&
+            !product.productid?.includes('Package');
             
-          return !isPackaging;
-        });
+          return isNotPackaging;
+        })
+        .sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
     } else {
-      // If activity type is selected, show only products for that activity (excluding packaging)
-      products = getUniqueProductsByActivityType(filters.selectedActivityType)
-        .filter(product => {
-          if (!product || !product.productid) return false;
-          
-          // Exclude packaging products - never sold
-          const productType = product.producttype || '';
-          const isPackaging = 
-            productType.includes('Packaging') ||
-            productType.includes('Emballage') ||
-            product.productid?.includes('Package');
-            
-          return !isPackaging;
-        });
+      // If activity type is selected, show only products for that activity
+      return getUniqueProductsByActivityType(filters.selectedActivityType);
     }
-
-    return products.sort((a, b) => (a.productid || '').localeCompare(b.productid || ''));
   }, [uniqueProductIds, filters.selectedActivityType, getUniqueProductsByActivityType]);
 
   // 3. Add calculateSalesMetrics as a memoized function
@@ -1076,18 +1056,24 @@ export default function SalesPage() {
     });
   }, [filteredSalesData.data, summaryPeriod]);
 
-  // Filter data based on the selected time period for top cards
+  // Filter data based on the summary section time period for top cards (same as costs page)
   const topCardData = useMemo(() => {
     if (!sales) return [];
+    
+    // If month is 0 (All Months), filter by year only
+    if (summaryPeriod.month === 0) {
+      return filterByPeriod(sales, {
+        type: 'year',
+        year: summaryPeriod.year
+      });
+    }
+    
     return filterByPeriod(sales, {
-      type: filters.selectedTimePeriod,
-      year: filters.dateFilters.year,
-      month: filters.dateFilters.month,
-      week: filters.dateFilters.week,
-      startDate: filters.dateFilters.startDate,
-      endDate: filters.dateFilters.endDate
+      type: 'month',
+      year: summaryPeriod.year,
+      month: summaryPeriod.month
     });
-  }, [sales, filters.selectedTimePeriod, filters.dateFilters]);
+  }, [sales, summaryPeriod]);
 
   // 7. All useEffect hooks
   useEffect(() => {
@@ -1235,40 +1221,6 @@ export default function SalesPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold text-blue-900">{safeT(t, 'sales.title', 'Sales')}</h1>
-        
-        {/* Replace the old time period selector with the new component */}
-        <ClientOnly>
-          <TimePeriodSelector
-            selectedPeriod={filters.selectedTimePeriod}
-            onPeriodChange={(period) => {
-              setFilters(prev => ({
-                ...prev,
-                selectedTimePeriod: period,
-                dateFilters: {
-                  ...prev.dateFilters,
-                  // Reset custom dates when switching away from custom
-                  ...(period !== TIME_PERIODS.CUSTOM && {
-                    startDate: null,
-                    endDate: null
-                  })
-                }
-              }));
-            }}
-            startDate={filters.dateFilters?.startDate || ''}
-            endDate={filters.dateFilters?.endDate || ''}
-            onDateRangeChange={(start, end) => {
-              setFilters(prev => ({
-                ...prev,
-                dateFilters: {
-                  ...prev.dateFilters,
-                  startDate: start,
-                  endDate: end
-                }
-              }));
-            }}
-            className="text-blue-900"
-          />
-        </ClientOnly>
       </div>
 
       {/* Top Cards */}

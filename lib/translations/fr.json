@@ -246,6 +246,8 @@
       "WaterBottling": "Eau en bouteille",
       "WaterCans": "Bidon D'Eau",
       "WaterCansBottling": "Bouteilles d'eau",
+      "Emballage": "Emballage",
+      "emballage": "Emballage",
       "Packaging": "Emballage",
       "PackagingForIceCube": "Emballage pour Glaçons",
       "Packaging For Water Bottling": "Emballage pour Eau en bouteille",
@@ -475,6 +477,19 @@
       "date": "Date",
       "product": "Produit",
       "activityType": "Type d'Activité"
+    },
+    "source": {
+      "title": "Source",
+      "all": "Toutes les sources",
+      "opening": "Stock Initial",
+      "production": "Production",
+      "consumption": "Consommation",
+      "sales": "Vente",
+      "manual": "Manuel",
+      "description": "Source de données",
+      "source": "Source",
+      "addNew": "Ajouter une nouvelle source",
+      "edit": "Modifier la source"
     },
     "summary": {
       "title": "Résumé de l'inventaire",

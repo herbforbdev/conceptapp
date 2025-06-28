@@ -476,6 +476,7 @@ const matchProductType = (product, targetType) => {
   const blockIce = 'block ice';
   const cubeIce = 'cube ice';
   const waterBottling = 'water bottling';
+  const waterCans = 'water cans';
   const packagingForIceCube = 'packaging for ice cube';
   const packagingForWaterBottling = 'packaging for water bottling';
 
@@ -627,7 +628,7 @@ export default function InventoryPage() {
   const [sortDirection, setSortDirection] = useState('desc');
 
   // Add state for selected product types at the top of InventoryPage
-  const [selectedProductTypes, setSelectedProductTypes] = useState(['Block Ice']);
+  const [selectedProductTypes, setSelectedProductTypes] = useState(['Emballage']);
 
   // Add state for dropdown open/close
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
@@ -643,6 +644,7 @@ export default function InventoryPage() {
   
   const sourceOptions = [
     { value: "", label: t('inventory.source.all', 'All Sources') },
+    { value: "opening", label: t('inventory.source.opening', 'Initial Stock') },
     { value: "production", label: t('inventory.source.production', 'Production') },
     { value: "consumption", label: t('inventory.source.consumption', 'Consommation') },
     { value: "sales", label: t('inventory.source.sales', 'Vente') },
@@ -735,6 +737,7 @@ export default function InventoryPage() {
         return;
       }
       
+      // Include all main product types including water cans
       if (!productTypeMap.has(type)) {
         productTypeMap.set(type, []);
       }
@@ -957,7 +960,7 @@ export default function InventoryPage() {
     }
   };
 
-  // Memoized filtered products for dropdown - prevent duplicates and exclude packaging
+  // Memoized filtered products for dropdown - prevent duplicates, include packaging for inventory
   const filteredProducts = useMemo(() => {
     // Create a Map to ensure uniqueness by ID
     const uniqueProducts = new Map();
@@ -965,29 +968,15 @@ export default function InventoryPage() {
     Array.from(productMap.values())
       .filter(product => {
         // Basic validation
-        if (!product || !product.producttype) return false;
+        if (!product || !product.producttype || !product.productid) return false;
         
         // Filter by selected activity type if one is selected
         if (selectedActivityType && product.activitytypeid !== selectedActivityType) {
           return false;
         }
         
-        // Exclude packaging products - they're handled separately in inventory
-        const productType = product.producttype || '';
-        const isPackaging = 
-          productType.includes('Packaging') ||
-          productType.includes('Emballage') ||
-          product.productid?.includes('Package');
-        
-        if (isPackaging) return false;
-        
-        // Include only main products
-        const isMainProduct = 
-          productType === 'Block Ice' || 
-          productType === 'Cube Ice' ||
-          productType === 'Water Bottling';
-        
-        return isMainProduct;
+        // Include all products in inventory - both main products AND packaging
+        return true;
       })
       .forEach(product => {
         if (!uniqueProducts.has(product.id)) {
@@ -1335,18 +1324,31 @@ export default function InventoryPage() {
     return packagingProducts.reduce((sum, productId) => sum + getCurrentStock(productId), 0);
   }, [productMap, getCurrentStock]);
 
-  // Update the effect that calculates stock stats
+  // Update the effect that calculates stock stats - now dynamic
   useEffect(() => {
     if (!allInventoryMovements?.length || !productMap?.size) return;
     
+    // Get all unique product types dynamically (excluding packaging)
+    const productTypes = new Set();
+    Array.from(productMap.values()).forEach(product => {
+      const type = product.producttype;
+      if (type && !type.toLowerCase().includes('packaging') && !type.toLowerCase().includes('emballage')) {
+        productTypes.add(type);
+      }
+    });
+    
+    // Create dynamic stats object
     const stats = {
       totalInventory: getTotalRemainingInventory(),
       monthlyMovements: getCurrentMonthMovements(),
-      blockIceStock: getTotalStockByType('Block Ice'),
-      cubeIceStock: getTotalStockByType('Cube Ice'),
-      waterBottlingStock: getTotalStockByType('Water Bottling'),
       packagingStock: getTotalPackagingStock()
     };
+    
+    // Add dynamic product type stocks
+    productTypes.forEach(type => {
+      const key = type.toLowerCase().replace(/\s+/g, '') + 'Stock'; // e.g. "blockiceStock", "cubeiceStock"
+      stats[key] = getTotalStockByType(type);
+    });
     
     setStockStats(stats);
   }, [allInventoryMovements, productMap, getTotalRemainingInventory, getCurrentMonthMovements, getTotalStockByType, getTotalPackagingStock]);
@@ -1572,10 +1574,12 @@ export default function InventoryPage() {
   // Build all available product types from summarySections
   const allProductTypes = useMemo(() => summarySections.map(s => s.section), [summarySections]);
 
-  // Ensure selectedProductTypes is always valid (default to Block Ice if empty)
+  // Ensure selectedProductTypes is always valid (default to packaging if available)
   useEffect(() => {
     if (selectedProductTypes.length === 0 && allProductTypes.length > 0) {
-      setSelectedProductTypes([allProductTypes[0]]);
+      // Prefer packaging first, then fallback to first available
+      const preferredDefault = allProductTypes.includes('Emballage') ? 'Emballage' : allProductTypes[0];
+      setSelectedProductTypes([preferredDefault]);
     }
   }, [selectedProductTypes, allProductTypes]);
 
@@ -1775,7 +1779,7 @@ export default function InventoryPage() {
       
 
 
-      {/* Top Cards */}
+      {/* Top Cards - Dynamic */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         <TopCard
           title={t('inventory.summary.totalInventory')}
@@ -1789,24 +1793,40 @@ export default function InventoryPage() {
           icon={<HiRefresh size={16} />}
           type="monthlyMovements"
         />
-        <TopCard 
-          title={t('inventory.summary.blockIceStock')}
-          value={`${(stockStats?.blockIceStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
-          icon={<HiCube size={16} />}
-          type="blockIce"
-        />
-        <TopCard 
-          title={t('inventory.summary.cubeIceStock')}
-          value={`${(stockStats?.cubeIceStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
-          icon={<HiCube size={16} />}
-          type="cubeIce"
-        />
-        <TopCard 
-          title={t('inventory.summary.waterBottlingStock')}
-          value={`${(stockStats?.waterBottlingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
-          icon={<PiBeerBottleFill size={16} />}
-          type="waterBottling"
-        />
+        
+        {/* Dynamic Product Type Cards */}
+        {productMap && Array.from(new Set(
+          Array.from(productMap.values())
+            .filter(p => p.producttype && !p.producttype.toLowerCase().includes('packaging') && !p.producttype.toLowerCase().includes('emballage'))
+            .map(p => p.producttype)
+        )).sort().map((productType, index) => {
+          const stockKey = productType.toLowerCase().replace(/\s+/g, '') + 'Stock';
+          const stockValue = stockStats?.[stockKey] || 0;
+          
+                     // Dynamic type mapping for TopCard colors
+           let cardType = 'default';
+           if (productType.toLowerCase().includes('block')) cardType = 'blockIce';
+           else if (productType.toLowerCase().includes('cube')) cardType = 'cubeIce';
+           else if (productType.toLowerCase().includes('water') && productType.toLowerCase().includes('bottling')) cardType = 'waterBottling';
+           else if (productType.toLowerCase().includes('water') && (productType.toLowerCase().includes('can') || productType.toLowerCase().includes('bidon'))) cardType = 'waterCans';
+           else if (productType.toLowerCase().includes('water')) cardType = 'waterBottling'; // fallback for any water type
+          
+          // Dynamic translation key
+          const translationKey = `inventory.summary.${productType.toLowerCase().replace(/\s+/g, '')}Stock`;
+          const fallbackTitle = `${productType} Stock`;
+          const title = t(translationKey) !== translationKey ? t(translationKey) : fallbackTitle;
+          
+          return (
+            <TopCard 
+              key={`${productType}-${index}`}
+              title={title}
+              value={`${stockValue.toLocaleString()} ${t('charts.axes.units')}`}
+              icon={<HiCube size={16} />}
+              type={cardType}
+            />
+          );
+        })}
+        
         <TopCard 
           title={t('inventory.summary.packagingStock')}
           value={`${(stockStats?.packagingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
@@ -2057,8 +2077,8 @@ export default function InventoryPage() {
         {/* Table Section */}
         <div className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-900 rounded-xl overflow-hidden">
-              <thead className="bg-purple-50 text-xs uppercase tracking-wider">
+            <table className="w-full text-left text-gray-900 rounded-xl overflow-hidden">
+              <thead className="bg-purple-50 text-sm uppercase tracking-wider">
                 <tr>
                   <th className="p-4 w-4">
                     <input
@@ -2101,7 +2121,7 @@ export default function InventoryPage() {
                     {t('inventory.table.activityType')}
                   </th>
                   <th 
-                    className="px-6 py-4 font-semibold text-purple-900 cursor-pointer hover:bg-purple-100"
+                    className="px-6 py-4 font-semibold text-purple-900 text-center cursor-pointer hover:bg-purple-100"
                     onClick={() => handleSort('movementType')}
                   >
                     <div className="flex items-center gap-1">
@@ -2247,7 +2267,7 @@ export default function InventoryPage() {
                           };
                           
                           return (
-                            <span className="inline-block px-2 py-1 rounded bg-purple-50 text-purple-800 text-xs font-medium">
+                            <span className="inline-block px-2 py-1 rounded bg-purple-50 text-purple-800 text-sm font-medium">
                               {getTranslatedActivityType(activityTypeName)}
                             </span>
                           );
@@ -2268,7 +2288,7 @@ export default function InventoryPage() {
                           ))}
                         </Select>
                       ) : (
-                        <span className={`px-3 py-1 inline-flex text-center text-xs leading-5 font-semibold rounded-full ${
+                        <span className={`px-3 py-1 inline-flex text-center text-sm leading-5 font-semibold rounded-full ${
                           record.movementType === "IN"
                             ? "bg-green-100 text-green-800"
                             : record.movementType === "OUT" || record.movementType === "Out"

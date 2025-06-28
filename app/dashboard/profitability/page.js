@@ -195,7 +195,7 @@ export default function SalesTrendsPage() {
   const [kpi, chartData] = useMemo(() => {
     if (!sales || !costs) return [{}, { labels: [], datasets: [] }];
     // Use stable month labels to prevent stale closures
-    const stableMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const stableMonths = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Dec'];
     const salesByMonth = Array(12).fill(0);
     const costsByMonth = Array(12).fill(0);
     let totalRevenue = 0, totalCosts = 0, numSales = 0;
@@ -237,8 +237,8 @@ export default function SalesTrendsPage() {
           {
             label: 'Ventes',
             data: salesByMonth,
-            borderColor: 'rgba(59, 130, 246, 1)',
-            backgroundColor: 'rgba(59, 130, 246, 0.12)',
+            borderColor: 'rgba(6, 49, 89, 1)',
+            backgroundColor: 'rgba(55, 90, 122, 0.12)',
             fill: true,
           },
           {
@@ -469,23 +469,23 @@ export default function SalesTrendsPage() {
             <div className="p-4">
               <h3 className="text-lg font-semibold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.general', 'General Profitability')}</h3>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-                  <thead className="bg-[#385e82]/90">
+                <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                  <thead className="bg-[#6c97be]">
                     <tr>
-                      <th className="px-6 py-2 font-semibold text-sm text-white text-left"></th>
+                      <th className="px-6 py-2 font-semibold text-base text-white text-left"></th>
                       {months.map((m, i) => (
-                        <th key={i} className="px-6 py-2 font-semibold text-sm text-white">{m}</th>
+                        <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {[
-                      { label: safeT(t, 'profitability.rows.sales', 'Sales'), data: generalTable.salesByMonth, color: 'text-blue-700' },
+                      { label: safeT(t, 'profitability.rows.sales', 'Sales'), data: generalTable.salesByMonth, color: 'text-blue-900' },
                       { label: safeT(t, 'profitability.rows.costs', 'Costs'), data: generalTable.costsByMonth, color: 'text-red-700', invert: true },
                       { label: safeT(t, 'profitability.rows.profit', 'Profit'), data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
                     ].map((row, idx) => (
                       <tr key={row.label} className="hover:bg-gray-50">
-                        <td className={`px-6 py-2 font-semibold text-sm ${row.color} text-left`}>
+                        <td className={`px-6 py-2 font-semibold text-base ${row.color} text-left`}>
                           {row.label}
                         </td>
                         {row.data.map((val, i) => {
@@ -499,7 +499,7 @@ export default function SalesTrendsPage() {
                             }
                           }
                           return (
-                            <td key={i} className="px-6 py-3 text-sm font-medium">
+                            <td key={i} className="px-6 py-3 text-base font-medium">
                               <span className={`px-3 py-1 rounded-full ${bgClass}`}>
                                 {safeFormatNumber(val)}
                               </span>
@@ -520,7 +520,7 @@ export default function SalesTrendsPage() {
               <h3 className="text-lg font-semibold text-blue-900 mb-4">{safeT(t, 'profitability.tabs.products', 'Product Sales by Month')}</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-                  <thead style={{backgroundColor: '#6a2020'}}>
+                  <thead style={{backgroundColor: '#966262'}}>
                     <tr>
                       <th className="px-6 py-4 font-semibold text-base text-white text-left"></th>
                       {months.map((m, i) => (
@@ -529,7 +529,7 @@ export default function SalesTrendsPage() {
                       <th className="px-6 py-2 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-red-100">
                   {productTypes.map((type, idx) => {
                     const rowTotal = productTypeTable[type].reduce((sum, val) => sum + val, 0);
                     return (
@@ -566,7 +566,7 @@ export default function SalesTrendsPage() {
                       </tr>
                     );
                   })}
-                  <tr className="font-bold text-white" style={{backgroundColor: '#6a2020'}}>
+                  <tr className="font-bold text-white" style={{backgroundColor: '#966262'}}>
                     <td className="px-6 py-2 text-base text-left">
                       {safeT(t, 'common.total', 'Total')}
                     </td>

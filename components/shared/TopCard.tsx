@@ -79,6 +79,55 @@ const typeStyles = {
     borderColor: 'border-indigo-100',
     iconType: 'inbox' 
   },
+  'totalInventory': { 
+    iconBg: 'bg-indigo-500', 
+    iconColor: 'text-white', 
+    textColor: 'text-indigo-700',
+    borderColor: 'border-indigo-100',
+    iconType: 'inbox' 
+  },
+  'monthlyMovements': { 
+    iconBg: 'bg-emerald-500', 
+    iconColor: 'text-white', 
+    textColor: 'text-emerald-700',
+    borderColor: 'border-emerald-100',
+    iconType: 'trending-up' 
+  },
+  'blockIce': { 
+    iconBg: 'bg-blue-500', 
+    iconColor: 'text-white', 
+    textColor: 'text-blue-700',
+    borderColor: 'border-blue-100',
+    iconType: 'inbox' 
+  },
+  'cubeIce': { 
+    iconBg: 'bg-cyan-500', 
+    iconColor: 'text-white', 
+    textColor: 'text-cyan-700',
+    borderColor: 'border-cyan-100',
+    iconType: 'inbox' 
+  },
+  'waterBottling': { 
+    iconBg: 'bg-teal-500', 
+    iconColor: 'text-white', 
+    textColor: 'text-teal-700',
+    borderColor: 'border-teal-100',
+    iconType: 'inbox' 
+  },
+  'waterCans': { 
+    iconBg: 'bg-sky-500', 
+    iconColor: 'text-white', 
+    textColor: 'text-sky-700',
+    borderColor: 'border-sky-100',
+    iconType: 'inbox' 
+  },
+  'packaging': { 
+    iconBg: 'bg-purple-500', 
+    iconColor: 'text-white', 
+    textColor: 'text-purple-700',
+    borderColor: 'border-purple-100',
+    iconType: 'inbox' 
+  },
   'Stock Level': { 
     iconBg: 'bg-cyan-500', 
     iconColor: 'text-white', 

@@ -486,6 +486,7 @@
     "source": {
       "title": "Source",
       "all": "All sources",
+      "opening": "Initial Stock",
       "production": "Production",
       "consumption": "Consumption",
       "sales": "Sales",
