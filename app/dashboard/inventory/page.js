@@ -22,6 +22,7 @@ import TopCard from "@/components/shared/TopCard";
 import { useLanguage } from "@/context/LanguageContext";
 import { getInventorySummaryTableData } from '@/lib/analysis/dataProcessing';
 import { userService } from '@/services/firestore/userService';
+import { notificationService } from '@/services/firestore/notificationService';
 import '@/lib/chart-setup';
 import OpeningStockModal from '@/components/inventory/OpeningStockModal';
 import QuickAdjustmentModal from '@/components/inventory/QuickAdjustmentModal';
@@ -449,22 +450,7 @@ async function sendPackagingThresholdEmail(recipients, packagingType, currentSto
   console.log("[EMAIL] Body:\n", body);
 }
 
-// Create a notification in Firestore
-async function createThresholdNotification(userId, title, message) {
-  try {
-    await addDoc(collection(firestore, 'notifications'), {
-      userId,
-      title,
-      message,
-      link: '/dashboard/inventory', // Link to the inventory page
-      isRead: false,
-      createdAt: serverTimestamp(),
-      source: 'inventory_threshold'
-    });
-  } catch (error) {
-    console.error("Error creating notification:", error);
-  }
-}
+// Removed custom createThresholdNotification - now using notificationService.createInventoryAlert
 
 // Add this helper function for product type matching
 const matchProductType = (product, targetType) => {
@@ -1598,14 +1584,17 @@ export default function InventoryPage() {
         if (adminUsers.length > 0) {
           // Check cube ice packaging
           if (cubeIceStock <= cubeIceThreshold && !notified.cube_ice) {
-            const title = t('notifications.lowStock.title');
-            const message = t('notifications.lowStock.message', { 
-              productName: t('products.items.packaging.cubeIce.5kg'), 
-              currentStock: cubeIceStock, 
-              threshold: cubeIceThreshold 
+            const productName = t('products.items.packaging.cubeIce.5kg');
+            
+            // Create notification for each admin using proper notification service
+            adminUsers.forEach(admin => {
+              notificationService.createInventoryAlert(
+                admin.uid, 
+                productName, 
+                cubeIceStock, 
+                cubeIceThreshold
+              );
             });
-            // Create notification for each admin
-            adminUsers.forEach(admin => createThresholdNotification(admin.uid, title, message));
             
             if (isMounted) {
               setNotified(prev => ({ ...prev, cube_ice: true }));
@@ -1614,14 +1603,17 @@ export default function InventoryPage() {
           
           // Check water bottling packaging
           if (waterBottlingStock <= waterBottlingThreshold && !notified.water_bottling) {
-            const title = t('notifications.lowStock.title');
-            const message = t('notifications.lowStock.message', { 
-              productName: t('products.items.packaging.waterBottling.750ml'), 
-              currentStock: waterBottlingStock, 
-              threshold: waterBottlingThreshold 
+            const productName = t('products.items.packaging.waterBottling.750ml');
+            
+            // Create notification for each admin using proper notification service
+            adminUsers.forEach(admin => {
+              notificationService.createInventoryAlert(
+                admin.uid, 
+                productName, 
+                waterBottlingStock, 
+                waterBottlingThreshold
+              );
             });
-            // Create notification for each admin
-            adminUsers.forEach(admin => createThresholdNotification(admin.uid, title, message));
 
             if (isMounted) {
               setNotified(prev => ({ ...prev, water_bottling: true }));
