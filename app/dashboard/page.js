@@ -174,9 +174,22 @@ export default function DashboardPage() {
         value: inventoryUtils.calculateTotalStockForType(inventoryMovements, products, "Water Bottling"),
       },
       {
-        key: "packaging",
-        label: t("products.types.packaging"),
-        value: inventoryUtils.getTotalPackagingStock(inventoryMovements, products),
+        key: "packagingCubeIce",
+        label: t("products.types.packagingCubeIce"),
+        value: inventoryUtils.calculateTotalStockForType(inventoryMovements, products, "Packaging for Ice Cube") + 
+               inventoryUtils.calculateTotalStockForType(inventoryMovements, products, "Packaging For Ice Cube"),
+      },
+      {
+        key: "packagingWaterBottling",
+        label: t("products.types.packagingWaterBottling"),
+        value: inventoryUtils.calculateTotalStockForType(inventoryMovements, products, "Packaging For Water Bottling") + 
+               inventoryUtils.calculateTotalStockForType(inventoryMovements, products, "Packaging for Water Bottling"),
+      },
+      {
+        key: "packagingWaterCans",
+        label: t("products.types.packagingWaterCans"),
+        value: inventoryUtils.calculateTotalStockForType(inventoryMovements, products, "Packaging For Water Cans") + 
+               inventoryUtils.calculateTotalStockForType(inventoryMovements, products, "Packaging for Water Cans"),
       },
     ];
   }, [products, inventoryMovements, t]);
@@ -1004,7 +1017,7 @@ const StockOverviewCard = ({ stockOverview, t }) => {
   const [showPackaging, setShowPackaging] = useState(false);
 
   const productStock = stockOverview.filter(item => ['blockIce', 'cubeIce', 'waterBottling'].includes(item.key));
-  const packagingStock = stockOverview.filter(item => item.key === 'packaging');
+  const packagingStock = stockOverview.filter(item => item.key.startsWith('packaging'));
 
   return (
     <div className="rounded-2xl bg-[#031b31] text-white shadow-xl p-6 h-80 flex flex-col">
@@ -1031,11 +1044,11 @@ const StockOverviewCard = ({ stockOverview, t }) => {
           className="h-full"
         >
           {showPackaging ? (
-            <div className="grid grid-cols-1 gap-4 h-full">
+            <div className="grid grid-cols-1 gap-3 h-full">
               {packagingStock.map(item => (
-                <div key={item.key} className="flex flex-col items-center justify-center bg-white/10 rounded-lg p-4 h-full">
-                  <span className="text-sm text-gray-200 mb-2">{item.label}</span>
-                  <span className="text-3xl font-extrabold">{String(item.value?.toLocaleString() ?? 0)}</span>
+                <div key={item.key} className="flex items-center justify-between bg-white/10 rounded-lg p-3">
+                  <span className="text-sm text-gray-200">{item.label}</span>
+                  <span className="text-lg font-bold">{String(item.value?.toLocaleString() ?? 0)}</span>
                 </div>
               ))}
             </div>

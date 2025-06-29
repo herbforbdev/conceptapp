@@ -1324,34 +1324,24 @@ export default function InventoryPage() {
     return packagingProducts.reduce((sum, productId) => sum + getCurrentStock(productId), 0);
   }, [productMap, getCurrentStock]);
 
-  // Update the effect that calculates stock stats - now dynamic
+  // Update the effect that calculates stock stats - specific categories
   useEffect(() => {
     if (!allInventoryMovements?.length || !productMap?.size) return;
     
-    // Get all unique product types dynamically (excluding packaging)
-    const productTypes = new Set();
-    Array.from(productMap.values()).forEach(product => {
-      const type = product.producttype;
-      if (type && !type.toLowerCase().includes('packaging') && !type.toLowerCase().includes('emballage')) {
-        productTypes.add(type);
-      }
-    });
-    
-    // Create dynamic stats object
+    // Create specific stats object
     const stats = {
-      totalInventory: getTotalRemainingInventory(),
       monthlyMovements: getCurrentMonthMovements(),
-      packagingStock: getTotalPackagingStock()
+      // Specific packaging stocks
+      packagingCubeIceStock: getTotalStockByType('Packaging for Ice Cube') + getTotalStockByType('Packaging For Ice Cube'),
+      packagingWaterBottlingStock: getTotalStockByType('Packaging For Water Bottling') + getTotalStockByType('Packaging for Water Bottling'),
+      packagingWaterCansStock: getTotalStockByType('Packaging For Water Cans') + getTotalStockByType('Packaging for Water Cans'),
+      // Product stocks
+      waterbottlingStock: getTotalStockByType('Water Bottling'),
+      watercansStock: getTotalStockByType('Water Cans')
     };
     
-    // Add dynamic product type stocks
-    productTypes.forEach(type => {
-      const key = type.toLowerCase().replace(/\s+/g, '') + 'Stock'; // e.g. "blockiceStock", "cubeiceStock"
-      stats[key] = getTotalStockByType(type);
-    });
-    
     setStockStats(stats);
-  }, [allInventoryMovements, productMap, getTotalRemainingInventory, getCurrentMonthMovements, getTotalStockByType, getTotalPackagingStock]);
+  }, [allInventoryMovements, productMap, getCurrentMonthMovements, getTotalStockByType]);
 
   // Get current month name
   const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
@@ -1779,59 +1769,43 @@ export default function InventoryPage() {
       
 
 
-      {/* Top Cards - Dynamic */}
+      {/* Top Cards - Specific Stock Categories */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         <TopCard
-          title={t('inventory.summary.totalInventory')}
-          value={`${(stockStats?.totalInventory || 0).toLocaleString()} ${t('charts.axes.units')}`}
-          icon={<HiInbox size={16} />}
-          type="totalInventory"
+          title={t('inventory.summary.packagingCubeIceStock')}
+          value={`${(stockStats?.packagingCubeIceStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          icon={<HiArchive size={16} />}
+          type="packaging"
+        />
+        <TopCard
+          title={t('inventory.summary.packagingWaterBottlingStock')}
+          value={`${(stockStats?.packagingWaterBottlingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          icon={<HiArchive size={16} />}
+          type="packaging"
+        />
+        <TopCard
+          title={t('inventory.summary.packagingWaterCansStock')}
+          value={`${(stockStats?.packagingWaterCansStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          icon={<HiArchive size={16} />}
+          type="packaging"
+        />
+        <TopCard
+          title={t('inventory.summary.waterBottlingStock')}
+          value={`${(stockStats?.waterbottlingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          icon={<HiCube size={16} />}
+          type="waterBottling"
+        />
+        <TopCard
+          title={t('inventory.summary.waterCansStock')}
+          value={`${(stockStats?.watercansStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
+          icon={<HiCube size={16} />}
+          type="waterCans"
         />
         <TopCard
           title={t('inventory.summary.monthlyMovements')}
           value={`${stockStats?.monthlyMovements || 0} ${t('metrics.per_day')}`}
           icon={<HiRefresh size={16} />}
           type="monthlyMovements"
-        />
-        
-        {/* Dynamic Product Type Cards */}
-        {productMap && Array.from(new Set(
-          Array.from(productMap.values())
-            .filter(p => p.producttype && !p.producttype.toLowerCase().includes('packaging') && !p.producttype.toLowerCase().includes('emballage'))
-            .map(p => p.producttype)
-        )).sort().map((productType, index) => {
-          const stockKey = productType.toLowerCase().replace(/\s+/g, '') + 'Stock';
-          const stockValue = stockStats?.[stockKey] || 0;
-          
-                     // Dynamic type mapping for TopCard colors
-           let cardType = 'default';
-           if (productType.toLowerCase().includes('block')) cardType = 'blockIce';
-           else if (productType.toLowerCase().includes('cube')) cardType = 'cubeIce';
-           else if (productType.toLowerCase().includes('water') && productType.toLowerCase().includes('bottling')) cardType = 'waterBottling';
-           else if (productType.toLowerCase().includes('water') && (productType.toLowerCase().includes('can') || productType.toLowerCase().includes('bidon'))) cardType = 'waterCans';
-           else if (productType.toLowerCase().includes('water')) cardType = 'waterBottling'; // fallback for any water type
-          
-          // Dynamic translation key
-          const translationKey = `inventory.summary.${productType.toLowerCase().replace(/\s+/g, '')}Stock`;
-          const fallbackTitle = `${productType} Stock`;
-          const title = t(translationKey) !== translationKey ? t(translationKey) : fallbackTitle;
-          
-          return (
-            <TopCard 
-              key={`${productType}-${index}`}
-              title={title}
-              value={`${stockValue.toLocaleString()} ${t('charts.axes.units')}`}
-              icon={<HiCube size={16} />}
-              type={cardType}
-            />
-          );
-        })}
-        
-        <TopCard 
-          title={t('inventory.summary.packagingStock')}
-          value={`${(stockStats?.packagingStock || 0).toLocaleString()} ${t('charts.axes.units')}`}
-          icon={<HiArchive size={16} />}
-          type="packaging"
         />
       </div>
 
