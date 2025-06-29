@@ -2113,8 +2113,13 @@ export default function InventoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-purple-100">
-                {sortedData.map(record => (
-                  <tr key={record.id} className="bg-white hover:bg-purple-50/50 transition-colors">
+                {sortedData.map((record, index) => (
+                  <tr
+                    key={record.id}
+                    className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                      index % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                    } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                  >
                     <td className="p-4">
                       <input
                         type="checkbox"
