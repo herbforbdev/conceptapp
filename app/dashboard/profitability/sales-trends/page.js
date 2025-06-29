@@ -347,8 +347,13 @@ export default function SalesTrendsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-blue-100">
-              {monthlyData.map((data, index) => (
-                <tr key={index} className="hover:bg-blue-50">
+                              {monthlyData.map((data, index) => (
+                  <tr
+                    key={index}
+                    className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                      index % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                    } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                  >
                   <td className="px-6 py-4 text-base">{data.month}</td>
                   <td className="px-6 py-4 text-center text-base">${data.totalUSD.toLocaleString()}</td>
                   <td className="px-6 py-4 text-center text-base">{data.count}</td>

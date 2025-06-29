@@ -1114,8 +1114,13 @@ function CostsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-[#b2d8d8]">
-              {paginatedCosts.map((cost) => (
-                <tr key={cost.id} className="hover:bg-[#b2d8d8]">
+                          {paginatedCosts.map((cost, index) => (
+              <tr
+                key={cost.id}
+                className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                  index % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+              >
                   <td className="px-6 py-4">
                     <input
                       type="checkbox"
@@ -1360,7 +1365,10 @@ function CostsPage() {
                         const percentageOfTotal = (data.amountUSD / totalUSD) * 100;
                         const isOverBudget = typeof data.budgetCode === 'number' && percentageOfTotal > data.budgetCode;
                         return (
-                          <tr key={type} className="hover:bg-[#66b2b2]/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
+                          <tr
+                    key={type}
+                    className="transition-all duration-200 border-b border-purple-100 last:border-b-0 bg-white hover:shadow-lg hover:scale-[1.02] hover:bg-white"
+                  >
                             <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
                               <span className="w-2 h-2 rounded-full bg-[#004c4c] inline-block"></span>
                               <span>{getTranslatedExpenseTypeName(expenseTypeMap.get(data.expenseTypeId), t)}</span>

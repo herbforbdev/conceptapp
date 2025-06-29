@@ -2016,8 +2016,13 @@ export default function ProductionPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-red-100">
-                {sortedData.map(production => (
-                  <tr key={production.id} className="bg-white hover:bg-red-50/50 transition-colors">
+                {sortedData.map((production, index) => (
+                  <tr
+                    key={production.id}
+                    className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                      index % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                    } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                  >
                     <td className="p-4">
                       <input
                         type="checkbox"
@@ -2297,7 +2302,7 @@ export default function ProductionPage() {
                 <tbody className="bg-white divide-y divide-red-100/50">
                   {summaryData.map((item, index) => (
                     <React.Fragment key={index}>
-                      <tr className="hover:bg-red-50/30 transition-all duration-200 ease-in-out transform hover:scale-[1.01] hover:shadow-md">
+                      <tr className="transition-all duration-200 border-b border-purple-100 last:border-b-0 bg-white hover:shadow-lg hover:scale-[1.02] hover:bg-white">
                         <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2 text-base">
                           <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
                           {String(safeT(t, `products.activities.${(activityTypeMap.get(item.activityTypeId)?.name || item.activityType || 'unknown').toLowerCase().replace(/\s+/g, '_')}`, getTranslatedActivityTypeName(activityTypeMap.get(item.activityTypeId), t) || item.activityType || 'Unknown'))}

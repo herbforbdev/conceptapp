@@ -1512,8 +1512,13 @@ export default function SalesPage() {
                 .slice(
                   (currentPage - 1) * entriesPerPage,
                   currentPage * entriesPerPage
-                ).map((sale) => (
-                  <tr key={sale.id} className="hover:bg-gray-50">
+                ).map((sale, index) => (
+                  <tr
+                    key={sale.id}
+                    className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                      index % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                    } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                  >
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
@@ -1943,7 +1948,10 @@ export default function SalesPage() {
                          .sort(([a], [b]) => a.localeCompare(b))
                          .forEach(([productName, data]) => {
                            rows.push(
-                             <tr key={`${productType}-${productName}`} className="hover:bg-gray-50">
+                             <tr
+                              key={`${productType}-${productName}`}
+                              className="transition-all duration-200 border-b border-purple-100 last:border-b-0 bg-white hover:shadow-lg hover:scale-[1.02] hover:bg-white"
+                            >
                                <td className="px-6 py-3 font-normal text-base text-gray-900 text-left pl-12">
                                  {getTranslatedProductName(data.product, t)}
                                </td>
@@ -2024,8 +2032,13 @@ export default function SalesPage() {
                     .filter(([key, data]) => key !== 'undefined')
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
                     .slice(0, 5) // Limit to 5 rows for consistent height
-                    .map(([key, data]) => (
-                      <tr key={key} className="hover:bg-gray-50">
+                                      .map(([key, data], index) => (
+                    <tr
+                      key={key}
+                      className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                        index % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                      } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                    >
                         <td className="px-6 py-4 font-normal text-amber-900 text-left">{getTranslatedActivityTypeName(data.activityType, t)}</td>
                         <td className="px-6 py-4 font-normal text-center">
                           <span className="inline-block rounded-lg px-3 py-2 font-normal text-amber-900 shadow-sm border" style={{backgroundColor: '#f4ebe2', borderColor: '#e3c7ab'}}>
@@ -2048,7 +2061,10 @@ export default function SalesPage() {
                   const unknown = activitySalesMap['undefined'];
                   if (unknown && unknown.totalUSD > 0 && rows.length < 5) {
                     rows.push(
-                      <tr key="unknown" className="hover:bg-gray-50">
+                      <tr
+                      key="unknown"
+                      className="transition-all duration-200 border-b border-purple-100 bg-white hover:shadow-lg hover:scale-[1.02] hover:bg-white"
+                    >
                         <td className="px-6 py-4 font-medium text-gray-900 text-center">{t('common.undefined', 'Non défini')}</td>
                         <td className="px-6 py-4 font-medium text-center">
                           <span className="inline-block rounded-lg px-3 py-2 font-medium text-amber-900 shadow-sm border" style={{backgroundColor: '#e3c7ab', borderColor: '#e1c4a5'}}>
@@ -2142,8 +2158,13 @@ export default function SalesPage() {
                   const rows = Object.entries(channelSales)
                     .sort(([, a], [, b]) => b.totalUSD - a.totalUSD)
                     .slice(0, 5) // Limit to 5 rows for consistent height
-                    .map(([channel, data]) => (
-                      <tr key={channel} className="hover:bg-green-50">
+                                      .map(([channel, data], index) => (
+                    <tr
+                      key={channel}
+                      className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                        index % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                      } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                    >
                         <td className="px-6 py-4 font-normal text-green-900 text-left">{t(`sales.channels.${channel}`, channel)}</td>
                         <td className="px-6 py-4 text-center font-normal text-green-900">
                           <span className="inline-block rounded-lg bg-green-50 px-3 py-2 font-normal text-green-900 shadow-sm border border-green-100">

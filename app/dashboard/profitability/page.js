@@ -483,8 +483,13 @@ export default function SalesTrendsPage() {
                       { label: safeT(t, 'profitability.rows.sales', 'Sales'), data: generalTable.salesByMonth, color: 'text-blue-900' },
                       { label: safeT(t, 'profitability.rows.costs', 'Costs'), data: generalTable.costsByMonth, color: 'text-red-700', invert: true },
                       { label: safeT(t, 'profitability.rows.profit', 'Profit'), data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
-                    ].map((row, idx) => (
-                      <tr key={row.label} className="hover:bg-gray-50">
+                                    ].map((row, idx) => (
+                  <tr
+                    key={row.label}
+                    className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                      idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                    } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                  >
                         <td className={`px-6 py-2 font-semibold text-base ${row.color} text-left`}>
                           {row.label}
                         </td>
@@ -533,7 +538,12 @@ export default function SalesTrendsPage() {
                   {productTypes.map((type, idx) => {
                     const rowTotal = productTypeTable[type].reduce((sum, val) => sum + val, 0);
                     return (
-                      <tr key={type} className="hover:bg-gray-50">
+                      <tr
+                        key={type}
+                        className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                          idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                        } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                      >
                         <td className="px-6 py-2 font-semibold text-base text-gray-900 text-left">
                           {safeT(t, `products.types.${type.toLowerCase().replace(/\s+/g, '').replace(/'/g, '_')}`, type)}
                         </td>
@@ -609,7 +619,12 @@ export default function SalesTrendsPage() {
                   {Object.keys(expenseTypeTable).map((type, idx) => {
                     const rowTotal = expenseTypeTable[type].reduce((sum, val) => sum + val, 0);
                     return (
-                      <tr key={type} className="hover:bg-gray-50">
+                      <tr
+                        key={type}
+                        className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                          idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                        } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                      >
                         <td className="px-6 py-2 font-semibold text-base text-gray-900 text-left">
                           {safeT(t, `masterData.expenses.types.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
                         </td>
@@ -679,10 +694,15 @@ export default function SalesTrendsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                  {activityTypeRows.map((type, idx) => {
+                                    {activityTypeRows.map((type, idx) => {
                     const rowTotal = activityTypeTable[type].reduce((sum, val) => sum + val, 0);
-                                          return (
-                        <tr key={type} className="hover:bg-gray-50">
+                    return (
+                      <tr
+                        key={type}
+                        className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
+                          idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                        } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                      >
                           <td className="px-6 py-4 font-semibold text-base text-green-900 text-left">
                             {safeT(t, `products.activities.${type.replace(/\s+/g, '_').toLowerCase()}`, type)}
                           </td>
