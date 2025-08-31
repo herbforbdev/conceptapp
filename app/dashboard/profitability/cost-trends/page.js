@@ -7,6 +7,7 @@ import { useFirestoreCollection } from "@/hooks/useFirestoreCollection";
 import dynamic from "next/dynamic";
 import { HiTrendingUp, HiCurrencyDollar, HiChartPie, HiCalendar, HiArrowNarrowLeft } from "react-icons/hi";
 import { useLanguage } from "@/context/LanguageContext";
+import { parseFirestoreDate } from "@/lib/utils/dateUtils.ts";
 import Link from "next/link";
 import {
   Chart as ChartJS,
@@ -66,14 +67,17 @@ export default function CostTrendsPage() {
     
     // Filter costs based on selected year and month
     let filtered = costs.filter(c => {
-      const date = new Date(c.date.seconds * 1000);
-      return date.getFullYear() === selectedYear && 
+      // Use same robust date parsing as profitability page
+      const date = parseFirestoreDate(c.date);
+      return date && date.getFullYear() === selectedYear && 
         (selectedMonth === null || date.getMonth() === selectedMonth);
     });
 
+
+
     // Monthly stats - Create a unique key for sorting
     const monthly = filtered.reduce((acc, cost) => {
-      const d = new Date(cost.date.seconds * 1000);
+      const d = parseFirestoreDate(cost.date);
       const year = d.getFullYear();
       const month = d.getMonth(); // 0-based month
       const sortKey = `${year}-${month.toString().padStart(2, '0')}`; // e.g., "2025-02" for March
@@ -90,7 +94,7 @@ export default function CostTrendsPage() {
         label: label,
         sortValue: year * 100 + month // Create a simple numeric sort value
       };
-      acc[sortKey].totalUSD += cost.amountUSD || 0;
+      acc[sortKey].totalUSD += Number(cost.amountUSD) || 0;
       acc[sortKey].count += 1;
       return acc;
     }, {});
@@ -105,14 +109,14 @@ export default function CostTrendsPage() {
       }));
     setMonthlyData(sorted);
 
-    const total = filtered.reduce((sum, c) => sum + (c.amountUSD || 0), 0);
+    const total = filtered.reduce((sum, c) => sum + (Number(c.amountUSD) || 0), 0);
     const avgMonthly = total / (selectedMonth === null ? 12 : 1);
 
     // Expense type breakdown
     const expenseMap = {};
     filtered.forEach(cost => {
       const type = expenseTypes.find(t => t.id === cost.expenseTypeId)?.name || "Unknown";
-      expenseMap[type] = (expenseMap[type] || 0) + (cost.amountUSD || 0);
+      expenseMap[type] = (expenseMap[type] || 0) + (Number(cost.amountUSD) || 0);
     });
     const expenseArr = Object.entries(expenseMap);
 

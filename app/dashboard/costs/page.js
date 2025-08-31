@@ -639,7 +639,9 @@ function CostsPage() {
   const summaryFilteredCosts = useMemo(() => {
     if (!costs) return [];
     return costs.filter(cost => {
-      const costDate = toDateObj(cost.date);
+      if (!cost.date) return false;
+      // Use same date parsing as cost trends page for consistency
+      const costDate = cost.date.seconds ? new Date(cost.date.seconds * 1000) : toDateObj(cost.date);
       const costMonth = costDate.getMonth();
       const costYear = costDate.getFullYear();
       return costMonth === summaryMonth && costYear === summaryYear;
@@ -654,7 +656,8 @@ function CostsPage() {
     summaryFilteredCosts.forEach(cost => {
       const type = expenseTypeMap.get(cost.expenseTypeId);
       const translatedName = getTranslatedExpenseTypeName(type, t);
-      typeTotals[translatedName] = (typeTotals[translatedName] || 0) + (cost.amountUSD || 0);
+      const usd = Number(cost.amountUSD) || 0;
+      typeTotals[translatedName] = (typeTotals[translatedName] || 0) + usd;
     });
 
     const categories = Object.keys(typeTotals);
@@ -671,7 +674,8 @@ function CostsPage() {
     summaryFilteredCosts.forEach(cost => {
       const activity = activityTypeMap.get(cost.activityTypeId);
       const translatedName = getTranslatedActivityTypeName(activity, t);
-      activityTotals[translatedName] = (activityTotals[translatedName] || 0) + (cost.amountUSD || 0);
+      const usd = Number(cost.amountUSD) || 0;
+      activityTotals[translatedName] = (activityTotals[translatedName] || 0) + usd;
     });
 
     const categories = Object.keys(activityTotals);
@@ -734,7 +738,7 @@ function CostsPage() {
       if (!acc[timestamp]) {
         acc[timestamp] = { amountUSD: 0 };
       }
-      acc[timestamp].amountUSD += cost.amountUSD || 0;
+      acc[timestamp].amountUSD += Number(cost.amountUSD) || 0;
       return acc;
     }, {});
 
@@ -768,8 +772,8 @@ function CostsPage() {
     };
 
     // Calculate total costs
-    const totalUSD = summaryFilteredCosts.reduce((sum, cost) => sum + (cost.amountUSD || 0), 0);
-    const totalFC = summaryFilteredCosts.reduce((sum, cost) => sum + (cost.amountFC || 0), 0);
+    const totalUSD = summaryFilteredCosts.reduce((sum, cost) => sum + (Number(cost.amountUSD) || 0), 0);
+    const totalFC = summaryFilteredCosts.reduce((sum, cost) => sum + (Number(cost.amountFC) || 0), 0);
 
     // Calculate daily average
     const dates = new Set(summaryFilteredCosts.map(cost => {
@@ -783,7 +787,7 @@ function CostsPage() {
       const expenseType = expenseTypeMap.get(cost.expenseTypeId);
       const translatedName = getTranslatedExpenseTypeName(expenseType, t);
       if (!acc[translatedName]) acc[translatedName] = 0;
-      acc[translatedName] += cost.amountUSD || 0;
+      acc[translatedName] += Number(cost.amountUSD) || 0;
       return acc;
     }, {});
 
@@ -809,8 +813,8 @@ function CostsPage() {
       return date.getMonth() === lastMonth && date.getFullYear() === lastMonthYear;
     });
 
-    const currentMonthTotal = currentMonthCosts.reduce((sum, cost) => sum + (cost.amountUSD || 0), 0);
-    const lastMonthTotal = lastMonthCosts.reduce((sum, cost) => sum + (cost.amountUSD || 0), 0);
+    const currentMonthTotal = currentMonthCosts.reduce((sum, cost) => sum + (Number(cost.amountUSD) || 0), 0);
+    const lastMonthTotal = lastMonthCosts.reduce((sum, cost) => sum + (Number(cost.amountUSD) || 0), 0);
 
     const growth = lastMonthTotal === 0 ? 0 : ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
 
@@ -840,8 +844,8 @@ function CostsPage() {
           budgetCode: budgetCode
         };
       }
-      acc[translatedName].amountUSD += cost.amountUSD || 0;
-      acc[translatedName].amountFC += cost.amountFC || 0;
+      acc[translatedName].amountUSD += Number(cost.amountUSD) || 0;
+      acc[translatedName].amountFC += Number(cost.amountFC) || 0;
       return acc;
     }, {});
   }, [summaryFilteredCosts, expenseTypeMap, t]);

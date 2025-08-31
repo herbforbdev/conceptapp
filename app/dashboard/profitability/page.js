@@ -137,7 +137,7 @@ export default function SalesTrendsPage() {
         return;
       }
 
-      table[normalizedProductType][d.getMonth()] += sale.amountUSD || 0;
+      table[normalizedProductType][d.getMonth()] += Number(sale.amountUSD) || 0;
     });
     return table;
   }, [sales, selectedYear, productTypes, productMap, masterProducts]);
@@ -169,8 +169,9 @@ export default function SalesTrendsPage() {
       const expenseType = expenseTypeMap.get(cost.expenseTypeId);
       if (!expenseType || !expenseType.name) return;
       if (!table[expenseType.name]) return;
-      table[expenseType.name][d.getMonth()] += cost.amountUSD || 0;
+      table[expenseType.name][d.getMonth()] += Number(cost.amountUSD) || 0;
     });
+    
     return table;
   }, [costs, selectedYear, expenseTypeMap]);
 
@@ -186,7 +187,7 @@ export default function SalesTrendsPage() {
       const activityType = activityTypeMap.get(sale.activityTypeId);
       if (!activityType || !activityType.name) return;
       if (!table[activityType.name]) return;
-      table[activityType.name][d.getMonth()] += sale.amountUSD || 0;
+      table[activityType.name][d.getMonth()] += Number(sale.amountUSD) || 0;
     });
     return table;
   }, [sales, selectedYear, activityTypeRows, activityTypeMap]);
@@ -206,8 +207,8 @@ export default function SalesTrendsPage() {
       // CRITICAL FIX: Filter by selectedYear for KPIs
       if (d.getFullYear() !== selectedYear) return;
       const m = d.getMonth();
-      salesByMonth[m] += sale.amountUSD || 0;
-      totalRevenue += sale.amountUSD || 0;
+      salesByMonth[m] += Number(sale.amountUSD) || 0;
+      totalRevenue += Number(sale.amountUSD) || 0;
       numSales++;
     });
     costs.forEach(cost => {
@@ -217,8 +218,8 @@ export default function SalesTrendsPage() {
       // CRITICAL FIX: Filter by selectedYear for KPIs
       if (d.getFullYear() !== selectedYear) return;
       const m = d.getMonth();
-      costsByMonth[m] += cost.amountUSD || 0;
-      totalCosts += cost.amountUSD || 0;
+      costsByMonth[m] += Number(cost.amountUSD) || 0;
+      totalCosts += Number(cost.amountUSD) || 0;
     });
     const grossProfit = totalRevenue - totalCosts;
     const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
