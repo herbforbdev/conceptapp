@@ -60,6 +60,9 @@ function CostsPage() {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   
+  // Tab state for summary section
+  const [summaryTab, setSummaryTab] = useState('tables');
+  
   // Initialize state with default values
   const [filters, setFilters] = useState({
     selectedMonth: '',
@@ -145,89 +148,92 @@ function CostsPage() {
   };
   const getPeriodLabel = (key) => PERIOD_LABELS[key] || key;
 
-  // Move CARD_STYLES here so it is always defined in the component scope
+  // Move CARD_STYLES here so it is always defined in the component scope - Updated with neutral grey palette
   const CARD_STYLES = {
     totalCosts: {
-      bg: 'bg-white',
-      text: 'text-[#004c4c]',
+      bg: 'bg-[#FCF8F8]',
+      text: 'text-black',
       iconWrapper: '',
       icon: (
-        <span className="bg-[#b2d8d8] p-2 rounded-lg flex items-center justify-center">
-          <HiCurrencyDollar className="h-7 w-7 text-[#004c4c]" />
+        <span className="bg-white/10 backdrop-blur-sm p-2 rounded-lg flex items-center justify-center border border-white/20">
+          <HiCurrencyDollar className="h-7 w-7 text-black" />
         </span>
       ),
-      border: 'border-[#008080]',
-      title: 'text-[#004c4c] text-base font-medium uppercase tracking-wider mt-4',
-      value: 'text-2xl font-bold text-[#004c4c]',
-      subValue: 'text-[#004c4c] font-semibold'
+      border: 'border-[#FCF8F8]',
+      title: 'text-black text-base font-medium uppercase tracking-wider mt-4',
+      value: 'text-2xl font-bold text-black',
+      subValue: 'text-black/80 font-semibold'
     },
     dailyAverage: {
-      bg: 'bg-white',
-      text: 'text-[#004c4c]',
+      bg: 'bg-[#FCF8F8]',
+      text: 'text-black',
       iconWrapper: '',
       icon: (
-        <span className="bg-[#66b2b2] p-2 rounded-lg flex items-center justify-center">
-          <HiTrendingUp className="h-7 w-7 text-white" />
+        <span className="bg-white/10 backdrop-blur-sm p-2 rounded-lg flex items-center justify-center border border-white/20">
+          <HiTrendingUp className="h-7 w-7 text-black" />
         </span>
       ),
-      border: 'border-[#008080]',
-      title: 'text-[#004c4c] text-sm font-medium uppercase tracking-wider mt-4',
-      value: 'text-2xl font-bold text-[#004c4c]',
-      subValue: 'text-[#004c4c] font-semibold'
+      border: 'border-[#FCF8F8]',
+      title: 'text-black text-sm font-medium uppercase tracking-wider mt-4',
+      value: 'text-2xl font-bold text-black',
+      subValue: 'text-black/80 font-semibold'
     },
     topExpense: {
-      bg: 'bg-white',
-      text: 'text-[#004c4c]',
+      bg: 'bg-[#FCF8F8]',
+      text: 'text-black',
       iconWrapper: '',
       icon: (
-        <span className="bg-[#008080] p-2 rounded-lg flex items-center justify-center">
-          <HiInbox className="h-7 w-7 text-white" />
+        <span className="bg-white/10 backdrop-blur-sm p-2 rounded-lg flex items-center justify-center border border-white/20">
+          <HiInbox className="h-7 w-7 text-black" />
         </span>
       ),
-      border: 'border-[#008080]',
-      title: 'text-[#004c4c] text-sm font-medium uppercase tracking-wider mt-4',
-      value: 'text-2xl font-bold text-[#004c4c]',
-      subValue: 'text-[#004c4c] font-semibold'
+      border: 'border-[#FCF8F8]',
+      title: 'text-black text-sm font-medium uppercase tracking-wider mt-4',
+      value: 'text-2xl font-bold text-black',
+      subValue: 'text-black/80 font-semibold'
     },
     growth: {
       up: {
-        bg: 'bg-white',
-        text: 'text-[#004c4c]',
+        bg: 'bg-[#FCF8F8]',
+        text: 'text-white',
         iconWrapper: '',
         icon: (
-          <span className="bg-[#004c4c] p-2 rounded-lg flex items-center justify-center">
+          <span className="bg-white/10 backdrop-blur-sm p-2 rounded-lg flex items-center justify-center border border-white/20">
             <HiTrendingUp className="h-7 w-7 text-white" />
           </span>
         ),
-        border: 'border-[#008080]',
-        title: 'text-[#004c4c] text-sm font-medium uppercase tracking-wider mt-4',
-        value: 'text-2xl font-bold text-[#004c4c]',
-        subValue: 'text-[#004c4c] font-semibold'
+        border: 'border-[#FCF8F8]',
+        title: 'text-black text-sm font-medium uppercase tracking-wider mt-4',
+        value: 'text-2xl font-bold text-black',
+        subValue: 'text-black/80 font-semibold'
       },
       down: {
-        bg: 'bg-white',
-        text: 'text-[#004c4c]',
+        bg: 'bg-[#FCF8F8]',
+        text: 'text-[#212529]',
         iconWrapper: '',
         icon: (
-          <span className="bg-[#004c4c] p-2 rounded-lg flex items-center justify-center">
-            <HiTrendingDown className="h-7 w-7 text-white" />
+          <span className="bg-[#212529]/10 p-2 rounded-lg flex items-center justify-center border border-[#212529]/20">
+            <HiTrendingDown className="h-7 w-7 text-[#212529]" />
           </span>
         ),
-        border: 'border-[#008080]',
-        title: 'text-[#004c4c] text-sm font-medium uppercase tracking-wider mt-4',
-        value: 'text-2xl font-bold text-[#004c4c]',
-        subValue: 'text-[#004c4c] font-semibold'
+        border: 'border-[#FCF8F8]',
+        title: 'text-black text-sm font-medium uppercase tracking-wider mt-4',
+        value: 'text-2xl font-bold text-black',
+        subValue: 'text-black/80 font-semibold'
       }
     }
   };
 
-  // Move tealCardColors and getTealColorIdx here so they are always defined in the component scope
+  // Move tealCardColors and getTealColorIdx here so they are always defined in the component scope - Updated with neutral grey palette
   const tealCardColors = [
-    { bg: 'bg-[#b2d8d8]', text: 'text-[#004c4c]' },
-    { bg: 'bg-[#66b2b2]', text: 'text-white' },
-    { bg: 'bg-[#008080]', text: 'text-white' },
-    { bg: 'bg-[#006666]', text: 'text-white' },
-    { bg: 'bg-[#004c4c]', text: 'text-white' }
+    { bg: 'bg-[#e9ecef]', text: 'text-[#212529]' },
+    { bg: 'bg-[#dee2e6]', text: 'text-[#495057]' },
+    { bg: 'bg-[#ced4da]', text: 'text-[#343a40]' },
+    { bg: 'bg-[#adb5bd]', text: 'text-[#212529]' },
+    { bg: 'bg-[#6c757d]', text: 'text-white' },
+    { bg: 'bg-[#495057]', text: 'text-white' },
+    { bg: 'bg-[#343a40]', text: 'text-white' },
+    { bg: 'bg-[#212529]', text: 'text-white' }
   ];
 
   // Helper function to safely convert various date formats to Date objects
@@ -868,6 +874,26 @@ function CostsPage() {
     setSummaryYear(Number(e.target.value));
   };
 
+  // Calculate category summary
+  const categorySummary = useMemo(() => {
+    if (!summaryFilteredCosts?.length || !expenseTypeMap) return {};
+    return summaryFilteredCosts.reduce((acc, cost) => {
+      const expenseType = expenseTypeMap.get(cost.expenseTypeId);
+      const category = expenseType?.category || 'uncategorized';
+      if (!acc[category]) {
+        acc[category] = {
+          amountUSD: 0,
+          amountFC: 0,
+          count: 0
+        };
+      }
+      acc[category].amountUSD += Number(cost.amountUSD) || 0;
+      acc[category].amountFC += Number(cost.amountFC) || 0;
+      acc[category].count += 1;
+      return acc;
+    }, {});
+  }, [summaryFilteredCosts, expenseTypeMap]);
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -895,7 +921,7 @@ function CostsPage() {
           })}
           icon={CARD_STYLES.totalCosts.icon}
           type="totalCosts"
-          className={`bg-white border-[#66b2b2]/20 border ${CARD_STYLES.totalCosts.text} shadow-lg hover:shadow-xl transition-all duration-200 p-6 rounded-2xl`}
+          className={`${CARD_STYLES.totalCosts.bg} border-2 ${CARD_STYLES.totalCosts.border} ${CARD_STYLES.totalCosts.text} shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 p-6 rounded-2xl`}
           titleClassName={CARD_STYLES.totalCosts.title}
           valueClassName={CARD_STYLES.totalCosts.value}
           subValueClassName={CARD_STYLES.totalCosts.subValue}
@@ -912,7 +938,7 @@ function CostsPage() {
           subValue={safeT(t, 'common.per_day', 'per day')}
           icon={CARD_STYLES.dailyAverage.icon}
           type="dailyAverage"
-          className={`bg-white border-[#66b2b2]/20 border ${CARD_STYLES.dailyAverage.text} shadow-lg hover:shadow-xl transition-all duration-200 p-6 rounded-2xl`}
+          className={`${CARD_STYLES.dailyAverage.bg} border-2 ${CARD_STYLES.dailyAverage.border} ${CARD_STYLES.dailyAverage.text} shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 p-6 rounded-2xl`}
           titleClassName={CARD_STYLES.dailyAverage.title}
           valueClassName={CARD_STYLES.dailyAverage.value}
           subValueClassName={CARD_STYLES.dailyAverage.subValue}
@@ -928,7 +954,7 @@ function CostsPage() {
           })}
           icon={CARD_STYLES.topExpense.icon}
           type="topExpense"
-          className={`bg-white border-[#66b2b2]/20 border ${CARD_STYLES.topExpense.text} shadow-lg hover:shadow-xl transition-all duration-200 p-6 rounded-2xl`}
+          className={`${CARD_STYLES.topExpense.bg} border-2 ${CARD_STYLES.topExpense.border} ${CARD_STYLES.topExpense.text} shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 p-6 rounded-2xl`}
           titleClassName={CARD_STYLES.topExpense.title}
           valueClassName={CARD_STYLES.topExpense.value}
           subValueClassName={CARD_STYLES.topExpense.subValue}
@@ -944,7 +970,7 @@ function CostsPage() {
           }
           type="growth"
           trend={metrics.salesGrowth.trend}
-          className={`bg-white border-[#66b2b2]/20 border ${CARD_STYLES.growth.up.text} shadow-lg hover:shadow-xl transition-all duration-200 p-6 rounded-2xl`}
+          className={`${metrics.salesGrowth.trend === 'up' ? CARD_STYLES.growth.up.bg : CARD_STYLES.growth.down.bg} border-2 ${metrics.salesGrowth.trend === 'up' ? CARD_STYLES.growth.up.border : CARD_STYLES.growth.down.border} ${metrics.salesGrowth.trend === 'up' ? CARD_STYLES.growth.up.text : CARD_STYLES.growth.down.text} shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 p-6 rounded-2xl`}
           titleClassName={CARD_STYLES.growth.up.title}
           valueClassName={CARD_STYLES.growth.up.value}
           subValueClassName={CARD_STYLES.growth.up.subValue}
@@ -961,14 +987,14 @@ function CostsPage() {
       /> */}
 
       {/* Costs Records Table with Merged Filters */}
-      <Card className="mb-6 bg-white border-2 border-[#66b2b2]/20">
+      <Card className="mb-6 bg-white border-2 border-[#dee2e6] shadow-lg">
         {/* Enhanced Header with Actions and Filters */}
-        <div className="bg-gradient-to-r from-[#b2d8d8]/20 to-[#66b2b2]/20 border-b border-[#66b2b2] rounded-t-2xl">
+        <div className="bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] border-b-2 border-[#EFE9E3] rounded-t-2xl">
           <div className="p-6">
             <div className="flex flex-col lg:flex-row justify-between gap-4 mb-6 rounded-t-2xl">
               <div>
-                <h5 className="text-xl font-bold leading-none text-green-900 uppercase mb-1">{t('costs.records')}</h5>
-                <p className="text-sm text-green-600">{t('costs.manage_and_track')}</p>
+                <h5 className="text-xl font-bold leading-none text-black uppercase mb-1">{t('costs.records')}</h5>
+                <p className="text-sm text-black/90">{t('costs.manage_and_track')}</p>
               </div>
               <div className="flex items-center gap-2">
                 {selectedItems.length > 0 && (
@@ -981,25 +1007,25 @@ function CostsPage() {
                       }
                     }}
                     disabled={isDeleting}
-                    className="bg-red-600 hover:bg-red-700 text-white font-medium px-3"
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium px-3 shadow-sm"
                   >
                     <HiTrash className="h-4 w-4 mr-2" />
                     Delete Selected ({selectedItems.length})
                   </Button>
                 )}
                 <Button
-                  color="green-900"
+                  color="blue"
                   size="sm"
                   onClick={handleRefresh}
-                  className="bg-[#66b2b2] text-green-600 hover:bg-[#008080]/80 font-medium px-3"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 shadow-sm"
                 >
                   <HiRefresh className="h-4 w-4" />
                 </Button>
                 <Link href="/dashboard/costs/add">
                   <Button 
-                    color="primary" 
+                    color="success" 
                     size="sm" 
-                    className="bg-[#004c4c] hover:bg-[#008080]/80 text-white font-medium px-3"
+                    className="bg-green-600 hover:bg-green-700 text-white font-medium px-3 shadow-sm"
                   >
                     <HiPlus className="h-4 w-4" />
                   </Button>
@@ -1088,10 +1114,10 @@ function CostsPage() {
             </div>
           </div>
         </div>
-        {/* Table Section (unchanged) */}
+        {/* Table Section */}
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
           <table className="w-full text-sm text-left text-gray-900">
-            <thead className="bg-[#004c4c] text-white">
+            <thead className="bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] text-gray-900">
               <tr>
                 <th className="px-6 py-3">
                   <input
@@ -1105,25 +1131,25 @@ function CostsPage() {
                         setSelectedItems([]);
                       }
                     }}
-                    className="h-4 w-4 text-green-600 border-green-300 rounded"
+                    className="h-4 w-4 text-[#495057] border-[#ced4da] rounded"
                   />
                 </th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('date')}>{safeT(t, 'common.date', 'Date')}</th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('activity')}>{safeT(t, 'common.activity', 'Activity')}</th>
-                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('expense')}>{safeT(t, 'common.expense', 'Expense')}</th>
-                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('amountFC')}>{safeT(t, 'common.amount_cdf', 'Amount (CDF)')}</th>
-                <th className="px-6 py-3 font-semibold text-center">{safeT(t, 'common.exchange_rate', 'Exchange Rate')}</th>
-                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#008080]" onClick={() => handleSort('amountUSD')}>{safeT(t, 'common.amount_usd', 'Amount (USD)')}</th>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#FCF8F8]" onClick={() => handleSort('date')}>{safeT(t, 'common.date', 'Date')}</th>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#FCF8F8]" onClick={() => handleSort('activity')}>{safeT(t, 'common.activity', 'Activity')}</th>
+                <th className="px-6 py-3 font-semibold cursor-pointer hover:bg-[#FCF8F8]" onClick={() => handleSort('expense')}>{safeT(t, 'common.expense', 'Expense')}</th>
+                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#FCF8F8]" onClick={() => handleSort('amountFC')}>{safeT(t, 'common.amount_cdf', 'Amount (CDF)')}</th>
+                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#FCF8F8]" onClick={() => handleSort('exchangeRate')}>{safeT(t, 'common.exchange_rate', 'Exchange Rate')}</th>
+                <th className="px-6 py-3 font-semibold text-center cursor-pointer hover:bg-[#FCF8F8]" onClick={() => handleSort('amountUSD')}>{safeT(t, 'common.amount_usd', 'Amount (USD)')}</th>
                 <th className="px-6 py-3 font-semibold text-center">{safeT(t, 'common.actions', 'Actions')}</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-[#b2d8d8]">
+            <tbody className="bg-white divide-y divide-[#dee2e6]">
                           {paginatedCosts.map((cost, index) => (
               <tr
                 key={cost.id}
-                className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
-                  index % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
-                } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                className={`transition-all duration-200 border-b border-[#dee2e6] last:border-b-0 ${
+                  index % 2 === 1 ? 'bg-[#FCF8F8]' : 'bg-white'
+                } hover:shadow-lg hover:scale-[1.02] hover:bg-[#e9ecef]`}
               >
                   <td className="px-6 py-4">
                     <input
@@ -1136,7 +1162,7 @@ function CostsPage() {
                           setSelectedItems(prev => [...prev, cost.id]);
                         }
                       }}
-                      className="h-4 w-4 text-[#004c4c] border-[#004c4c] rounded"
+                      className="h-4 w-4 text-[#495057] border-[#495057] rounded"
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -1175,10 +1201,18 @@ function CostsPage() {
                     ) : (
                       (() => {
                         const name = activityTypeMap.get(cost.activityTypeId)?.name || '—';
-                        const idx = getTealColorIdx(name);
-                        const { bg, text } = tealCardColors[idx];
+                        const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                        const colorVariants = [
+                          { bg: 'from-blue-100 to-blue-50', text: 'text-blue-800', border: 'border-blue-200', dot: 'bg-blue-500' },
+                          { bg: 'from-purple-100 to-purple-50', text: 'text-purple-800', border: 'border-purple-200', dot: 'bg-purple-500' },
+                          { bg: 'from-indigo-100 to-indigo-50', text: 'text-indigo-800', border: 'border-indigo-200', dot: 'bg-indigo-500' },
+                          { bg: 'from-violet-100 to-violet-50', text: 'text-violet-800', border: 'border-violet-200', dot: 'bg-violet-500' },
+                          { bg: 'from-sky-100 to-sky-50', text: 'text-sky-800', border: 'border-sky-200', dot: 'bg-sky-500' }
+                        ];
+                        const colors = colorVariants[hash % colorVariants.length];
                         return (
-                          <span className={`inline-block ${bg} rounded-lg px-3 py-1 font-semibold ${text}`}>
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r ${colors.bg} ${colors.text} border ${colors.border} shadow-sm`}>
+                            <span className={`w-2 h-2 rounded-full ${colors.dot} mr-2 inline-block`}></span>
                             {getTranslatedActivityTypeName(activityTypeMap.get(cost.activityTypeId), t)}
                           </span>
                         );
@@ -1202,17 +1236,26 @@ function CostsPage() {
                     ) : (
                       (() => {
                         const name = expenseTypeMap.get(cost.expenseTypeId)?.name || '—';
-                        const idx = getTealColorIdx(name);
-                        const { bg, text } = tealCardColors[idx];
+                        const expenseName = getTranslatedExpenseTypeName(expenseTypeMap.get(cost.expenseTypeId), t);
+                        const hash = expenseName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                        const colorVariants = [
+                          { bg: 'from-blue-100 to-blue-50', text: 'text-blue-800', border: 'border-blue-200', dot: 'bg-blue-500' },
+                          { bg: 'from-purple-100 to-purple-50', text: 'text-purple-800', border: 'border-purple-200', dot: 'bg-purple-500' },
+                          { bg: 'from-indigo-100 to-indigo-50', text: 'text-indigo-800', border: 'border-indigo-200', dot: 'bg-indigo-500' },
+                          { bg: 'from-violet-100 to-violet-50', text: 'text-violet-800', border: 'border-violet-200', dot: 'bg-violet-500' },
+                          { bg: 'from-sky-100 to-sky-50', text: 'text-sky-800', border: 'border-sky-200', dot: 'bg-sky-500' }
+                        ];
+                        const colors = colorVariants[hash % colorVariants.length];
                         return (
-                          <span className={`inline-block ${bg} rounded-lg px-3 py-1 font-semibold ${text}`}>
-                            {getTranslatedExpenseTypeName(expenseTypeMap.get(cost.expenseTypeId), t)}
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r ${colors.bg} ${colors.text} border ${colors.border} shadow-sm`}>
+                            <span className={`w-2 h-2 rounded-full ${colors.dot} mr-2 inline-block`}></span>
+                            {expenseName}
                           </span>
                         );
                       })()
                     )}
                   </td>
-                  <td className="px-6 py-4 text-center text-base font-semibold text-[#008080] font-mono">
+                  <td className="px-6 py-4 text-center text-base font-semibold">
                     {editingRow === cost.id ? (
                       <TextInput
                         type="number"
@@ -1222,10 +1265,12 @@ function CostsPage() {
                         min={0}
                       />
                     ) : (
-                      formatCDF(cost.amountFC)
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm">
+                        {formatCDF(cost.amountFC)}
+                      </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-center text-base text-[#004c4c] font-mono">
+                  <td className="px-6 py-4 text-center text-base font-semibold">
                     {editingRow === cost.id ? (
                       <TextInput
                         type="number"
@@ -1235,10 +1280,16 @@ function CostsPage() {
                         min={0}
                       />
                     ) : (
-                      cost.exchangeRate || ''
+                      cost.exchangeRate ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-gradient-to-r from-amber-100 to-amber-50 text-amber-800 border border-amber-200 shadow-sm">
+                          {cost.exchangeRate}
+                        </span>
+                      ) : (
+                        <span className="text-[#adb5bd]">—</span>
+                      )
                     )}
                   </td>
-                  <td className="px-6 py-4 text-center text-base font-semibold text-[#008080] font-mono">
+                  <td className="px-6 py-4 text-center text-base font-semibold">
                     {editingRow === cost.id ? (
                       <TextInput
                         type="number"
@@ -1248,7 +1299,9 @@ function CostsPage() {
                         min={0}
                       />
                     ) : (
-                      cost.amountUSD?.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-gradient-to-r from-cyan-100 to-cyan-50 text-cyan-800 border border-cyan-200 shadow-sm">
+                        {cost.amountUSD?.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-4">
@@ -1258,16 +1311,16 @@ function CostsPage() {
                           <Button color="success" size="xs" onClick={() => saveEditing(cost.id)} className="h-8 w-8 p-0 flex items-center justify-center bg-green-600 text-white hover:bg-green-700 border border-green-600">
                             <HiCheck className="h-4 w-4" />
                           </Button>
-                          <Button color="failure" size="xs" onClick={cancelEditing} className="h-8 w-8 p-0 flex items-center justify-center bg-red-600 text-white hover:bg-red-700 border border-red-600">
+                          <Button color="gray" size="xs" onClick={cancelEditing} className="h-8 w-8 p-0 flex items-center justify-center bg-gray-500 text-white hover:bg-gray-600 border border-gray-500 shadow-sm">
                             <HiX className="h-4 w-4" />
                           </Button>
                         </>
                       ) : (
                         <>
-                          <Button color="info" size="xs" onClick={() => startEditing(cost)} className="h-8 w-8 p-0 flex items-center justify-center bg-[#004c4c] text-white hover:bg-[#008080]/80 border border-[#004c4c]">
+                          <Button color="info" size="xs" onClick={() => startEditing(cost)} className="h-8 w-8 p-0 flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 border border-blue-600 shadow-sm">
                             <HiPencil className="h-4 w-4" />
                           </Button>
-                          <Button color="failure" size="xs" onClick={() => handleDelete(cost.id)} className="h-8 w-8 p-0 flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 border border-red-200">
+                          <Button color="failure" size="xs" onClick={() => handleDelete(cost.id)} className="h-8 w-8 p-0 flex items-center justify-center bg-red-600 text-white hover:bg-red-700 border border-red-600 shadow-sm">
                             <HiTrash className="h-4 w-4" />
                           </Button>
                         </>
@@ -1282,7 +1335,7 @@ function CostsPage() {
         
         {/* Pagination */}
         {sortedCosts.length > entriesPerPage && (
-          <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-[#004c4c]">
+          <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-[#dee2e6]">
             <span className="text-sm text-gray-700">
               {t('table.showing')} {(currentPage - 1) * entriesPerPage + 1} {t('table.to')} {Math.min(currentPage * entriesPerPage, sortedCosts.length)} {t('table.of')} {sortedCosts.length} {t('table.entries')}
             </span>
@@ -1292,7 +1345,7 @@ function CostsPage() {
                 size="sm"
                 onClick={goToPreviousPage}
                 disabled={currentPage === 1}
-                className="bg-[#66b2b2]/20 text-[#008080] hover:bg-green-200 disabled:bg-[#66b2b2] disabled:text-green-400 shadow-sm"
+                className="bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:bg-gray-300 disabled:text-gray-500 shadow-sm border border-blue-300"
               >
                 {t('common.previous')}
               </Button>
@@ -1301,7 +1354,7 @@ function CostsPage() {
                 size="sm"
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages}
-                className="bg-[#66b2b2]/20 text-[#008080] hover:bg-green-200 disabled:bg-[#66b2b2] disabled:text-green-400 shadow-sm"
+                className="bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:bg-gray-300 disabled:text-gray-500 shadow-sm border border-blue-300"
               >
                 {t('common.next')}
               </Button>
@@ -1310,12 +1363,179 @@ function CostsPage() {
         )}
       </Card>
 
-      {/* Summary Table - Full Width */}
-      <Card className="border border-[#66b2b2]/20 rounded-lg bg-white mb-6">
-        <div className="px-8 py-8 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-white uppercase text-left">
-            {safeT(t, 'common.summary', 'Summary')}
-          </h3>
+      {/* Summary Section with Tabs */}
+      <Card className="mb-6 overflow-hidden">
+        {/* Tabs Navigation */}
+        <div className="border-b border-[#dee2e6] bg-gradient-to-r from-[#FCF8F8] to-[#e9ecef]">
+          <nav className="flex -mb-px" aria-label="Tabs">
+            <button
+              onClick={() => setSummaryTab('tables')}
+              className={`${
+                summaryTab === 'tables'
+                  ? "border-[#495057] text-[#212529] bg-white"
+                  : "border-transparent text-[#6c757d] hover:text-[#495057] hover:border-[#adb5bd]"
+              } flex items-center py-4 px-6 border-b-2 font-medium text-sm transition-all`}
+            >
+              {safeT(t, 'common.summary_tables', 'Summary Tables')}
+            </button>
+            <button
+              onClick={() => setSummaryTab('charts')}
+              className={`${
+                summaryTab === 'charts'
+                  ? "border-[#495057] text-[#212529] bg-white"
+                  : "border-transparent text-[#6c757d] hover:text-[#495057] hover:border-[#adb5bd]"
+              } flex items-center py-4 px-6 border-b-2 font-medium text-sm transition-all`}
+            >
+              {safeT(t, 'common.charts', 'Charts')}
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div className="p-0">
+          {summaryTab === 'tables' && (
+            <>
+              {/* Category Summary Table */}
+              {Object.keys(categorySummary).length > 0 && (
+                <Card className="border-0 rounded-none bg-white mb-0">
+                  <div className="px-6 py-4 bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] border-b border-[#FCF8F8] flex justify-between items-center rounded">
+                    <h3 className="text-lg font-semibold text-black uppercase text-left">
+                      {safeT(t, 'costs.summaryByCategory', 'Summary by Category')}
+                    </h3>
+            <div className="flex items-center gap-4">
+              <div>
+                <Select
+                  value={summaryYear}
+                  onChange={handleSummaryYearChange}
+                  className="text-sm border-purple-200 focus:border-purple-400 focus:ring-purple-400"
+                >
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Select
+                  value={summaryMonth}
+                  onChange={handleSummaryMonthChange}
+                  className="text-sm border-[#ced4da] focus:border-[#495057] focus:ring-[#495057]"
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {MONTHS[i]}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-0 overflow-x-auto">
+            <table className="w-full text-sm text-left text-gray-900 border border-[#495057] rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+              <thead className="bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8]">
+                <tr>
+                  <TableHeader label="category" className="text-black" />
+                  <TableHeader label="amountFC" align="right" className="text-black" />
+                  <TableHeader label="amountUSD" align="right" className="text-black" />
+                  <TableHeader label="Nombre d'entrées" align="right" className="text-black" />
+                  <TableHeader label={t('costs.percentage', 'Percentage')} align="right" className="text-black" />
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-[#dee2e6]">
+                {(() => {
+                  const totalUSD = Object.values(categorySummary).reduce((sum, { amountUSD }) => sum + amountUSD, 0);
+                  const totalFC = Object.values(categorySummary).reduce((sum, { amountFC }) => sum + amountFC, 0);
+                  const totalCount = Object.values(categorySummary).reduce((sum, { count }) => sum + count, 0);
+                  
+                  const categoryOrder = ['personnel', 'social', 'fiscal', 'operational', 'uncategorized'];
+                  
+                  return (
+                    <>
+                      {categoryOrder
+                        .filter(cat => categorySummary[cat])
+                        .map((category) => {
+                          const data = categorySummary[category];
+                          const percentageOfTotal = (data.amountUSD / totalUSD) * 100;
+                          return (
+                            <tr
+                              key={category}
+                              className="transition-all duration-200 border-b border-purple-100 last:border-b-0 bg-white hover:shadow-lg hover:scale-[1.02] hover:bg-white"
+                            >
+                              <td className="px-6 py-2 font-semibold text-gray-900">
+                                {(() => {
+                                  const categoryColors = {
+                                    'personnel': { bg: 'from-blue-100 to-blue-50', text: 'text-blue-800', border: 'border-blue-200', dot: 'bg-blue-500' },
+                                    'social': { bg: 'from-green-100 to-green-50', text: 'text-green-800', border: 'border-green-200', dot: 'bg-green-500' },
+                                    'fiscal': { bg: 'from-yellow-100 to-yellow-50', text: 'text-yellow-800', border: 'border-yellow-200', dot: 'bg-yellow-500' },
+                                    'operational': { bg: 'from-purple-100 to-purple-50', text: 'text-purple-800', border: 'border-purple-200', dot: 'bg-purple-500' },
+                                    'uncategorized': { bg: 'from-gray-100 to-gray-50', text: 'text-gray-800', border: 'border-gray-200', dot: 'bg-gray-500' }
+                                  };
+                                  const colors = categoryColors[category] || categoryColors['uncategorized'];
+                                  return (
+                                    <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r ${colors.bg} ${colors.text} border ${colors.border} shadow-sm`}>
+                                      <span className={`w-2 h-2 rounded-full ${colors.dot} mr-2 inline-block`}></span>
+                                      {t(`masterData.expenseCategories.${category}`) || category}
+                                    </span>
+                                  );
+                                })()}
+                              </td>
+                              <td className="px-6 py-2 text-right font-semibold">
+                                <span className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm">
+                                  {formatFC(data.amountFC)}
+                                </span>
+                              </td>
+                              <td className="px-6 py-2 text-right font-semibold">
+                                <span className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-gradient-to-r from-cyan-100 to-cyan-50 text-cyan-800 border border-cyan-200 shadow-sm">
+                                  {data.amountUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}
+                                </span>
+                              </td>
+                              <td className="px-6 py-2 text-right font-semibold">
+                                <span className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-800 border border-indigo-200 shadow-sm">
+                                  {data.count}
+                                </span>
+                              </td>
+                              <td className="px-6 py-2 text-right font-semibold">
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-100 to-teal-50 text-teal-800 border border-teal-200 shadow-sm transition-colors duration-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 mr-1.5"></span>
+                                  {percentageOfTotal.toFixed(1)}%
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      <tr className="bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] text-base font-bold text-black border-t-2 rounded-b-2xl">
+                        <td className="px-6 py-3 flex items-center space-x-2">
+                          <span className="w-2 h-2 rounded-full bg-white inline-block"></span>
+                          <span>{safeT(t, 'common.total', 'Total')}</span>
+                        </td>
+                        <td className="px-6 py-3 text-right text-black">
+                          <span>{formatFC(totalFC)}</span>
+                        </td>
+                        <td className="px-6 py-3 text-right text-black">
+                          <span>{totalUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</span>
+                        </td>
+                        <td className="px-6 py-3 text-right text-black">
+                          <span>{totalCount}</span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span></span>
+                        </td>
+                      </tr>
+                    </>
+                  );
+                })()}
+              </tbody>
+            </table>
+                  </div>
+                </Card>
+              )}
+
+              {/* Summary Table - Full Width */}
+              <Card className="border-0 rounded-none bg-white mb-0">
+                <div className="px-6 py-4 bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] border-b border-[#6c757d] flex justify-between items-center rounded">
+                  <h3 className="text-lg font-semibold text-black uppercase text-left">
+                    {safeT(t, 'common.summary', 'Summary')}
+                  </h3>
           <div className="flex items-center gap-4">
             <div>
               <Select
@@ -1332,7 +1552,7 @@ function CostsPage() {
               <Select
                 value={summaryMonth}
                 onChange={handleSummaryMonthChange}
-                className="text-sm border-[#66b2b2] focus:border-[#66b2b2] focus:ring-[#66b2b2]"
+                className="text-sm border-[#ced4da] focus:border-[#495057] focus:ring-[#495057]"
               >
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i} value={i}>
@@ -1347,16 +1567,16 @@ function CostsPage() {
         {/* Summary Table */}
         <div className="p-0 overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-900 border border-[#004c4c] rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-            <thead className="bg-[#004c4c]">
+            <thead className="bg-[#FCF8F8]">
               <tr>
-                <TableHeader label="category" className="text-white" />
-                <TableHeader label="amountFC" align="right" className="text-white" />
-                <TableHeader label="amountUSD" align="right" className="text-white" />
-                <TableHeader label="budget" align="right" className="text-white" />
-                <TableHeader label={t('costs.percentage', 'Pourcentage')} align="right" className="text-white" />
+                <TableHeader label="category" className="text-black" />
+                <TableHeader label="amountFC" align="right" className="text-black" />
+                <TableHeader label="amountUSD" align="right" className="text-black" />
+                <TableHeader label="budget" align="right" className="text-black" />
+                <TableHeader label={t('costs.percentage', 'Pourcentage')} align="right" className="text-black" />
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-[#004c4c]/50">
+            <tbody className="bg-white divide-y divide-[#dee2e6]">
               {(() => {
                 const totalUSD = Object.values(summaryTableData).reduce((sum, { amountUSD }) => sum + amountUSD, 0);
                 const totalFC = Object.values(summaryTableData).reduce((sum, { amountFC }) => sum + amountFC, 0);
@@ -1373,50 +1593,76 @@ function CostsPage() {
                     key={type}
                     className="transition-all duration-200 border-b border-purple-100 last:border-b-0 bg-white hover:shadow-lg hover:scale-[1.02] hover:bg-white"
                   >
-                            <td className="px-8 py-5 font-semibold text-gray-900 flex items-center space-x-2">
-                              <span className="w-2 h-2 rounded-full bg-[#004c4c] inline-block"></span>
-                              <span>{getTranslatedExpenseTypeName(expenseTypeMap.get(data.expenseTypeId), t)}</span>
+                            <td className="px-6 py-2 font-semibold text-gray-900">
+                              {(() => {
+                                const expenseName = getTranslatedExpenseTypeName(expenseTypeMap.get(data.expenseTypeId), t);
+                                const hash = expenseName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                                const colorVariants = [
+                                  { bg: 'from-blue-100 to-blue-50', text: 'text-blue-800', border: 'border-blue-200', dot: 'bg-blue-500' },
+                                  { bg: 'from-purple-100 to-purple-50', text: 'text-purple-800', border: 'border-purple-200', dot: 'bg-purple-500' },
+                                  { bg: 'from-indigo-100 to-indigo-50', text: 'text-indigo-800', border: 'border-indigo-200', dot: 'bg-indigo-500' },
+                                  { bg: 'from-violet-100 to-violet-50', text: 'text-violet-800', border: 'border-violet-200', dot: 'bg-violet-500' },
+                                  { bg: 'from-sky-100 to-sky-50', text: 'text-sky-800', border: 'border-sky-200', dot: 'bg-sky-500' }
+                                ];
+                                const colors = colorVariants[hash % colorVariants.length];
+                                return (
+                                  <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r ${colors.bg} ${colors.text} border ${colors.border} shadow-sm`}>
+                                    <span className={`w-2 h-2 rounded-full ${colors.dot} mr-2 inline-block`}></span>
+                                    {expenseName}
+                                  </span>
+                                );
+                              })()}
                             </td>
-                                                         <td className="px-8 py-5 text-right text-green-700 font-semibold font-mono">
-                               <span>{formatFC(data.amountFC)}</span>
-                             </td>
-                             <td className="px-8 py-5 text-right text-green-900 font-semibold font-mono">
-                               <span>{data.amountUSD.toLocaleString(t('locale'), { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</span>
-                             </td>
-                            <td className="px-8 py-5 text-right font-semibold">
+                            <td className="px-6 py-2 text-right font-semibold">
+                              <span className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm">
+                                {formatFC(data.amountFC)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-2 text-right font-semibold">
+                              <span className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-gradient-to-r from-cyan-100 to-cyan-50 text-cyan-800 border border-cyan-200 shadow-sm">
+                                {data.amountUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}
+                              </span>
+                            </td>
+                            <td className="px-6 py-2 text-right font-semibold">
                               {typeof data.budgetCode === 'number' ? (
-                                <span className="bg-[#66b2b2]/20 text-green-800 px-3 py-1.5 rounded-full text-xs inline-flex items-center">
-                                  <span className="w-1 h-1 rounded-full bg-green-500 mr-1"></span>
+                                <span className={`${percentageOfTotal > data.budgetCode 
+                                  ? 'bg-gradient-to-r from-red-100 to-red-50 text-red-800 border-red-200' 
+                                  : 'bg-gradient-to-r from-green-100 to-green-50 text-green-800 border-green-200'
+                                } border px-3 py-1.5 rounded-lg text-xs inline-flex items-center shadow-sm transition-colors duration-200`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${percentageOfTotal > data.budgetCode ? 'bg-red-500' : 'bg-green-500'} mr-1.5`}></span>
                                   {data.budgetCode}%
                                 </span>
                               ) : (
-                                <span className="text-gray-400">—</span>
+                                <span className="text-[#adb5bd]">—</span>
                               )}
                             </td>
-                            <td className={`px-8 py-5 text-right font-semibold`}>
-                              <span className={`bg-${isOverBudget ? 'red' : 'green'}-100 text-${isOverBudget ? 'red' : 'green'}-800 border border-${isOverBudget ? 'red' : 'green'}-200 px-3 py-1.5 rounded-full text-xs inline-flex items-center transition-colors duration-200`}>
-                                <span className={`w-1 h-1 rounded-full bg-purple-500 mr-1`}></span>
+                            <td className="px-6 py-2 text-right font-semibold">
+                              <span className={`${isOverBudget 
+                                ? 'bg-gradient-to-r from-red-100 to-red-50 text-red-800 border-red-200' 
+                                : 'bg-gradient-to-r from-green-100 to-green-50 text-green-800 border-green-200'
+                              } border px-3 py-1.5 rounded-lg text-xs inline-flex items-center shadow-sm transition-colors duration-200`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${isOverBudget ? 'bg-red-500' : 'bg-green-500'} mr-1.5`}></span>
                                 {percentageOfTotal.toFixed(1)}%
                               </span>
                             </td>
                           </tr>
                         );
                       })}
-                    <tr className="bg-[#004c4c] text-base font-bold text-white border-t-2 border-[#004c4c]">
-                      <td className="px-8 py-5 rounded-bl-xl flex items-center space-x-2">
-                        <span className="w-2 h-2 rounded-full bg-[#004c4c] inline-block"></span>
+                    <tr className="bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] text-base font-bold text-black border-t-2 rounded-b-2xl">
+                      <td className="px-6 py-3 flex items-center space-x-2">
+                        <span className="w-2 h-2 rounded-full bg-white inline-block"></span>
                         <span>Total</span>
                       </td>
-                                             <td className="px-8 py-5 text-right text-white font-mono">
-                         <span>{formatFC(totalFC)}</span>
-                       </td>
-                       <td className="px-8 py-5 text-right text-white font-mono">
-                         <span>{totalUSD.toLocaleString(t('locale'), { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</span>
-                       </td>
-                      <td className="px-8 py-5 text-right">
+                      <td className="px-6 py-3 text-right text-black">
+                        <span>{formatFC(totalFC)}</span>
+                      </td>
+                      <td className="px-6 py-3 text-right text-black">
+                        <span>{totalUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</span>
+                      </td>
+                      <td className="px-6 py-3 text-right">
                         <span></span>
                       </td>
-                      <td className="px-8 py-5 text-right rounded-br-xl">
+                      <td className="px-6 py-3 text-right">
                         <span></span>
                       </td>
                     </tr>
@@ -1427,11 +1673,15 @@ function CostsPage() {
           </table>
         </div>
       </Card>
+            </>
+          )}
 
-      {/* Costs by Type Chart (bar) */}
-      <Card className="border border-[#66b2b2]/20 mb-6">
-        <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] text-white">
-          <h3 className="text-lg font-semibold text-center text-white">
+          {summaryTab === 'charts' && (
+            <div className="space-y-6 p-6">
+              {/* Costs by Type Chart (bar) */}
+              <Card className="border border-[#dee2e6]">
+        <div className="px-6 py-3 bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] border-b border-[#6c757d] text-black">
+          <h3 className="text-lg font-semibold text-center text-black">
             {safeT(t, 'common.costs_by_type', 'Costs by Type')}
           </h3>
         </div>
@@ -1492,7 +1742,7 @@ function CostsPage() {
                   fill: {
                     opacity: 1
                   },
-                  colors: ['#008080'],
+                  colors: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'],
                   tooltip: {
                     y: {
                       formatter: (value) => {
@@ -1522,10 +1772,10 @@ function CostsPage() {
         </div>
       </Card>
 
-             {/* Costs Trend Chart */}
-       <Card className="border border-[#66b2b2]/20 mb-6">
-         <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] rounded-t-lg">
-           <h3 className="text-lg font-semibold text-center text-white">
+              {/* Costs Trend Chart */}
+              <Card className="border border-[#dee2e6]">
+         <div className="px-6 py-3 bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] border-b border-[#6c757d] rounded-t-lg">
+           <h3 className="text-lg font-semibold text-center text-black">
              {safeT(t, 'cost_trends.title', 'Cost Trends')}
            </h3>
          </div>
@@ -1543,7 +1793,7 @@ function CostsPage() {
                          background: 'transparent',
                          toolbar: { show: false }
                        },
-                       colors: ['#008080'],
+                       colors: ['#3b82f6'],
                        yaxis: {
                          labels: {
                            formatter: (val) => val % 1 === 0 ? val.toFixed(0) : val.toFixed(2),
@@ -1591,10 +1841,10 @@ function CostsPage() {
          </div>
        </Card>
 
-       {/* Costs by Activity Type Chart */}
-       <Card className="border border-[#66b2b2]/20">
-         <div className="px-6 py-3 bg-[#004c4c] border-b border-[#66b2b2] text-white">
-           <h3 className="text-lg font-semibold text-center text-white">
+              {/* Costs by Activity Type Chart */}
+              <Card className="border border-[#dee2e6]">
+         <div className="px-6 py-3 bg-gradient-to-r from-[#FCF8F8] to-[#FCF8F8] border-b border-[#6c757d] text-black">
+           <h3 className="text-lg font-semibold text-center text-black">
              {safeT(t, 'common.costs_by_activity', 'Costs by Activity Type')}
            </h3>
          </div>
@@ -1643,7 +1893,7 @@ function CostsPage() {
                          return `$${value.toFixed(0)}`;
                        },
                        style: {
-                         colors: '#004c4c',
+                         colors: '#495057',
                          fontSize: '12px',
                          fontWeight: 'bold'
                        }
@@ -1652,7 +1902,7 @@ function CostsPage() {
                    yaxis: {
                      labels: {
                        style: {
-                         colors: '#004c4c',
+                         colors: '#495057',
                          fontSize: '12px',
                          fontWeight: 'bold'
                        }
@@ -1661,7 +1911,7 @@ function CostsPage() {
                    fill: {
                      opacity: 1
                    },
-                   colors: ['#66b2b2', '#008080', '#004c4c', '#b2d8d8', '#4a9a9a', '#2d6b6b', '#7dc4c4', '#336b6b'],
+                   colors: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'],
                    tooltip: {
                      y: {
                        formatter: (value) => {
@@ -1693,8 +1943,10 @@ function CostsPage() {
            </div>
          </div>
        </Card>
-
-
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

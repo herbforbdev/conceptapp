@@ -9,7 +9,8 @@ import {
   HiBell, 
   HiUser, 
   HiCog,
-  HiArrowRight
+  HiArrowRight,
+  HiDocumentText
 } from "react-icons/hi";
 import LanguageSelector from '@/components/shared/LanguageSelector';
 
@@ -57,6 +58,13 @@ export default function SettingsPage() {
       icon: <HiCog className="h-8 w-8 text-[#073763]" />,
       href: "/dashboard/settings",
       color: "bg-gradient-to-br from-[#073763] to-[#031b31]"
+    },
+    {
+      title: t('settings.Print Settings'),
+      description: t('settings.Configure print and PDF export settings'),
+      icon: <HiDocumentText className="h-8 w-8 text-[#1f4b72]" />,
+      href: "/dashboard/settings/print",
+      color: "bg-gradient-to-br from-[#1f4b72] to-[#385e82]"
     }
   ];
 

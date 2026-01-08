@@ -643,6 +643,7 @@ export default function MasterDataPage() {
       setEditingData({
         ...item,
         name: getTranslatedExpenseTypeName(item.name, t),
+        category: item.category || '',
         description: item.description || '' // Use original database value, not translation
       });
     }
@@ -1054,6 +1055,12 @@ export default function MasterDataPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t('masterData.table.description')}
               </th>
+              <th className={headerClasses('category')} onClick={() => handleHeaderClick('category')}>
+                <div className="flex items-center gap-1">
+                  {t('masterData.table.category')}
+                  {getSortIcon('category')}
+                </div>
+              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t('masterData.table.actions')}
               </th>
@@ -1284,6 +1291,32 @@ export default function MasterDataPage() {
               getTranslatedExpenseDescription(item.name, t) || item.description
             )}
           </td>
+          <td className="px-6 py-3">
+            {editingId === item.id ? (
+              <Select
+                value={editingData.category || ''}
+                onChange={(e) => setEditingData({ ...editingData, category: e.target.value })}
+                className="w-full"
+              >
+                <option value="">{t('masterData.filters.category')}</option>
+                <option value="personnel">{t('masterData.expenseCategories.personnel')}</option>
+                <option value="social">{t('masterData.expenseCategories.social')}</option>
+                <option value="fiscal">{t('masterData.expenseCategories.fiscal')}</option>
+                <option value="operational">{t('masterData.expenseCategories.operational')}</option>
+              </Select>
+            ) : (
+              <span className={`px-3 py-1.5 rounded-full text-sm font-medium inline-flex items-center ${
+                item.category === 'personnel' ? 'bg-blue-100 text-blue-700' :
+                item.category === 'social' ? 'bg-green-100 text-green-700' :
+                item.category === 'fiscal' ? 'bg-yellow-100 text-yellow-700' :
+                item.category === 'operational' ? 'bg-orange-100 text-orange-700' :
+                'bg-gray-100 text-gray-700'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full mr-2 bg-current opacity-70"></span>
+                {item.category ? t(`masterData.expenseCategories.${item.category}`) : '-'}
+              </span>
+            )}
+          </td>
           <td className="px-6 py-3 text-right">
             <div className="flex items-center gap-2 justify-end">
               {editingId === item.id ? (
@@ -1453,6 +1486,15 @@ export default function MasterDataPage() {
           </td>
           <td className="px-6 py-3">
             <TextInput value={addRowData.description || ''} onChange={e => handleAddRowChange('description', e.target.value)} placeholder={t('masterData.table.description')} className="w-full" />
+          </td>
+          <td className="px-6 py-3">
+            <Select value={addRowData.category || ''} onChange={e => handleAddRowChange('category', e.target.value)} className="w-full">
+              <option value="">{t('masterData.filters.category')}</option>
+              <option value="personnel">{t('masterData.expenseCategories.personnel')}</option>
+              <option value="social">{t('masterData.expenseCategories.social')}</option>
+              <option value="fiscal">{t('masterData.expenseCategories.fiscal')}</option>
+              <option value="operational">{t('masterData.expenseCategories.operational')}</option>
+            </Select>
           </td>
           <td className="px-6 py-3 text-right">
             <div className="flex gap-2 justify-end">
@@ -1699,6 +1741,24 @@ export default function MasterDataPage() {
             )}
             {activeTab === 'expenses' && (
               <>
+                <div>
+                  <Label htmlFor="massCategory">{t('masterData.table.category')}</Label>
+                  <Select
+                    id="massCategory"
+                    value={massEditData.expenses.category}
+                    onChange={(e) => setMassEditData(prev => ({
+                      ...prev,
+                      expenses: { ...prev.expenses, category: e.target.value }
+                    }))}
+                    className="mt-1"
+                  >
+                    <option value="">{t('masterData.filters.category')}</option>
+                    <option value="personnel">{t('masterData.expenseCategories.personnel')}</option>
+                    <option value="social">{t('masterData.expenseCategories.social')}</option>
+                    <option value="fiscal">{t('masterData.expenseCategories.fiscal')}</option>
+                    <option value="operational">{t('masterData.expenseCategories.operational')}</option>
+                  </Select>
+                </div>
                 <div>
                   <Label htmlFor="massBudget">{t('masterData.table.budget')}</Label>
                   <TextInput

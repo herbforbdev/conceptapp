@@ -52,6 +52,13 @@ export default function ReportsPage() {
       icon: <HiCurrencyYen className="h-8 w-8" />,
       href: "/dashboard/reports/exchange-rates",
       color: "bg-green-500"
+    },
+    {
+      title: t('reports.cashBook.title'),
+      description: t('reports.cashBook.description'),
+      icon: <HiCurrencyDollar className="h-8 w-8" />,
+      href: "/dashboard/reports/cash-book",
+      color: "bg-teal-500"
     }
   ];
 
