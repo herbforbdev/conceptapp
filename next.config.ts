@@ -1,11 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     // Warning: This allows production builds to successfully complete even if
     // your project has TypeScript errors.
@@ -15,25 +10,8 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: false,
   },
-  webpack: (config, { isServer }) => {
-    // Exclude server-only packages from client-side bundle
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-        crypto: false,
-      };
-      
-      // Exclude SendGrid and other server-only modules from client bundle
-      config.externals = [
-        ...(config.externals || []),
-        '@sendgrid/mail',
-        '@sendgrid/helpers',
-      ];
-    }
-    return config;
-  },
+  // Use webpack for production builds to avoid Turbopack compatibility issues
+  // turbopack: {},
   images: {
     remotePatterns: [
       {
