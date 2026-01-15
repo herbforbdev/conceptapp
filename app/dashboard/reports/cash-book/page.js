@@ -13,12 +13,16 @@ import {
   HiDocumentDownload,
   HiCurrencyDollar,
   HiTrendingUp,
-  HiTrendingDown
+  HiTrendingDown,
+  HiPencil,
+  HiTrash,
+  HiCheck,
+  HiX
 } from 'react-icons/hi';
 import Link from 'next/link';
 import { generateCashBook, calculateOpeningBalance, getCashBookSummary } from '@/services/firestore/cashBookService';
 import { useReactToPrint } from 'react-to-print';
-import { addManualCashBookEntry, getManualCashBookEntries } from '@/services/firestore/manualCashBookService';
+import { addManualCashBookEntry, getManualCashBookEntries, updateManualCashBookEntry, deleteManualCashBookEntry } from '@/services/firestore/manualCashBookService';
 import { usePrintSettings } from '@/hooks/usePrintSettings';
 import { Modal, TextInput, Label, Select } from 'flowbite-react';
 import { HiPlus } from 'react-icons/hi';
@@ -261,6 +265,14 @@ export default function CashBookPage() {
     amountUSD: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Tab state for organizing tables
+  const [activeTab, setActiveTab] = useState('records');
+  
+  // Inline edit state for manual entries
+  const [editingRow, setEditingRow] = useState(null);
+  const [editingData, setEditingData] = useState({});
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Update selected year when available years change (e.g., when data loads)
   useEffect(() => {
@@ -528,6 +540,69 @@ export default function CashBookPage() {
     generateEntries();
   }, [sales, costs, manualEntries, salesLoading, costsLoading, manualEntriesLoading, selectedYear, selectedMonth, currency, productMap, activityTypeMap, expenseTypeMap, t]);
   
+  // Refresh handler to regenerate cashbook after manual entry changes
+  const handleRefresh = () => {
+    // The useEffect will automatically regenerate when manualEntries changes
+    // This is just a placeholder for consistency with costs page pattern
+  };
+  
+  // Inline edit handlers for manual entries
+  const startEditing = (entry) => {
+    if (entry.transactionType !== 'MANUAL') return;
+    setEditingRow(entry.reference);
+    const entryDate = entry.date instanceof Date ? entry.date : parseDate(entry.date);
+    // Calculate exchange rate from existing amounts, or use default
+    const amountFC = entry.amountFC || 0;
+    const amountUSD = entry.amountUSD || 0;
+    const exchangeRate = amountUSD > 0 ? (amountFC / amountUSD) : 2500;
+    setEditingData({
+      date: entryDate ? entryDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      description: entry.description || '',
+      type: entry.cashIn > 0 ? 'CREDIT' : 'DEBIT',
+      amountFC: amountFC,
+      amountUSD: amountUSD,
+      exchangeRate: exchangeRate,
+    });
+  };
+  
+  const cancelEditing = () => {
+    setEditingRow(null);
+    setEditingData({});
+  };
+  
+  const saveEditing = async (entryId) => {
+    try {
+      const updates = {
+        date: new Date(editingData.date),
+        description: editingData.description,
+        type: editingData.type,
+        amountFC: parseFloat(editingData.amountFC) || 0,
+        amountUSD: parseFloat(editingData.amountUSD) || 0,
+        currency: currency
+      };
+      await updateManualCashBookEntry(entryId, updates);
+      setEditingRow(null);
+      setEditingData({});
+      // Refresh will happen automatically via useFirestoreCollection
+    } catch (error) {
+      console.error('Error updating manual entry:', error);
+      alert(safeT(t, 'reports.cashBook.errorUpdating', 'Error updating entry. Please try again.'));
+    }
+  };
+  
+  const handleDelete = async (entryId) => {
+    if (!window.confirm(safeT(t, 'reports.cashBook.confirmDelete', 'Are you sure you want to delete this entry?'))) return;
+    setIsDeleting(true);
+    try {
+      await deleteManualCashBookEntry(entryId);
+      // Refresh will happen automatically via useFirestoreCollection
+    } catch (error) {
+      console.error('Error deleting manual entry:', error);
+      alert(safeT(t, 'reports.cashBook.errorDeleting', 'Error deleting entry. Please try again.'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   
   const months = [
     t('months.january'), t('months.february'), t('months.march'),
@@ -729,153 +804,737 @@ export default function CashBookPage() {
                 </div>
               </div>
             </Card>
-            
-            {/* Transaction Type Breakdown */}
-            <Card className="!rounded-2xl">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-[#385e82] mb-4">
-                  {safeT(t, 'reports.cashBook.transactionTypeBreakdown', 'Transaction Type Breakdown')}
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-gray-900 border border-gray-200 rounded-lg">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">{safeT(t, 'reports.cashBook.type', 'Type')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.count', 'Count')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashIn', 'Cash In')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.net', 'Net')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.percentage', '% of Total')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      <tr className="hover:bg-blue-50">
-                        <td className="px-4 py-3 font-medium text-blue-900">{safeT(t, 'reports.cashBook.sales', 'Sales')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.sales.count}</td>
-                        <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.sales.cashIn, currency)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.sales.cashOut, currency)}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-blue-900">
-                          {formatCurrency(transactionTypeSummary.sales.cashIn - transactionTypeSummary.sales.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {transactionTypeSummary.total.count > 0 
-                            ? ((transactionTypeSummary.sales.count / transactionTypeSummary.total.count) * 100).toFixed(1)
-                            : '0.0'
-                          }%
-                        </td>
-                      </tr>
-                      <tr className="hover:bg-red-50">
-                        <td className="px-4 py-3 font-medium text-red-900">{safeT(t, 'reports.cashBook.costs', 'Costs')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.costs.count}</td>
-                        <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.costs.cashIn, currency)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.costs.cashOut, currency)}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-red-900">
-                          {formatCurrency(transactionTypeSummary.costs.cashIn - transactionTypeSummary.costs.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {transactionTypeSummary.total.count > 0 
-                            ? ((transactionTypeSummary.costs.count / transactionTypeSummary.total.count) * 100).toFixed(1)
-                            : '0.0'
-                          }%
-                        </td>
-                      </tr>
-                      <tr className="hover:bg-purple-50">
-                        <td className="px-4 py-3 font-medium text-purple-900">{safeT(t, 'reports.cashBook.manual', 'Manual Entries')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.manual.count}</td>
-                        <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.manual.cashIn, currency)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.manual.cashOut, currency)}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-purple-900">
-                          {formatCurrency(transactionTypeSummary.manual.cashIn - transactionTypeSummary.manual.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {transactionTypeSummary.total.count > 0 
-                            ? ((transactionTypeSummary.manual.count / transactionTypeSummary.total.count) * 100).toFixed(1)
-                            : '0.0'
-                          }%
-                        </td>
-                      </tr>
-                      <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
-                        <td className="px-4 py-3 text-gray-900">{safeT(t, 'common.total', 'Total')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.total.count}</td>
-                        <td className="px-4 py-3 text-right text-green-900">{formatCurrency(transactionTypeSummary.total.cashIn, currency)}</td>
-                        <td className="px-4 py-3 text-right text-red-900">{formatCurrency(transactionTypeSummary.total.cashOut, currency)}</td>
-                        <td className="px-4 py-3 text-right text-[#385e82]">
-                          {formatCurrency(transactionTypeSummary.total.cashIn - transactionTypeSummary.total.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right">100.0%</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </Card>
-            
-            {/* Daily Summary Table */}
-            <Card className="!rounded-2xl">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-[#385e82] mb-4">
-                  {safeT(t, 'reports.cashBook.dailySummary', 'Daily Summary')}
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-gray-900 border border-gray-200 rounded-lg">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">{safeT(t, 'common.date', 'Date')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.transactions', 'Transactions')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashIn', 'Cash In')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.net', 'Net')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.balance', 'Balance')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {dailySummary.map((day, idx) => (
-                        <tr key={day.dateKey} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50`}>
-                          <td className="px-4 py-3 font-medium">
-                            {day.date.toLocaleDateString('en-GB', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })}
-                          </td>
-                          <td className="px-4 py-3 text-right">{day.transactions}</td>
-                          <td className="px-4 py-3 text-right font-medium text-green-700">
-                            {formatCurrency(day.cashIn, currency)}
-                          </td>
-                          <td className="px-4 py-3 text-right font-medium text-red-700">
-                            {formatCurrency(day.cashOut, currency)}
-                          </td>
-                          <td className="px-4 py-3 text-right font-semibold">
-                            {formatCurrency(day.cashIn - day.cashOut, currency)}
-                          </td>
-                          <td className="px-4 py-3 text-right font-bold text-[#385e82]">
-                            {formatCurrency(day.balance, currency)}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
-                        <td className="px-4 py-3 text-gray-900">{safeT(t, 'common.total', 'Total')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.total.count}</td>
-                        <td className="px-4 py-3 text-right text-green-900">
-                          {formatCurrency(transactionTypeSummary.total.cashIn, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-red-900">
-                          {formatCurrency(transactionTypeSummary.total.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-[#385e82]">
-                          {formatCurrency(transactionTypeSummary.total.cashIn - transactionTypeSummary.total.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-[#385e82]">
-                          {summary ? formatCurrency(summary.closingBalance, currency) : formatCurrency(0, currency)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </Card>
           </div>
         )}
+        
+        {/* Tabs Navigation and Content */}
+        {cashBookEntries.length > 0 && (
+          <Card className="!rounded-2xl overflow-visible mb-8 bg-white/90 border-0 shadow-none print:hidden">
+            <div className="flex items-center justify-between border-b border-[#385e82] pb-2 px-2">
+              <nav className="flex space-x-2" aria-label="Tabs">
+                {[
+                  { key: 'records', label: safeT(t, 'reports.cashBook.records', 'Records') },
+                  { key: 'transactionType', label: safeT(t, 'reports.cashBook.transactionTypeBreakdown', 'Transaction Type Breakdown') },
+                  { key: 'dailySummary', label: safeT(t, 'reports.cashBook.dailySummary', 'Daily Summary') },
+                  { key: 'manualEntries', label: safeT(t, 'reports.cashBook.manualEntries', 'Manual Entries') },
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-6 py-2 rounded-t-lg font-semibold text-base transition-all duration-200 border-b-4 ${
+                      activeTab === tab.key
+                        ? 'border-[#385e82] text-[#385e82] bg-white'
+                        : 'border-transparent text-gray-400 bg-transparent hover:text-[#385e82]'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+            
+            {/* Tab Content */}
+            <div className="p-0">
+              {/* Tab 1: Records Table */}
+              {activeTab === 'records' && (
+                <Card className="border-0 rounded-none bg-white mb-0">
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-[#385e82] mb-4">
+                      {safeT(t, 'reports.cashBook.cashBookTable', 'Cash Book Ledger')} - {months[selectedMonth - 1]} {selectedYear}
+                    </h3>
+                    
+                    {cashBookEntries.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">
+                        {safeT(t, 'reports.cashBook.noData', 'No transactions found for the selected period')}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-center text-gray-900 rounded overflow-hidden shadow-lg">
+                            <thead className="bg-[#385e82]">
+                              <tr>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-left">
+                                  {safeT(t, 'common.date', 'Date')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-left">
+                                  {safeT(t, 'common.description', 'Description')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-right">
+                                  {safeT(t, 'reports.cashBook.cashIn', 'Cash In')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-right">
+                                  {safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-right">
+                                  {safeT(t, 'reports.cashBook.balance', 'Balance')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-center">
+                                  {safeT(t, 'common.actions', 'Actions')}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {/* Opening Balance Row - Only show on first page */}
+                              {summary && currentPage === 1 && (
+                                <tr className="bg-blue-50 font-semibold">
+                                  <td colSpan="2" className="px-6 py-3 text-left text-[#385e82]">
+                                    {safeT(t, 'reports.cashBook.openingBalance', 'Opening Balance')}
+                                  </td>
+                                  <td className="px-6 py-3 text-right text-gray-500">—</td>
+                                  <td className="px-6 py-3 text-right text-gray-500">—</td>
+                                  <td className="px-6 py-3 text-right font-bold text-[#385e82]">
+                                    {formatCurrency(summary.openingBalance, currency)}
+                                  </td>
+                                  <td className="px-6 py-3"></td>
+                                </tr>
+                              )}
+                              
+                              {/* Transaction Rows */}
+                              {paginatedEntries.map((entry, idx) => {
+                                // Calculate the actual index in the full array for alternating colors
+                                const actualIdx = (currentPage - 1) * entriesPerPage + idx;
+                                const isManual = entry.transactionType === 'MANUAL';
+                                const isEditing = editingRow === entry.reference;
+                                return (
+                                  <tr
+                                    key={`${entry.transactionType}-${entry.reference}-${actualIdx}`}
+                                    className={`transition-all duration-200 border-b border-gray-100 last:border-b-0 ${
+                                      actualIdx % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'
+                                    } hover:shadow-md hover:bg-gray-50`}
+                                  >
+                                    <td className="px-6 py-3 text-left text-gray-900 whitespace-nowrap">
+                                      {isEditing ? (
+                                        <TextInput
+                                          type="date"
+                                          value={editingData.date || ''}
+                                          onChange={e => setEditingData(prev => ({ ...prev, date: e.target.value }))}
+                                          className="w-[140px]"
+                                        />
+                                      ) : (
+                                        entry.date.toLocaleDateString('en-GB', {
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric'
+                                        })
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-3 text-left text-gray-900">
+                                      {isEditing ? (
+                                        <div className="flex flex-col gap-2">
+                                          <Select
+                                            value={editingData.type || 'DEBIT'}
+                                            onChange={e => setEditingData(prev => ({ ...prev, type: e.target.value }))}
+                                            className="w-full"
+                                          >
+                                            <option value="CREDIT">{safeT(t, 'reports.cashBook.credit', 'Credit')}</option>
+                                            <option value="DEBIT">{safeT(t, 'reports.cashBook.debit', 'Debit')}</option>
+                                          </Select>
+                                          <TextInput
+                                            type="text"
+                                            value={editingData.description || ''}
+                                            onChange={e => setEditingData(prev => ({ ...prev, description: e.target.value }))}
+                                            className="w-full"
+                                            placeholder={safeT(t, 'common.description', 'Description')}
+                                          />
+                                        </div>
+                                      ) : (
+                                        entry.description
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-3 text-right font-medium text-green-700">
+                                      {isEditing ? (
+                                        <div className="flex flex-col gap-2 min-w-[120px]">
+                                          <TextInput
+                                            type="number"
+                                            value={editingData.type === 'CREDIT' ? (editingData.amountFC || 0) : 0}
+                                    onChange={e => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      const rate = editingData.exchangeRate || 2500;
+                                      setEditingData(prev => ({
+                                        ...prev,
+                                        amountFC: editingData.type === 'CREDIT' ? val : prev.amountFC,
+                                        amountUSD: editingData.type === 'CREDIT' ? (val / rate) : prev.amountUSD
+                                      }));
+                                    }}
+                                            className="w-full text-center"
+                                            min={0}
+                                            disabled={editingData.type !== 'CREDIT'}
+                                            placeholder="FC"
+                                          />
+                                          <TextInput
+                                            type="number"
+                                            value={editingData.type === 'CREDIT' ? (editingData.amountUSD || 0) : 0}
+                                    onChange={e => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      const rate = editingData.exchangeRate || 2500;
+                                      setEditingData(prev => ({
+                                        ...prev,
+                                        amountUSD: editingData.type === 'CREDIT' ? val : prev.amountUSD,
+                                        amountFC: editingData.type === 'CREDIT' ? (val * rate) : prev.amountFC
+                                      }));
+                                    }}
+                                            className="w-full text-center"
+                                            min={0}
+                                            disabled={editingData.type !== 'CREDIT'}
+                                            placeholder="USD"
+                                          />
+                                        </div>
+                                      ) : (
+                                        entry.cashIn > 0 ? formatCurrency(entry.cashIn, currency) : '—'
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-3 text-right font-medium text-red-700">
+                                      {isEditing ? (
+                                        <div className="flex flex-col gap-2 min-w-[120px]">
+                                          <TextInput
+                                            type="number"
+                                            value={editingData.type === 'DEBIT' ? (editingData.amountFC || 0) : 0}
+                                    onChange={e => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      const rate = editingData.exchangeRate || 2500;
+                                      setEditingData(prev => ({
+                                        ...prev,
+                                        amountFC: editingData.type === 'DEBIT' ? val : prev.amountFC,
+                                        amountUSD: editingData.type === 'DEBIT' ? (val / rate) : prev.amountUSD
+                                      }));
+                                    }}
+                                            className="w-full text-center"
+                                            min={0}
+                                            disabled={editingData.type !== 'DEBIT'}
+                                            placeholder="FC"
+                                          />
+                                          <TextInput
+                                            type="number"
+                                            value={editingData.type === 'DEBIT' ? (editingData.amountUSD || 0) : 0}
+                                    onChange={e => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      const rate = editingData.exchangeRate || 2500;
+                                      setEditingData(prev => ({
+                                        ...prev,
+                                        amountUSD: editingData.type === 'DEBIT' ? val : prev.amountUSD,
+                                        amountFC: editingData.type === 'DEBIT' ? (val * rate) : prev.amountFC
+                                      }));
+                                    }}
+                                            className="w-full text-center"
+                                            min={0}
+                                            disabled={editingData.type !== 'DEBIT'}
+                                            placeholder="USD"
+                                          />
+                                        </div>
+                                      ) : (
+                                        entry.cashOut > 0 ? formatCurrency(entry.cashOut, currency) : '—'
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-3 text-right font-bold text-[#385e82]">
+                                      {formatCurrency(entry.balance, currency)}
+                                    </td>
+                                    <td className="px-6 py-3 text-center">
+                                      {isManual ? (
+                                        isEditing ? (
+                                          <div className="flex items-center justify-center space-x-2">
+                                            <Button
+                                              color="success"
+                                              size="xs"
+                                              onClick={() => saveEditing(entry.reference)}
+                                              className="h-8 w-8 p-0 flex items-center justify-center bg-green-600 text-white hover:bg-green-700"
+                                            >
+                                              <HiCheck className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              color="gray"
+                                              size="xs"
+                                              onClick={cancelEditing}
+                                              className="h-8 w-8 p-0 flex items-center justify-center bg-gray-500 text-white hover:bg-gray-600"
+                                            >
+                                              <HiX className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center justify-center space-x-2">
+                                            <Button
+                                              color="info"
+                                              size="xs"
+                                              onClick={() => startEditing(entry)}
+                                              className="h-8 w-8 p-0 flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700"
+                                            >
+                                              <HiPencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              color="failure"
+                                              size="xs"
+                                              onClick={() => handleDelete(entry.reference)}
+                                              disabled={isDeleting}
+                                              className="h-8 w-8 p-0 flex items-center justify-center bg-red-600 text-white hover:bg-red-700"
+                                            >
+                                              <HiTrash className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        )
+                                      ) : (
+                                        <span className="text-gray-400 text-xs">—</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                              
+                              {/* Closing Balance Row - Only show on last page */}
+                              {summary && currentPage === totalPages && (
+                                <tr className="bg-[#385e82] font-bold text-white">
+                                  <td colSpan="2" className="px-6 py-3 text-left">
+                                    {safeT(t, 'reports.cashBook.closingBalance', 'Closing Balance')}
+                                  </td>
+                                  <td className="px-6 py-3 text-right">
+                                    {formatCurrency(summary.totalCashIn, currency)}
+                                  </td>
+                                  <td className="px-6 py-3 text-right">
+                                    {formatCurrency(summary.totalCashOut, currency)}
+                                  </td>
+                                  <td className="px-6 py-3 text-right">
+                                    {formatCurrency(summary.closingBalance, currency)}
+                                  </td>
+                                  <td className="px-6 py-3"></td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        {/* Pagination */}
+                        {cashBookEntries.length > entriesPerPage && (
+                          <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-[#385e82]">
+                            <span className="text-sm text-gray-700">
+                              {safeT(t, 'table.showing', 'Showing')} {paginationInfo.startIndex} {safeT(t, 'table.to', 'to')} {paginationInfo.endIndex} {safeT(t, 'table.of', 'of')} {paginationInfo.total} {safeT(t, 'table.entries', 'entries')}
+                            </span>
+                            <div className="flex gap-2">
+                              <Button
+                                color="gray"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:bg-gray-300 disabled:text-gray-500"
+                              >
+                                {safeT(t, 'common.previous', 'Previous')}
+                              </Button>
+                              <Button
+                                color="gray"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:bg-gray-300 disabled:text-gray-500"
+                              >
+                                {safeT(t, 'common.next', 'Next')}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </Card>
+              )}
+              
+              {/* Tab 2: Transaction Type Breakdown */}
+              {activeTab === 'transactionType' && (
+                <Card className="border-0 rounded-none bg-white mb-0">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-[#385e82] mb-4">
+                      {safeT(t, 'reports.cashBook.transactionTypeBreakdown', 'Transaction Type Breakdown')}
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-gray-900 border border-gray-200 rounded-lg">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="px-4 py-3 text-left font-semibold text-gray-700">{safeT(t, 'reports.cashBook.type', 'Type')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.count', 'Count')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashIn', 'Cash In')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.net', 'Net')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.percentage', '% of Total')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          <tr className="hover:bg-blue-50">
+                            <td className="px-4 py-3 font-medium text-blue-900">{safeT(t, 'reports.cashBook.sales', 'Sales')}</td>
+                            <td className="px-4 py-3 text-right">{transactionTypeSummary.sales.count}</td>
+                            <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.sales.cashIn, currency)}</td>
+                            <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.sales.cashOut, currency)}</td>
+                            <td className="px-4 py-3 text-right font-semibold text-blue-900">
+                              {formatCurrency(transactionTypeSummary.sales.cashIn - transactionTypeSummary.sales.cashOut, currency)}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {transactionTypeSummary.total.count > 0 
+                                ? ((transactionTypeSummary.sales.count / transactionTypeSummary.total.count) * 100).toFixed(1)
+                                : '0.0'
+                              }%
+                            </td>
+                          </tr>
+                          <tr className="hover:bg-red-50">
+                            <td className="px-4 py-3 font-medium text-red-900">{safeT(t, 'reports.cashBook.costs', 'Costs')}</td>
+                            <td className="px-4 py-3 text-right">{transactionTypeSummary.costs.count}</td>
+                            <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.costs.cashIn, currency)}</td>
+                            <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.costs.cashOut, currency)}</td>
+                            <td className="px-4 py-3 text-right font-semibold text-red-900">
+                              {formatCurrency(transactionTypeSummary.costs.cashIn - transactionTypeSummary.costs.cashOut, currency)}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {transactionTypeSummary.total.count > 0 
+                                ? ((transactionTypeSummary.costs.count / transactionTypeSummary.total.count) * 100).toFixed(1)
+                                : '0.0'
+                              }%
+                            </td>
+                          </tr>
+                          <tr className="hover:bg-purple-50">
+                            <td className="px-4 py-3 font-medium text-purple-900">{safeT(t, 'reports.cashBook.manual', 'Manual Entries')}</td>
+                            <td className="px-4 py-3 text-right">{transactionTypeSummary.manual.count}</td>
+                            <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.manual.cashIn, currency)}</td>
+                            <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.manual.cashOut, currency)}</td>
+                            <td className="px-4 py-3 text-right font-semibold text-purple-900">
+                              {formatCurrency(transactionTypeSummary.manual.cashIn - transactionTypeSummary.manual.cashOut, currency)}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {transactionTypeSummary.total.count > 0 
+                                ? ((transactionTypeSummary.manual.count / transactionTypeSummary.total.count) * 100).toFixed(1)
+                                : '0.0'
+                              }%
+                            </td>
+                          </tr>
+                          <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
+                            <td className="px-4 py-3 text-gray-900">{safeT(t, 'common.total', 'Total')}</td>
+                            <td className="px-4 py-3 text-right">{transactionTypeSummary.total.count}</td>
+                            <td className="px-4 py-3 text-right text-green-900">{formatCurrency(transactionTypeSummary.total.cashIn, currency)}</td>
+                            <td className="px-4 py-3 text-right text-red-900">{formatCurrency(transactionTypeSummary.total.cashOut, currency)}</td>
+                            <td className="px-4 py-3 text-right text-[#385e82]">
+                              {formatCurrency(transactionTypeSummary.total.cashIn - transactionTypeSummary.total.cashOut, currency)}
+                            </td>
+                            <td className="px-4 py-3 text-right">100.0%</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </Card>
+              )}
+              
+              {/* Tab 3: Daily Summary */}
+              {activeTab === 'dailySummary' && (
+                <Card className="border-0 rounded-none bg-white mb-0">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-[#385e82] mb-4">
+                      {safeT(t, 'reports.cashBook.dailySummary', 'Daily Summary')}
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-gray-900 border border-gray-200 rounded-lg">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="px-4 py-3 text-left font-semibold text-gray-700">{safeT(t, 'common.date', 'Date')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.transactions', 'Transactions')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashIn', 'Cash In')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.net', 'Net')}</th>
+                            <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.balance', 'Balance')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {dailySummary.map((day, idx) => (
+                            <tr key={day.dateKey} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50`}>
+                              <td className="px-4 py-3 font-medium">
+                                {day.date.toLocaleDateString('en-GB', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric'
+                                })}
+                              </td>
+                              <td className="px-4 py-3 text-right">{day.transactions}</td>
+                              <td className="px-4 py-3 text-right font-medium text-green-700">
+                                {formatCurrency(day.cashIn, currency)}
+                              </td>
+                              <td className="px-4 py-3 text-right font-medium text-red-700">
+                                {formatCurrency(day.cashOut, currency)}
+                              </td>
+                              <td className="px-4 py-3 text-right font-semibold">
+                                {formatCurrency(day.cashIn - day.cashOut, currency)}
+                              </td>
+                              <td className="px-4 py-3 text-right font-bold text-[#385e82]">
+                                {formatCurrency(day.balance, currency)}
+                              </td>
+                            </tr>
+                          ))}
+                          <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
+                            <td className="px-4 py-3 text-gray-900">{safeT(t, 'common.total', 'Total')}</td>
+                            <td className="px-4 py-3 text-right">{transactionTypeSummary.total.count}</td>
+                            <td className="px-4 py-3 text-right text-green-900">
+                              {formatCurrency(transactionTypeSummary.total.cashIn, currency)}
+                            </td>
+                            <td className="px-4 py-3 text-right text-red-900">
+                              {formatCurrency(transactionTypeSummary.total.cashOut, currency)}
+                            </td>
+                            <td className="px-4 py-3 text-right text-[#385e82]">
+                              {formatCurrency(transactionTypeSummary.total.cashIn - transactionTypeSummary.total.cashOut, currency)}
+                            </td>
+                            <td className="px-4 py-3 text-right text-[#385e82]">
+                              {summary ? formatCurrency(summary.closingBalance, currency) : formatCurrency(0, currency)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </Card>
+              )}
+              
+              {/* Tab 4: Manual Entries */}
+              {activeTab === 'manualEntries' && (
+                <Card className="border-0 rounded-none bg-white mb-0">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-[#385e82] mb-4">
+                      {safeT(t, 'reports.cashBook.manualEntries', 'Manual Entries')} - {months[selectedMonth - 1]} {selectedYear}
+                    </h3>
+                    
+                    {(() => {
+                      const manualEntriesOnly = cashBookEntries.filter(entry => entry.transactionType === 'MANUAL');
+                      
+                      if (manualEntriesOnly.length === 0) {
+                        return (
+                          <div className="text-center py-8 text-gray-400">
+                            {safeT(t, 'reports.cashBook.noManualEntries', 'No manual entries found for the selected period')}
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-center text-gray-900 rounded overflow-hidden shadow-lg">
+                            <thead className="bg-[#385e82]">
+                              <tr>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-left">
+                                  {safeT(t, 'common.date', 'Date')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-left">
+                                  {safeT(t, 'common.description', 'Description')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-center">
+                                  {safeT(t, 'reports.cashBook.type', 'Type')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-right">
+                                  {safeT(t, 'reports.cashBook.cashIn', 'Cash In')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-right">
+                                  {safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-right">
+                                  {safeT(t, 'reports.cashBook.balance', 'Balance')}
+                                </th>
+                                <th className="px-6 py-3 font-semibold text-base text-white text-center">
+                                  {safeT(t, 'common.actions', 'Actions')}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {manualEntriesOnly.map((entry, idx) => {
+                                const isEditing = editingRow === entry.reference;
+                                return (
+                                  <tr
+                                    key={`manual-${entry.reference}-${idx}`}
+                                    className={`transition-all duration-200 border-b border-gray-100 last:border-b-0 ${
+                                      idx % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'
+                                    } hover:shadow-md hover:bg-gray-50`}
+                                  >
+                                    <td className="px-6 py-3 text-left text-gray-900 whitespace-nowrap">
+                                      {isEditing ? (
+                                        <TextInput
+                                          type="date"
+                                          value={editingData.date || ''}
+                                          onChange={e => setEditingData(prev => ({ ...prev, date: e.target.value }))}
+                                          className="w-[140px]"
+                                        />
+                                      ) : (
+                                        entry.date.toLocaleDateString('en-GB', {
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric'
+                                        })
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-3 text-left text-gray-900">
+                                      {isEditing ? (
+                                        <div className="flex flex-col gap-2">
+                                          <Select
+                                            value={editingData.type || 'DEBIT'}
+                                            onChange={e => setEditingData(prev => ({ ...prev, type: e.target.value }))}
+                                            className="w-full"
+                                          >
+                                            <option value="CREDIT">{safeT(t, 'reports.cashBook.credit', 'Credit')}</option>
+                                            <option value="DEBIT">{safeT(t, 'reports.cashBook.debit', 'Debit')}</option>
+                                          </Select>
+                                          <TextInput
+                                            type="text"
+                                            value={editingData.description || ''}
+                                            onChange={e => setEditingData(prev => ({ ...prev, description: e.target.value }))}
+                                            className="w-full"
+                                            placeholder={safeT(t, 'common.description', 'Description')}
+                                          />
+                                        </div>
+                                      ) : (
+                                        entry.description
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-3 text-center">
+                                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                                        entry.cashIn > 0 
+                                          ? 'bg-green-100 text-green-800' 
+                                          : 'bg-red-100 text-red-800'
+                                      }`}>
+                                        {entry.cashIn > 0 
+                                          ? safeT(t, 'reports.cashBook.credit', 'Credit')
+                                          : safeT(t, 'reports.cashBook.debit', 'Debit')
+                                        }
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-3 text-right font-medium text-green-700">
+                                      {isEditing ? (
+                                        <div className="flex flex-col gap-2 min-w-[120px]">
+                                          <TextInput
+                                            type="number"
+                                            value={editingData.type === 'CREDIT' ? (editingData.amountFC || 0) : 0}
+                                            onChange={e => {
+                                              const val = parseFloat(e.target.value) || 0;
+                                              const rate = editingData.exchangeRate || 2500;
+                                              setEditingData(prev => ({
+                                                ...prev,
+                                                amountFC: editingData.type === 'CREDIT' ? val : prev.amountFC,
+                                                amountUSD: editingData.type === 'CREDIT' ? (val / rate) : prev.amountUSD
+                                              }));
+                                            }}
+                                            className="w-full text-center"
+                                            min={0}
+                                            disabled={editingData.type !== 'CREDIT'}
+                                            placeholder="FC"
+                                          />
+                                          <TextInput
+                                            type="number"
+                                            value={editingData.type === 'CREDIT' ? (editingData.amountUSD || 0) : 0}
+                                            onChange={e => {
+                                              const val = parseFloat(e.target.value) || 0;
+                                              const rate = editingData.exchangeRate || 2500;
+                                              setEditingData(prev => ({
+                                                ...prev,
+                                                amountUSD: editingData.type === 'CREDIT' ? val : prev.amountUSD,
+                                                amountFC: editingData.type === 'CREDIT' ? (val * rate) : prev.amountFC
+                                              }));
+                                            }}
+                                            className="w-full text-center"
+                                            min={0}
+                                            disabled={editingData.type !== 'CREDIT'}
+                                            placeholder="USD"
+                                          />
+                                        </div>
+                                      ) : (
+                                        entry.cashIn > 0 ? formatCurrency(entry.cashIn, currency) : '—'
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-3 text-right font-medium text-red-700">
+                                      {isEditing ? (
+                                        <div className="flex flex-col gap-2 min-w-[120px]">
+                                          <TextInput
+                                            type="number"
+                                            value={editingData.type === 'DEBIT' ? (editingData.amountFC || 0) : 0}
+                                            onChange={e => {
+                                              const val = parseFloat(e.target.value) || 0;
+                                              const rate = editingData.exchangeRate || 2500;
+                                              setEditingData(prev => ({
+                                                ...prev,
+                                                amountFC: editingData.type === 'DEBIT' ? val : prev.amountFC,
+                                                amountUSD: editingData.type === 'DEBIT' ? (val / rate) : prev.amountUSD
+                                              }));
+                                            }}
+                                            className="w-full text-center"
+                                            min={0}
+                                            disabled={editingData.type !== 'DEBIT'}
+                                            placeholder="FC"
+                                          />
+                                          <TextInput
+                                            type="number"
+                                            value={editingData.type === 'DEBIT' ? (editingData.amountUSD || 0) : 0}
+                                            onChange={e => {
+                                              const val = parseFloat(e.target.value) || 0;
+                                              const rate = editingData.exchangeRate || 2500;
+                                              setEditingData(prev => ({
+                                                ...prev,
+                                                amountUSD: editingData.type === 'DEBIT' ? val : prev.amountUSD,
+                                                amountFC: editingData.type === 'DEBIT' ? (val * rate) : prev.amountFC
+                                              }));
+                                            }}
+                                            className="w-full text-center"
+                                            min={0}
+                                            disabled={editingData.type !== 'DEBIT'}
+                                            placeholder="USD"
+                                          />
+                                        </div>
+                                      ) : (
+                                        entry.cashOut > 0 ? formatCurrency(entry.cashOut, currency) : '—'
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-3 text-right font-bold text-[#385e82]">
+                                      {formatCurrency(entry.balance, currency)}
+                                    </td>
+                                    <td className="px-6 py-3 text-center">
+                                      {isEditing ? (
+                                        <div className="flex items-center justify-center space-x-2">
+                                          <Button
+                                            color="success"
+                                            size="xs"
+                                            onClick={() => saveEditing(entry.reference)}
+                                            className="h-8 w-8 p-0 flex items-center justify-center bg-green-600 text-white hover:bg-green-700"
+                                          >
+                                            <HiCheck className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            color="gray"
+                                            size="xs"
+                                            onClick={cancelEditing}
+                                            className="h-8 w-8 p-0 flex items-center justify-center bg-gray-500 text-white hover:bg-gray-600"
+                                          >
+                                            <HiX className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center justify-center space-x-2">
+                                          <Button
+                                            color="info"
+                                            size="xs"
+                                            onClick={() => startEditing(entry)}
+                                            className="h-8 w-8 p-0 flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700"
+                                          >
+                                            <HiPencil className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            color="failure"
+                                            size="xs"
+                                            onClick={() => handleDelete(entry.reference)}
+                                            disabled={isDeleting}
+                                            className="h-8 w-8 p-0 flex items-center justify-center bg-red-600 text-white hover:bg-red-700"
+                                          >
+                                            <HiTrash className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </Card>
+              )}
+            </div>
+          </Card>
+        )}
+        
         
         {/* Print Content Wrapper - Includes all summaries and detailed table */}
         <div ref={printRef} className="print-content hidden print:block" style={{ display: 'none' }}>
@@ -1188,143 +1847,6 @@ export default function CashBookPage() {
             </div>
           </div>
         </div>
-        
-        {/* Cash Book Table - Screen View Only */}
-        <Card className="!rounded-2xl print:hidden">
-          <div className="p-4">
-            <h3 className="text-lg font-semibold text-[#385e82] mb-4">
-              {safeT(t, 'reports.cashBook.cashBookTable', 'Cash Book Ledger')} - {months[selectedMonth - 1]} {selectedYear}
-            </h3>
-            
-            {cashBookEntries.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
-                {safeT(t, 'reports.cashBook.noData', 'No transactions found for the selected period')}
-              </div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-center text-gray-900 rounded overflow-hidden shadow-lg">
-                    <thead className="bg-[#385e82]">
-                      <tr>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-left">
-                          {safeT(t, 'common.date', 'Date')}
-                        </th>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-left">
-                          {safeT(t, 'common.description', 'Description')}
-                        </th>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-right">
-                          {safeT(t, 'reports.cashBook.cashIn', 'Cash In')}
-                        </th>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-right">
-                          {safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}
-                        </th>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-right">
-                          {safeT(t, 'reports.cashBook.balance', 'Balance')}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {/* Opening Balance Row - Only show on first page */}
-                      {summary && currentPage === 1 && (
-                        <tr className="bg-blue-50 font-semibold">
-                          <td colSpan="2" className="px-6 py-3 text-left text-[#385e82]">
-                            {safeT(t, 'reports.cashBook.openingBalance', 'Opening Balance')}
-                          </td>
-                          <td className="px-6 py-3 text-right text-gray-500">—</td>
-                          <td className="px-6 py-3 text-right text-gray-500">—</td>
-                          <td className="px-6 py-3 text-right font-bold text-[#385e82]">
-                            {formatCurrency(summary.openingBalance, currency)}
-                          </td>
-                        </tr>
-                      )}
-                      
-                      {/* Transaction Rows */}
-                      {paginatedEntries.map((entry, idx) => {
-                        // Calculate the actual index in the full array for alternating colors
-                        const actualIdx = (currentPage - 1) * entriesPerPage + idx;
-                        return (
-                          <tr
-                            key={`${entry.transactionType}-${entry.reference}-${actualIdx}`}
-                            className={`transition-all duration-200 border-b border-gray-100 last:border-b-0 ${
-                              actualIdx % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'
-                            } hover:shadow-md hover:bg-gray-50`}
-                          >
-                            <td className="px-6 py-3 text-left text-gray-900 whitespace-nowrap">
-                              {entry.date.toLocaleDateString('en-GB', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric'
-                              })}
-                            </td>
-                            <td className="px-6 py-3 text-left text-gray-900">
-                              {entry.description}
-                            </td>
-                            <td className="px-6 py-3 text-right font-medium text-green-700">
-                              {entry.cashIn > 0 ? formatCurrency(entry.cashIn, currency) : '—'}
-                            </td>
-                            <td className="px-6 py-3 text-right font-medium text-red-700">
-                              {entry.cashOut > 0 ? formatCurrency(entry.cashOut, currency) : '—'}
-                            </td>
-                            <td className="px-6 py-3 text-right font-bold text-[#385e82]">
-                              {formatCurrency(entry.balance, currency)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      
-                      {/* Closing Balance Row - Only show on last page */}
-                      {summary && currentPage === totalPages && (
-                        <tr className="bg-[#385e82] font-bold text-white">
-                          <td colSpan="2" className="px-6 py-3 text-left">
-                            {safeT(t, 'reports.cashBook.closingBalance', 'Closing Balance')}
-                          </td>
-                          <td className="px-6 py-3 text-right">
-                            {formatCurrency(summary.totalCashIn, currency)}
-                          </td>
-                          <td className="px-6 py-3 text-right">
-                            {formatCurrency(summary.totalCashOut, currency)}
-                          </td>
-                          <td className="px-6 py-3 text-right">
-                            {formatCurrency(summary.closingBalance, currency)}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                
-                {/* Pagination */}
-                {cashBookEntries.length > entriesPerPage && (
-                  <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-[#385e82]">
-                    <span className="text-sm text-gray-700">
-                      {safeT(t, 'table.showing', 'Showing')} {paginationInfo.startIndex} {safeT(t, 'table.to', 'to')} {paginationInfo.endIndex} {safeT(t, 'table.of', 'of')} {paginationInfo.total} {safeT(t, 'table.entries', 'entries')}
-                    </span>
-                    <div className="flex gap-2">
-                      <Button
-                        color="gray"
-                        size="sm"
-                        onClick={goToPreviousPage}
-                        disabled={currentPage === 1}
-                        className="bg-[#66b2b2]/20 text-[#008080] hover:bg-[#66b2b2]/40 disabled:bg-gray-100 disabled:text-gray-400 shadow-sm"
-                      >
-                        {safeT(t, 'common.previous', 'Previous')}
-                      </Button>
-                      <Button
-                        color="gray"
-                        size="sm"
-                        onClick={goToNextPage}
-                        disabled={currentPage === totalPages}
-                        className="bg-[#66b2b2]/20 text-[#008080] hover:bg-[#66b2b2]/40 disabled:bg-gray-100 disabled:text-gray-400 shadow-sm"
-                      >
-                        {safeT(t, 'common.next', 'Next')}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </Card>
         
         {/* Add Entry Modal */}
         <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="md">

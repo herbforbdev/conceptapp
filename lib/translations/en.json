@@ -1542,6 +1542,8 @@
       "costs": "Costs",
       "manual": "Manual Entries",
       "dailySummary": "Daily Summary",
+      "manualEntries": "Manual Entries",
+      "noManualEntries": "No manual entries found for the selected period",
       "transactions": "Transactions",
       "generatedOn": "Generated on",
       "preparedBy": "Prepared by"

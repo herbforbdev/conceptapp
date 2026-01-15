@@ -36,9 +36,9 @@ const SALARY_SCALE = {
 
 // Bonus thresholds and percentages
 const BONUS_THRESHOLDS = {
-  high: 17350000,  // 17.35M FC
-  medium: 15350000, // 15.35M FC
-  low: 12350000     // 12.35M FC
+  tier1: 15130000,  // 15.13M FC (1er niveau)
+  tier2: 12350000,  // 12.35M FC (2eme niveau)
+  tier3: 8700000    // 8.7M FC (3eme niveau)
 };
 
 const SALES_BONUS_RATES = {
@@ -89,7 +89,11 @@ export default function SalaryScalePage() {
       if (!sale.date) return;
       const date = sale.date.seconds ? new Date(sale.date.seconds * 1000) : new Date(sale.date);
       if (date.getMonth() + 1 === selectedMonth && date.getFullYear() === selectedYear) {
-        revenue += sale.amountFC || 0;
+        // Ensure amountFC is converted to a number to prevent string concatenation
+        const amount = typeof sale.amountFC === 'string' 
+          ? parseFloat(sale.amountFC.replace(/,/g, '')) || 0
+          : Number(sale.amountFC) || 0;
+        revenue += amount;
       }
     });
 
@@ -98,7 +102,11 @@ export default function SalaryScalePage() {
       if (!cost.date) return;
       const date = cost.date.seconds ? new Date(cost.date.seconds * 1000) : new Date(cost.date);
       if (date.getMonth() + 1 === selectedMonth && date.getFullYear() === selectedYear) {
-        totalCosts += cost.amountFC || 0;
+        // Ensure amountFC is converted to a number to prevent string concatenation
+        const amount = typeof cost.amountFC === 'string' 
+          ? parseFloat(cost.amountFC.replace(/,/g, '')) || 0
+          : Number(cost.amountFC) || 0;
+        totalCosts += amount;
       }
     });
 
@@ -116,18 +124,18 @@ export default function SalaryScalePage() {
     let coordinationBonus = 0;
 
     // Sales bonus calculation
-    if (profit >= BONUS_THRESHOLDS.high) {
+    if (profit >= BONUS_THRESHOLDS.tier1) {
       salesBonus = (baseSalary * SALES_BONUS_RATES[tier].tier1) / 100;
-    } else if (profit >= BONUS_THRESHOLDS.medium) {
+    } else if (profit >= BONUS_THRESHOLDS.tier2) {
       salesBonus = (baseSalary * SALES_BONUS_RATES[tier].tier2) / 100;
-    } else if (profit >= BONUS_THRESHOLDS.low) {
+    } else if (profit >= BONUS_THRESHOLDS.tier3) {
       salesBonus = (baseSalary * SALES_BONUS_RATES[tier].tier3) / 100;
     }
 
     // Coordination bonus calculation
-    if (profit >= BONUS_THRESHOLDS.high) {
+    if (profit >= BONUS_THRESHOLDS.tier1) {
       coordinationBonus = (baseSalary * COORDINATION_BONUS_RATES.high) / 100;
-    } else if (profit >= BONUS_THRESHOLDS.medium) {
+    } else if (profit >= BONUS_THRESHOLDS.tier2) {
       coordinationBonus = (baseSalary * COORDINATION_BONUS_RATES.medium) / 100;
     }
 
@@ -356,9 +364,9 @@ export default function SalaryScalePage() {
                 <strong>{t('reports.salaryScale.bonusCalculation')}</strong>
               </p>
               <div className="text-xs text-gray-500 space-y-1">
-                <p>• ≥ 17,350,000 FC: {t('reports.salaryScale.highTier')} 50%/20%, {t('reports.salaryScale.lowTier')} + Coordination 10%</p>
-                <p>• ≥ 15,350,000 FC: {t('reports.salaryScale.highTier')} 30%/15%, {t('reports.salaryScale.lowTier')} + Coordination 5%</p>
-                <p>• ≥ 12,350,000 FC: {t('reports.salaryScale.highTier')} 15%/10%, {t('reports.salaryScale.lowTier')}</p>
+                <p>• ≥ 15,130,000 FC (1er niveau): {t('reports.salaryScale.highTier')} 50%/20%, {t('reports.salaryScale.lowTier')} + Coordination 10%</p>
+                <p>• ≥ 12,350,000 FC (2eme niveau): {t('reports.salaryScale.highTier')} 30%/15%, {t('reports.salaryScale.lowTier')} + Coordination 5%</p>
+                <p>• ≥ 8,700,000 FC (3eme niveau): {t('reports.salaryScale.highTier')} 15%/10%, {t('reports.salaryScale.lowTier')}</p>
               </div>
             </div>
           </Card>

@@ -781,7 +781,8 @@ export class EmailService {
         throw new Error('SendGrid can only be used on server-side');
       }
       
-      const sgMail = require('@sendgrid/mail');
+      const sgMailModule = await import('@sendgrid/mail');
+      const sgMail = (sgMailModule as any).default ?? sgMailModule;
       sgMail.setApiKey(this.apiKey);
 
       const msg = {

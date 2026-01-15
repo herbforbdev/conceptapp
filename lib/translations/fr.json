@@ -1504,8 +1504,11 @@
       "costs": "Coûts",
       "manual": "Entrées Manuelles",
       "dailySummary": "Résumé Quotidien",
+      "manualEntries": "Entrées Manuelles",
+      "noManualEntries": "Aucune entrée manuelle trouvée pour la période sélectionnée",
       "transactions": "Transactions",
       "generatedOn": "Généré le",
+      "records": "Enregistrements",
       "preparedBy": "Préparé par"
     }
   },
