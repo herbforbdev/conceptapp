@@ -26,6 +26,7 @@ import { addManualCashBookEntry, getManualCashBookEntries, updateManualCashBookE
 import { usePrintSettings } from '@/hooks/usePrintSettings';
 import { Modal, TextInput, Label, Select } from 'flowbite-react';
 import { HiPlus } from 'react-icons/hi';
+import { ExchangeRateService } from '@/lib/exchangeRates';
 
 // PDF Print Configuration - Customize these settings
 const PDF_CONFIG = {
@@ -262,9 +263,27 @@ export default function CashBookPage() {
     description: '',
     type: 'DEBIT', // 'CREDIT' or 'DEBIT'
     amountFC: '',
-    amountUSD: ''
+    exchangeRate: 2500
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Fetch exchange rate when date changes in add modal
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      if (!newEntry.date) return;
+      try {
+        const date = new Date(newEntry.date);
+        const rate = await ExchangeRateService.getRateForDate(date);
+        setNewEntry(prev => ({ ...prev, exchangeRate: rate || 2500 }));
+      } catch (error) {
+        console.error('Error fetching exchange rate:', error);
+        setNewEntry(prev => ({ ...prev, exchangeRate: 2500 }));
+      }
+    };
+    if (showAddModal && newEntry.date) {
+      fetchExchangeRate();
+    }
+  }, [newEntry.date, showAddModal]);
   
   // Tab state for organizing tables
   const [activeTab, setActiveTab] = useState('records');
@@ -547,14 +566,29 @@ export default function CashBookPage() {
   };
   
   // Inline edit handlers for manual entries
-  const startEditing = (entry) => {
+  const startEditing = async (entry) => {
     if (entry.transactionType !== 'MANUAL') return;
     setEditingRow(entry.reference);
     const entryDate = entry.date instanceof Date ? entry.date : parseDate(entry.date);
-    // Calculate exchange rate from existing amounts, or use default
     const amountFC = entry.amountFC || 0;
     const amountUSD = entry.amountUSD || 0;
-    const exchangeRate = amountUSD > 0 ? (amountFC / amountUSD) : 2500;
+    
+    // Fetch exchange rate from ExchangeRateService based on entry date
+    let exchangeRate = 2500;
+    if (entryDate) {
+      try {
+        const rate = await ExchangeRateService.getRateForDate(entryDate);
+        exchangeRate = rate || 2500;
+      } catch (error) {
+        console.error('Error fetching exchange rate:', error);
+        // Fallback to stored exchange rate if available, otherwise use default
+        exchangeRate = entry.exchangeRate || 2500;
+      }
+    } else {
+      // Fallback to stored exchange rate if available
+      exchangeRate = entry.exchangeRate || 2500;
+    }
+    
     setEditingData({
       date: entryDate ? entryDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       description: entry.description || '',
@@ -572,12 +606,15 @@ export default function CashBookPage() {
   
   const saveEditing = async (entryId) => {
     try {
+      const amountFC = parseFloat(editingData.amountFC) || 0;
+      const amountUSD = editingData.exchangeRate > 0 ? (amountFC / editingData.exchangeRate) : 0;
       const updates = {
         date: new Date(editingData.date),
         description: editingData.description,
         type: editingData.type,
-        amountFC: parseFloat(editingData.amountFC) || 0,
-        amountUSD: parseFloat(editingData.amountUSD) || 0,
+        amountFC: amountFC,
+        amountUSD: parseFloat(amountUSD.toFixed(2)),
+        exchangeRate: editingData.exchangeRate,
         currency: currency
       };
       await updateManualCashBookEntry(entryId, updates);
@@ -591,11 +628,28 @@ export default function CashBookPage() {
   };
   
   const handleDelete = async (entryId) => {
+    if (!entryId) {
+      console.error('No entry ID provided for deletion');
+      alert(safeT(t, 'reports.cashBook.errorDeleting', 'Error deleting entry. Please try again.'));
+      return;
+    }
+    
+    // Cancel editing if in progress
+    if (editingRow === entryId) {
+      cancelEditing();
+    }
+    
     if (!window.confirm(safeT(t, 'reports.cashBook.confirmDelete', 'Are you sure you want to delete this entry?'))) return;
+    
     setIsDeleting(true);
     try {
+      console.log('Deleting manual entry with ID:', entryId);
       await deleteManualCashBookEntry(entryId);
-      // Refresh will happen automatically via useFirestoreCollection
+      console.log('Manual entry deleted successfully');
+      // Refresh will happen automatically via useFirestoreCollection real-time listener
+      // The cashbook entries will regenerate when manualEntries data updates
+      // Small delay to ensure Firestore has processed the deletion
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       console.error('Error deleting manual entry:', error);
       alert(safeT(t, 'reports.cashBook.errorDeleting', 'Error deleting entry. Please try again.'));
@@ -907,7 +961,24 @@ export default function CashBookPage() {
                                         <TextInput
                                           type="date"
                                           value={editingData.date || ''}
-                                          onChange={e => setEditingData(prev => ({ ...prev, date: e.target.value }))}
+                                          onChange={async (e) => {
+                                            const newDate = e.target.value;
+                                            setEditingData(prev => ({ ...prev, date: newDate }));
+                                            // Fetch exchange rate for the new date
+                                            try {
+                                              const date = new Date(newDate);
+                                              const rate = await ExchangeRateService.getRateForDate(date);
+                                              const currentFC = parseFloat(editingData.amountFC) || 0;
+                                              const newUSD = rate > 0 ? (currentFC / rate) : 0;
+                                              setEditingData(prev => ({
+                                                ...prev,
+                                                exchangeRate: rate || 2500,
+                                                amountUSD: newUSD.toFixed(2)
+                                              }));
+                                            } catch (error) {
+                                              console.error('Error fetching exchange rate:', error);
+                                            }
+                                          }}
                                           className="w-[140px]"
                                         />
                                       ) : (
@@ -953,7 +1024,7 @@ export default function CashBookPage() {
                                       setEditingData(prev => ({
                                         ...prev,
                                         amountFC: editingData.type === 'CREDIT' ? val : prev.amountFC,
-                                        amountUSD: editingData.type === 'CREDIT' ? (val / rate) : prev.amountUSD
+                                        amountUSD: editingData.type === 'CREDIT' ? (val / rate).toFixed(2) : prev.amountUSD
                                       }));
                                     }}
                                             className="w-full text-center"
@@ -961,23 +1032,11 @@ export default function CashBookPage() {
                                             disabled={editingData.type !== 'CREDIT'}
                                             placeholder="FC"
                                           />
-                                          <TextInput
-                                            type="number"
-                                            value={editingData.type === 'CREDIT' ? (editingData.amountUSD || 0) : 0}
-                                    onChange={e => {
-                                      const val = parseFloat(e.target.value) || 0;
-                                      const rate = editingData.exchangeRate || 2500;
-                                      setEditingData(prev => ({
-                                        ...prev,
-                                        amountUSD: editingData.type === 'CREDIT' ? val : prev.amountUSD,
-                                        amountFC: editingData.type === 'CREDIT' ? (val * rate) : prev.amountFC
-                                      }));
-                                    }}
-                                            className="w-full text-center"
-                                            min={0}
-                                            disabled={editingData.type !== 'CREDIT'}
-                                            placeholder="USD"
-                                          />
+                                          <span className="text-xs text-gray-500 text-center">
+                                            USD: ${editingData.type === 'CREDIT' && editingData.amountFC 
+                                              ? ((parseFloat(editingData.amountFC) || 0) / (editingData.exchangeRate || 2500)).toFixed(2)
+                                              : '0.00'}
+                                          </span>
                                         </div>
                                       ) : (
                                         entry.cashIn > 0 ? formatCurrency(entry.cashIn, currency) : '—'
@@ -995,7 +1054,7 @@ export default function CashBookPage() {
                                       setEditingData(prev => ({
                                         ...prev,
                                         amountFC: editingData.type === 'DEBIT' ? val : prev.amountFC,
-                                        amountUSD: editingData.type === 'DEBIT' ? (val / rate) : prev.amountUSD
+                                        amountUSD: editingData.type === 'DEBIT' ? (val / rate).toFixed(2) : prev.amountUSD
                                       }));
                                     }}
                                             className="w-full text-center"
@@ -1003,23 +1062,11 @@ export default function CashBookPage() {
                                             disabled={editingData.type !== 'DEBIT'}
                                             placeholder="FC"
                                           />
-                                          <TextInput
-                                            type="number"
-                                            value={editingData.type === 'DEBIT' ? (editingData.amountUSD || 0) : 0}
-                                    onChange={e => {
-                                      const val = parseFloat(e.target.value) || 0;
-                                      const rate = editingData.exchangeRate || 2500;
-                                      setEditingData(prev => ({
-                                        ...prev,
-                                        amountUSD: editingData.type === 'DEBIT' ? val : prev.amountUSD,
-                                        amountFC: editingData.type === 'DEBIT' ? (val * rate) : prev.amountFC
-                                      }));
-                                    }}
-                                            className="w-full text-center"
-                                            min={0}
-                                            disabled={editingData.type !== 'DEBIT'}
-                                            placeholder="USD"
-                                          />
+                                          <span className="text-xs text-gray-500 text-center">
+                                            USD: ${editingData.type === 'DEBIT' && editingData.amountFC 
+                                              ? ((parseFloat(editingData.amountFC) || 0) / (editingData.exchangeRate || 2500)).toFixed(2)
+                                              : '0.00'}
+                                          </span>
                                         </div>
                                       ) : (
                                         entry.cashOut > 0 ? formatCurrency(entry.cashOut, currency) : '—'
@@ -1062,7 +1109,11 @@ export default function CashBookPage() {
                                             <Button
                                               color="failure"
                                               size="xs"
-                                              onClick={() => handleDelete(entry.reference)}
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleDelete(entry.reference);
+                                              }}
                                               disabled={isDeleting}
                                               className="h-8 w-8 p-0 flex items-center justify-center bg-red-600 text-white hover:bg-red-700"
                                             >
@@ -1302,6 +1353,13 @@ export default function CashBookPage() {
                         );
                       }
                       
+                      // Debug: Log manual entries to verify structure
+                      console.log('Manual entries in tab:', manualEntriesOnly.map(e => ({ 
+                        reference: e.reference, 
+                        description: e.description,
+                        id: e.id 
+                      })));
+                      
                       return (
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm text-center text-gray-900 rounded overflow-hidden shadow-lg">
@@ -1345,7 +1403,24 @@ export default function CashBookPage() {
                                         <TextInput
                                           type="date"
                                           value={editingData.date || ''}
-                                          onChange={e => setEditingData(prev => ({ ...prev, date: e.target.value }))}
+                                          onChange={async (e) => {
+                                            const newDate = e.target.value;
+                                            setEditingData(prev => ({ ...prev, date: newDate }));
+                                            // Fetch exchange rate for the new date
+                                            try {
+                                              const date = new Date(newDate);
+                                              const rate = await ExchangeRateService.getRateForDate(date);
+                                              const currentFC = parseFloat(editingData.amountFC) || 0;
+                                              const newUSD = rate > 0 ? (currentFC / rate) : 0;
+                                              setEditingData(prev => ({
+                                                ...prev,
+                                                exchangeRate: rate || 2500,
+                                                amountUSD: newUSD.toFixed(2)
+                                              }));
+                                            } catch (error) {
+                                              console.error('Error fetching exchange rate:', error);
+                                            }
+                                          }}
                                           className="w-[140px]"
                                         />
                                       ) : (
@@ -1403,7 +1478,7 @@ export default function CashBookPage() {
                                               setEditingData(prev => ({
                                                 ...prev,
                                                 amountFC: editingData.type === 'CREDIT' ? val : prev.amountFC,
-                                                amountUSD: editingData.type === 'CREDIT' ? (val / rate) : prev.amountUSD
+                                                amountUSD: editingData.type === 'CREDIT' ? (val / rate).toFixed(2) : prev.amountUSD
                                               }));
                                             }}
                                             className="w-full text-center"
@@ -1411,23 +1486,11 @@ export default function CashBookPage() {
                                             disabled={editingData.type !== 'CREDIT'}
                                             placeholder="FC"
                                           />
-                                          <TextInput
-                                            type="number"
-                                            value={editingData.type === 'CREDIT' ? (editingData.amountUSD || 0) : 0}
-                                            onChange={e => {
-                                              const val = parseFloat(e.target.value) || 0;
-                                              const rate = editingData.exchangeRate || 2500;
-                                              setEditingData(prev => ({
-                                                ...prev,
-                                                amountUSD: editingData.type === 'CREDIT' ? val : prev.amountUSD,
-                                                amountFC: editingData.type === 'CREDIT' ? (val * rate) : prev.amountFC
-                                              }));
-                                            }}
-                                            className="w-full text-center"
-                                            min={0}
-                                            disabled={editingData.type !== 'CREDIT'}
-                                            placeholder="USD"
-                                          />
+                                          <span className="text-xs text-gray-500 text-center">
+                                            USD: ${editingData.type === 'CREDIT' && editingData.amountFC 
+                                              ? ((parseFloat(editingData.amountFC) || 0) / (editingData.exchangeRate || 2500)).toFixed(2)
+                                              : '0.00'}
+                                          </span>
                                         </div>
                                       ) : (
                                         entry.cashIn > 0 ? formatCurrency(entry.cashIn, currency) : '—'
@@ -1445,7 +1508,7 @@ export default function CashBookPage() {
                                               setEditingData(prev => ({
                                                 ...prev,
                                                 amountFC: editingData.type === 'DEBIT' ? val : prev.amountFC,
-                                                amountUSD: editingData.type === 'DEBIT' ? (val / rate) : prev.amountUSD
+                                                amountUSD: editingData.type === 'DEBIT' ? (val / rate).toFixed(2) : prev.amountUSD
                                               }));
                                             }}
                                             className="w-full text-center"
@@ -1453,23 +1516,11 @@ export default function CashBookPage() {
                                             disabled={editingData.type !== 'DEBIT'}
                                             placeholder="FC"
                                           />
-                                          <TextInput
-                                            type="number"
-                                            value={editingData.type === 'DEBIT' ? (editingData.amountUSD || 0) : 0}
-                                            onChange={e => {
-                                              const val = parseFloat(e.target.value) || 0;
-                                              const rate = editingData.exchangeRate || 2500;
-                                              setEditingData(prev => ({
-                                                ...prev,
-                                                amountUSD: editingData.type === 'DEBIT' ? val : prev.amountUSD,
-                                                amountFC: editingData.type === 'DEBIT' ? (val * rate) : prev.amountFC
-                                              }));
-                                            }}
-                                            className="w-full text-center"
-                                            min={0}
-                                            disabled={editingData.type !== 'DEBIT'}
-                                            placeholder="USD"
-                                          />
+                                          <span className="text-xs text-gray-500 text-center">
+                                            USD: ${editingData.type === 'DEBIT' && editingData.amountFC 
+                                              ? ((parseFloat(editingData.amountFC) || 0) / (editingData.exchangeRate || 2500)).toFixed(2)
+                                              : '0.00'}
+                                          </span>
                                         </div>
                                       ) : (
                                         entry.cashOut > 0 ? formatCurrency(entry.cashOut, currency) : '—'
@@ -1897,44 +1948,47 @@ export default function CashBookPage() {
                   id="entry-amount-fc"
                   type="number"
                   value={newEntry.amountFC}
-                  onChange={(e) => setNewEntry(prev => ({ ...prev, amountFC: e.target.value }))}
+                  onChange={(e) => {
+                    const fc = parseFloat(e.target.value) || 0;
+                    const usd = newEntry.exchangeRate > 0 ? (fc / newEntry.exchangeRate) : 0;
+                    setNewEntry(prev => ({ 
+                      ...prev, 
+                      amountFC: e.target.value,
+                      amountUSD: usd.toFixed(2)
+                    }));
+                  }}
                   placeholder="0"
                   min="0"
                   step="0.01"
                   required
                 />
-              </div>
-              
-              <div>
-                <Label htmlFor="entry-amount-usd" value={safeT(t, 'common.amount_usd', 'Amount (USD)')} />
-                <TextInput
-                  id="entry-amount-usd"
-                  type="number"
-                  value={newEntry.amountUSD}
-                  onChange={(e) => setNewEntry(prev => ({ ...prev, amountUSD: e.target.value }))}
-                  placeholder="0"
-                  min="0"
-                  step="0.01"
-                  required
-                />
+                {newEntry.amountFC && newEntry.exchangeRate > 0 && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    {safeT(t, 'common.amount_usd', 'Amount (USD)')}: ${((parseFloat(newEntry.amountFC) || 0) / newEntry.exchangeRate).toFixed(2)} 
+                    ({safeT(t, 'reports.exchangeRates.exchangeRate', 'Exchange Rate')}: {newEntry.exchangeRate.toLocaleString()})
+                  </p>
+                )}
               </div>
             </div>
           </Modal.Body>
           <Modal.Footer>
             <Button
               onClick={async () => {
-                if (!newEntry.description || !newEntry.date || (!newEntry.amountFC && !newEntry.amountUSD)) {
+                if (!newEntry.description || !newEntry.date || !newEntry.amountFC) {
                   alert(safeT(t, 'reports.cashBook.fillAllFields', 'Please fill all required fields'));
                   return;
                 }
                 setIsSubmitting(true);
                 try {
+                  const amountFC = parseFloat(newEntry.amountFC) || 0;
+                  const amountUSD = newEntry.exchangeRate > 0 ? (amountFC / newEntry.exchangeRate) : 0;
                   await addManualCashBookEntry({
                     date: new Date(newEntry.date),
                     description: newEntry.description,
                     type: newEntry.type,
-                    amountFC: parseFloat(newEntry.amountFC) || 0,
-                    amountUSD: parseFloat(newEntry.amountUSD) || 0,
+                    amountFC: amountFC,
+                    amountUSD: parseFloat(amountUSD.toFixed(2)),
+                    exchangeRate: newEntry.exchangeRate,
                     currency: currency
                   });
                   setShowAddModal(false);
@@ -1943,7 +1997,7 @@ export default function CashBookPage() {
                     description: '',
                     type: 'DEBIT',
                     amountFC: '',
-                    amountUSD: ''
+                    exchangeRate: 2500
                   });
                   // Refresh will happen automatically via useFirestoreCollection
                 } catch (error) {

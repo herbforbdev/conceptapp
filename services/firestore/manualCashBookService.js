@@ -29,6 +29,7 @@ export async function addManualCashBookEntry(entry) {
     type: entry.type || 'DEBIT', // 'CREDIT' or 'DEBIT'
     amountFC: Number(entry.amountFC) || 0,
     amountUSD: Number(entry.amountUSD) || 0,
+    exchangeRate: Number(entry.exchangeRate) || 0,
     currency: entry.currency || 'FC',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()

@@ -133,7 +133,7 @@ export function generateCashBook(sales, costs, manualEntries = [], year, month, 
       description: entry.description || 'Manual Entry',
       cashIn: entry.type === 'CREDIT' ? amount : 0,
       cashOut: entry.type === 'DEBIT' ? amount : 0,
-      exchangeRate: null,
+      exchangeRate: Number(entry.exchangeRate) || null,
       amountUSD: Number(entry.amountUSD) || 0,
       amountFC: Number(entry.amountFC) || 0
     });
