@@ -27,6 +27,7 @@ import { usePrintSettings } from '@/hooks/usePrintSettings';
 import { Modal, TextInput, Label, Select } from 'flowbite-react';
 import { HiPlus } from 'react-icons/hi';
 import { ExchangeRateService } from '@/lib/exchangeRates';
+import html2pdf from 'html2pdf.js';
 
 // PDF Print Configuration - Customize these settings
 const PDF_CONFIG = {
@@ -77,6 +78,13 @@ const PDF_CONFIG = {
     preserveColors: true // Keep background colors in PDF
   }
 };
+
+// Helper function to detect iOS devices (iPad, iPhone, iPod)
+function isIOS() {
+  if (typeof window === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
 
 // Helper function to parse Firestore dates
 function parseDate(date) {
@@ -401,7 +409,8 @@ export default function CashBookPage() {
   
   const printRef = useRef(null);
   
-  const handlePrint = useReactToPrint({
+  // Create react-to-print handler for desktop
+  const reactToPrintHandler = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Cash_Book_${selectedYear}_${String(selectedMonth).padStart(2, '0')}`,
     pageStyle: getPrintStyles({ reportTitle: safeT(t, 'reports.cashBook.pageTitle', 'Monthly Cash Book') }),
@@ -413,6 +422,49 @@ export default function CashBookPage() {
       }
     }
   });
+
+  // Unified print handler with iOS fallback
+  const handlePrint = async () => {
+    if (!printRef.current) return;
+
+    // Ensure we're on page 1 to print all data
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+      // Wait for state update
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    if (isIOS()) {
+      // Use html2pdf.js for iOS devices
+      try {
+        const element = printRef.current;
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: `Cash_Book_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { 
+            scale: 2, 
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          },
+          jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait' 
+          },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+        await html2pdf().set(opt).from(element).save();
+      } catch (error) {
+        console.error('Error generating PDF on iOS:', error);
+        alert('Failed to generate PDF. Please try again.');
+      }
+    } else {
+      // Use react-to-print for desktop browsers
+      reactToPrintHandler();
+    }
+  };
   
   // Generate cash book entries when data or filters change
   useEffect(() => {

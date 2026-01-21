@@ -29,6 +29,14 @@ import { Doughnut } from "react-chartjs-2";
 import { useReactToPrint } from 'react-to-print';
 import { usePrintSettings } from '@/hooks/usePrintSettings';
 import { HiDocumentDownload } from 'react-icons/hi';
+import html2pdf from 'html2pdf.js';
+
+// Helper function to detect iOS devices (iPad, iPhone, iPod)
+const isIOS = () => {
+  if (typeof window === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
 
 // CRITICAL FIX: Add safeT function to prevent object rendering and infinite loops
 const safeT = (t, key, fallback) => {
@@ -58,40 +66,40 @@ const safeFormatNumber = (value, options = { maximumFractionDigits: 0 }) => {
 // Label mapping function to convert internal keys to human-readable labels
 const getHumanReadableLabel = (key, t, expenseTypeMap, activityTypeMap, productMap) => {
   if (!key) return 'N/A';
-  
+
   // Try direct translation first
   const directTranslation = t(key, '');
   if (directTranslation && directTranslation !== key) {
     return directTranslation;
   }
-  
+
   // Try expense type mapping
   if (key.includes('expenses.types.')) {
     const expenseKey = key.replace('masterData.expenses.types.', '').replace(/\s+/g, '_').toLowerCase();
-    const expenseType = Array.from(expenseTypeMap?.values() || []).find(e => 
+    const expenseType = Array.from(expenseTypeMap?.values() || []).find(e =>
       e.name?.toLowerCase().replace(/\s+/g, '_') === expenseKey
     );
     if (expenseType?.name) return expenseType.name;
   }
-  
+
   // Try activity type mapping
   if (key.includes('activities.')) {
     const activityKey = key.replace('products.activities.', '').replace(/\s+/g, '_').toLowerCase();
-    const activityType = Array.from(activityTypeMap?.values() || []).find(a => 
+    const activityType = Array.from(activityTypeMap?.values() || []).find(a =>
       a.name?.toLowerCase().replace(/\s+/g, '_') === activityKey
     );
     if (activityType?.name) return activityType.name;
   }
-  
+
   // Try product type mapping
   if (key.includes('products.types.')) {
     const productKey = key.replace('products.types.', '').replace(/\s+/g, '').replace(/'/g, '_');
-    const product = Array.from(productMap?.values() || []).find(p => 
+    const product = Array.from(productMap?.values() || []).find(p =>
       p.producttype?.toLowerCase().replace(/\s+/g, '').replace(/'/g, '_') === productKey
     );
     if (product?.producttype) return product.producttype;
   }
-  
+
   // Fallback: clean up the key
   return key
     .replace(/masterData\./g, '')
@@ -125,11 +133,11 @@ export default function SalesTrendsPage() {
   const { user } = useAuth();
   const { getPrintStyles } = usePrintSettings();
   const printRef = useRef(null);
-  
+
   const currentYear = useMemo(() => new Date().getFullYear(), []);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [activeTab, setActiveTab] = useState("general");
-  
+
   // Generate custom print styles with landscape for wide tables
   const generatePrintStyles = () => {
     const reportTitle = safeT(t, 'profitability.title', 'Profitability Report');
@@ -427,14 +435,51 @@ export default function SalesTrendsPage() {
     `;
   };
 
-  const handlePrint = useReactToPrint({
+  // Create react-to-print handler for desktop
+  const reactToPrintHandler = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Profitability_Report_${selectedYear}`,
     pageStyle: generatePrintStyles()
   });
 
+  // Unified print handler with iOS fallback
+  const handlePrint = async () => {
+    if (!printRef.current) return;
+
+    if (isIOS()) {
+      // Use html2pdf.js for iOS devices
+      try {
+        const element = printRef.current;
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: `Profitability_Report_${selectedYear}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          },
+          jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+          },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+        await html2pdf().set(opt).from(element).save();
+      } catch (error) {
+        console.error('Error generating PDF on iOS:', error);
+        alert('Failed to generate PDF. Please try again.');
+      }
+    } else {
+      // Use react-to-print for desktop browsers
+      reactToPrintHandler();
+    }
+  };
+
   const { products: masterProducts, activityTypes: masterActivityTypes, expenseTypes, productMap, activityTypeMap, expenseTypeMap } = useMasterData();
-  
+
   // Use products from the master data map to ensure consistency
   const products = useMemo(() => (productMap ? Array.from(productMap.values()) : []), [productMap]);
   const activityTypes = useMemo(() => (activityTypeMap ? Array.from(activityTypeMap.values()) : []), [activityTypeMap]);
@@ -445,8 +490,8 @@ export default function SalesTrendsPage() {
         .map(p => normalizeProductTypeName(p.producttype))
         .filter(Boolean)
     );
-    return Array.from(types).filter(type => 
-      !type.toLowerCase().includes('packaging') && 
+    return Array.from(types).filter(type =>
+      !type.toLowerCase().includes('packaging') &&
       !type.toLowerCase().includes('emballage')
     );
   }, [products]);
@@ -472,23 +517,23 @@ export default function SalesTrendsPage() {
     (sales || []).forEach(sale => {
       const d = parseFirestoreDate(sale.date);
       if (!d || d.getFullYear() !== selectedYear) return;
-      
+
       const trimmedProductId = sale.productId?.trim();
       if (!trimmedProductId) return;
-      
+
       let product = productMap.get(trimmedProductId);
-      
+
       if (product && !product.producttype) {
         const masterProduct = masterProducts.find(p => p.id === trimmedProductId);
         if (masterProduct) {
           product.producttype = masterProduct.producttype;
         }
       }
-      
+
       if (!product || !product.producttype || typeof product.producttype !== 'string') {
         return;
       }
-      
+
       const normalizedProductType = normalizeProductTypeName(product.producttype);
       if (!table[normalizedProductType]) {
         return;
@@ -503,7 +548,7 @@ export default function SalesTrendsPage() {
   const expenseTypeTable = useMemo(() => {
     const table = {};
     const actualExpenseTypes = new Set();
-    
+
     // First pass: collect all actual expense type names from cost records
     (costs || []).forEach(cost => {
       const d = parseFirestoreDate(cost.date);
@@ -513,12 +558,12 @@ export default function SalesTrendsPage() {
         actualExpenseTypes.add(expenseType.name);
       }
     });
-    
+
     // Initialize table with actual expense type names
     Array.from(actualExpenseTypes).forEach(type => {
       table[type] = Array(12).fill(0);
     });
-    
+
     // Second pass: populate the table
     (costs || []).forEach(cost => {
       const d = parseFirestoreDate(cost.date);
@@ -528,7 +573,7 @@ export default function SalesTrendsPage() {
       if (!table[expenseType.name]) return;
       table[expenseType.name][d.getMonth()] += Number(cost.amountUSD) || 0;
     });
-    
+
     return table;
   }, [costs, selectedYear, expenseTypeMap]);
 
@@ -552,19 +597,19 @@ export default function SalesTrendsPage() {
   // Calculate costs by category
   const costsByCategory = useMemo(() => {
     const categoryTable = {};
-    
+
     (costs || []).forEach(cost => {
       const d = parseFirestoreDate(cost.date);
       if (!d || d.getFullYear() !== selectedYear) return;
       const expenseType = expenseTypeMap.get(cost.expenseTypeId);
       const category = expenseType?.category || 'uncategorized';
-      
+
       if (!categoryTable[category]) {
         categoryTable[category] = Array(12).fill(0);
       }
       categoryTable[category][d.getMonth()] += Number(cost.amountUSD) || 0;
     });
-    
+
     // Filter out categories with all zeros
     const filtered = {};
     Object.keys(categoryTable).forEach(cat => {
@@ -573,7 +618,7 @@ export default function SalesTrendsPage() {
         filtered[cat] = categoryTable[cat];
       }
     });
-    
+
     return filtered;
   }, [costs, selectedYear, expenseTypeMap]);
 
@@ -585,11 +630,11 @@ export default function SalesTrendsPage() {
     const salesByMonth = Array(12).fill(0);
     const costsByMonth = Array(12).fill(0);
     let totalRevenue = 0, totalCosts = 0, numSales = 0;
-    
+
     // Product totals for insights
     const productTotals = {};
     const expenseTypeTotals = {};
-    
+
     sales.forEach(sale => {
       const d = parseFirestoreDate(sale.date);
       if (!d) return;
@@ -599,14 +644,14 @@ export default function SalesTrendsPage() {
       salesByMonth[m] += amount;
       totalRevenue += amount;
       numSales++;
-      
+
       // Track product totals
       const product = productMap?.get(sale.productId?.trim());
       if (product?.name) {
         productTotals[product.name] = (productTotals[product.name] || 0) + amount;
       }
     });
-    
+
     costs.forEach(cost => {
       const d = parseFirestoreDate(cost.date);
       if (!d) return;
@@ -615,18 +660,18 @@ export default function SalesTrendsPage() {
       const amount = Number(cost.amountUSD) || 0;
       costsByMonth[m] += amount;
       totalCosts += amount;
-      
+
       // Track expense type totals
       const expenseType = expenseTypeMap?.get(cost.expenseTypeId);
       if (expenseType?.name) {
         expenseTypeTotals[expenseType.name] = (expenseTypeTotals[expenseType.name] || 0) + amount;
       }
     });
-    
+
     const grossProfit = totalRevenue - totalCosts;
     const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
     const avgProfitPerSale = numSales > 0 ? grossProfit / numSales : 0;
-    
+
     // Calculate insights
     const profitByMonth = salesByMonth.map((s, i) => s - costsByMonth[i]);
     const bestMonthIndex = profitByMonth.indexOf(Math.max(...profitByMonth));
@@ -635,10 +680,10 @@ export default function SalesTrendsPage() {
     const worstMonth = stableMonths[worstMonthIndex];
     const bestMonthProfit = profitByMonth[bestMonthIndex];
     const worstMonthProfit = profitByMonth[worstMonthIndex];
-    
+
     const topProduct = Object.entries(productTotals).sort(([, a], [, b]) => b - a)[0];
     const topExpenseType = Object.entries(expenseTypeTotals).sort(([, a], [, b]) => b - a)[0];
-    
+
     const insightsList = [
       bestMonth && bestMonthProfit > 0 ? `${safeT(t, 'profitability.pdf.bestSalesMonth', 'Best performing month')}: ${bestMonth} ${safeT(t, 'profitability.pdf.wasTheBestMonth', 'was the best month with')} $${safeFormatNumber(bestMonthProfit)} ${safeT(t, 'profitability.pdf.profit', 'profit')}` : null,
       worstMonth && worstMonthProfit < 0 ? `${safeT(t, 'profitability.pdf.lowestSalesMonth', 'Most challenging month')}: ${worstMonth} ${safeT(t, 'profitability.pdf.withLossOf', 'with loss of')} $${safeFormatNumber(Math.abs(worstMonthProfit))}` : null,
@@ -646,7 +691,7 @@ export default function SalesTrendsPage() {
       topExpenseType ? `${safeT(t, 'profitability.pdf.largestCostDriver', 'Largest cost driver')}: ${topExpenseType[0]} ${safeT(t, 'profitability.pdf.accountedFor', 'accounted for')} $${safeFormatNumber(topExpenseType[1])} ${safeT(t, 'profitability.pdf.inCosts', 'in costs')}` : null,
       profitMargin > 0 ? `${safeT(t, 'profitability.pdf.profitMarginTrend', 'Profit margin trend')}: ${profitMargin.toFixed(2)}% ${safeT(t, 'profitability.pdf.indicates', 'indicates')} ${profitMargin > 20 ? safeT(t, 'profitability.pdf.strong', 'strong') : profitMargin > 10 ? safeT(t, 'profitability.pdf.healthy', 'healthy') : safeT(t, 'profitability.pdf.moderate', 'moderate')} ${safeT(t, 'profitability.pdf.profitabilityAt', 'profitability')}` : null
     ].filter(Boolean);
-    
+
     return [
       {
         totalRevenue,
@@ -855,7 +900,7 @@ export default function SalesTrendsPage() {
               )}
             </div>
           </div>
-          
+
           {/* 0. Executive Summary */}
           <div className="print-section print-page-break">
             <h2 className="print-section-title">0. {safeT(t, 'profitability.pdf.executiveSummary', 'Executive Summary')}</h2>
@@ -912,11 +957,11 @@ export default function SalesTrendsPage() {
               </div>
             )}
           </div>
-          
+
           {/* 1. Sales Details */}
           <div className="print-section print-page-break print-landscape-sales">
             <h2 className="print-section-title">1. {safeT(t, 'profitability.pdf.salesDetails', 'Sales Details')}</h2>
-            
+
             {/* 1.1 Overview */}
             <div className="print-subsection">
               <h3 className="print-subsection-title">1.1 {safeT(t, 'profitability.pdf.overview', 'Overview')}</h3>
@@ -966,7 +1011,7 @@ export default function SalesTrendsPage() {
                 </table>
               </div>
             </div>
-            
+
             {/* 1.2 Sales per Product Type */}
             <div className="print-subsection" style={{ marginTop: '20px' }}>
               <h3 className="print-subsection-title">1.2 {safeT(t, 'profitability.pdf.salesPerProductType', 'Sales per Product Type')}</h3>
@@ -1023,7 +1068,7 @@ export default function SalesTrendsPage() {
                         );
                       })}
                       <td className="px-3 py-2 text-xs font-semibold text-right">
-                        ${safeFormatNumber(productTypes.reduce((grandTotal, type) => 
+                        ${safeFormatNumber(productTypes.reduce((grandTotal, type) =>
                           grandTotal + (productTypeTable[type]?.reduce((sum, val) => sum + val, 0) || 0), 0
                         ))}
                       </td>
@@ -1033,11 +1078,11 @@ export default function SalesTrendsPage() {
               </div>
             </div>
           </div>
-          
+
           {/* 2. Costs Details */}
           <div className="print-section print-page-break print-landscape-costs">
             <h2 className="print-section-title">2. {safeT(t, 'profitability.pdf.costsDetails', 'Costs Details')}</h2>
-            
+
             {/* 2.1 Overview */}
             <div className="print-subsection">
               <h3 className="print-subsection-title">2.1 {safeT(t, 'profitability.pdf.overview', 'Overview')}</h3>
@@ -1084,7 +1129,7 @@ export default function SalesTrendsPage() {
                         );
                       })}
                       <td className="px-3 py-2 text-xs font-semibold text-right">
-                        ${safeFormatNumber(Object.keys(costsByCategory).reduce((grandTotal, cat) => 
+                        ${safeFormatNumber(Object.keys(costsByCategory).reduce((grandTotal, cat) =>
                           grandTotal + (costsByCategory[cat]?.reduce((sum, val) => sum + val, 0) || 0), 0
                         ))}
                       </td>
@@ -1093,7 +1138,7 @@ export default function SalesTrendsPage() {
                 </table>
               </div>
             </div>
-            
+
             {/* 2.2 Costs per Expense Type */}
             <div className="print-subsection" style={{ marginTop: '20px' }}>
               <h3 className="print-subsection-title">2.2 {safeT(t, 'profitability.pdf.costsPerExpenseType', 'Costs per Expense Type')}</h3>
@@ -1153,7 +1198,7 @@ export default function SalesTrendsPage() {
                         );
                       })}
                       <td className="px-3 py-2 text-xs font-semibold text-right">
-                        ${safeFormatNumber(Object.keys(expenseTypeTable).reduce((grandTotal, type) => 
+                        ${safeFormatNumber(Object.keys(expenseTypeTable).reduce((grandTotal, type) =>
                           grandTotal + (expenseTypeTable[type]?.reduce((sum, val) => sum + val, 0) || 0), 0
                         ))}
                       </td>
@@ -1163,7 +1208,7 @@ export default function SalesTrendsPage() {
               </div>
             </div>
           </div>
-          
+
           {/* 3. Profitability Analysis */}
           <div className="print-section print-page-break">
             <h2 className="print-section-title">3. {safeT(t, 'profitability.pdf.profitabilityAnalysis', 'Profitability Analysis')}</h2>
@@ -1185,13 +1230,13 @@ export default function SalesTrendsPage() {
               </ul>
             </div>
           </div>
-          
+
           {/* Print Footer */}
           <div className="print-footer">
             <div className="text-center text-xs text-gray-500 mt-6">
-              <p>{safeT(t, 'reports.cashBook.generatedOn', 'Generated on')} {new Date().toLocaleDateString('en-GB', { 
-                day: '2-digit', 
-                month: 'long', 
+              <p>{safeT(t, 'reports.cashBook.generatedOn', 'Generated on')} {new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'long',
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
@@ -1203,7 +1248,7 @@ export default function SalesTrendsPage() {
             </div>
           </div>
         </div>
-        
+
         {/* Screen Content */}
         <div className="print:hidden">
           <div className="mb-4">
@@ -1211,392 +1256,388 @@ export default function SalesTrendsPage() {
               <HiArrowNarrowLeft className="mr-2 h-5 w-5" /> {safeT(t, 'reports.title', 'Reports')}
             </Link>
           </div>
-        {/* Main Stats Card */}
-        <Card className="mb-6 !rounded-2xl overflow-hidden" style={{ minHeight: '260px' }}>
-          <div className="flex flex-col" style={{ minHeight: '240px' }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-black font-semibold text-base">{safeT(t, 'profitability.salesTrends.grossProfit', 'Gross Profit')}</p>
-                <h2 className="text-5xl font-bold text-[#385e82]">${String(kpi.grossProfit?.toLocaleString() ?? 0)}</h2>
-                <div className="flex items-center mt-2">
-                  <span className="flex items-center rounded-full px-2 py-1 text-blue-700 bg-blue-100">
-                    {safeT(t, 'profitability.salesTrends.profitabilityOverview', 'Profitability Overview')}
-                  </span>
+          {/* Main Stats Card */}
+          <Card className="mb-6 !rounded-2xl overflow-hidden" style={{ minHeight: '260px' }}>
+            <div className="flex flex-col" style={{ minHeight: '240px' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-black font-semibold text-base">{safeT(t, 'profitability.salesTrends.grossProfit', 'Gross Profit')}</p>
+                  <h2 className="text-5xl font-bold text-[#385e82]">${String(kpi.grossProfit?.toLocaleString() ?? 0)}</h2>
+                  <div className="flex items-center mt-2">
+                    <span className="flex items-center rounded-full px-2 py-1 text-blue-700 bg-blue-100">
+                      {safeT(t, 'profitability.salesTrends.profitabilityOverview', 'Profitability Overview')}
+                    </span>
+                  </div>
+                </div>
+                <div className="h-36 flex-grow ml-4">
+                  {chartData?.labels?.length > 0 && chartData.datasets?.length > 0 ? (
+                    <LineChart data={chartData} options={chartOptions} />
+                  ) : (
+                    <div className="h-36 flex items-center justify-center text-gray-400">No data available</div>
+                  )}
                 </div>
               </div>
-              <div className="h-36 flex-grow ml-4">
-                {chartData?.labels?.length > 0 && chartData.datasets?.length > 0 ? (
-                  <LineChart data={chartData} options={chartOptions} />
-                ) : (
-                  <div className="h-36 flex items-center justify-center text-gray-400">No data available</div>
-                )}
+              {/* KPI Cards Row */}
+              <div className="grid grid-cols-5 gap-4 mt-6">
+                <div className="bg-blue-50 rounded-xl p-4">
+                  <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.totalRevenue', 'Total Revenue')}</p>
+                  <p className="text-2xl font-semibold text-blue-900">${String(kpi.totalRevenue?.toLocaleString() ?? 0)}</p>
+                </div>
+                <div className="bg-blue-50 rounded-xl p-4">
+                  <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.totalCosts', 'Total Costs')}</p>
+                  <p className="text-2xl font-semibold text-blue-900">${String(kpi.totalCosts?.toLocaleString() ?? 0)}</p>
+                </div>
+                <div className="bg-blue-50 rounded-xl p-4">
+                  <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.grossProfit', 'Gross Profit')}</p>
+                  <p className="text-2xl font-semibold text-[#385e82]">${String(kpi.grossProfit?.toLocaleString() ?? 0)}</p>
+                </div>
+                <div className="bg-blue-50 rounded-xl p-4">
+                  <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.profitMargin', 'Profit Margin')}</p>
+                  <p className="text-2xl font-semibold text-blue-900">{String(isNaN(kpi.profitMargin) ? '0.00' : kpi.profitMargin?.toFixed(2) ?? '0.00')}%</p>
+                </div>
+                <div className="bg-blue-50 rounded-xl p-4">
+                  <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.avgProfitPerSale', 'Average Profit Per Sale')}</p>
+                  <p className="text-2xl font-semibold text-blue-900">${String(isNaN(kpi.avgProfitPerSale) ? '0' : kpi.avgProfitPerSale?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? '0')}</p>
+                </div>
               </div>
             </div>
-            {/* KPI Cards Row */}
-            <div className="grid grid-cols-5 gap-4 mt-6">
-              <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.totalRevenue', 'Total Revenue')}</p>
-                <p className="text-2xl font-semibold text-blue-900">${String(kpi.totalRevenue?.toLocaleString() ?? 0)}</p>
-              </div>
-              <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.totalCosts', 'Total Costs')}</p>
-                <p className="text-2xl font-semibold text-blue-900">${String(kpi.totalCosts?.toLocaleString() ?? 0)}</p>
-              </div>
-              <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.grossProfit', 'Gross Profit')}</p>
-                <p className="text-2xl font-semibold text-[#385e82]">${String(kpi.grossProfit?.toLocaleString() ?? 0)}</p>
-              </div>
-              <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.profitMargin', 'Profit Margin')}</p>
-                <p className="text-2xl font-semibold text-blue-900">{String(isNaN(kpi.profitMargin) ? '0.00' : kpi.profitMargin?.toFixed(2) ?? '0.00')}%</p>
-              </div>
-              <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-gray-600 text-base flex items-center gap-2">{safeT(t, 'profitability.salesTrends.avgProfitPerSale', 'Average Profit Per Sale')}</p>
-                <p className="text-2xl font-semibold text-blue-900">${String(isNaN(kpi.avgProfitPerSale) ? '0' : kpi.avgProfitPerSale?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? '0')}</p>
-              </div>
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        {/* Tabs Navigation and Tab Content */}
-        <Card className="overflow-visible mb-8 bg-white/90 border-0 shadow-none">
-          <div className="flex items-center justify-between border-b border-[#385e82] pb-2 px-2">
-            <nav className="flex space-x-2" aria-label="Tabs">
-              {[
-                { key: "general", label: safeT(t, 'profitability.tabs.general', 'General') },
-                { key: "products", label: safeT(t, 'profitability.tabs.products', 'Products') },
-                { key: "expenses", label: safeT(t, 'profitability.tabs.expenses', 'Expenses') },
-                { key: "activities", label: safeT(t, 'profitability.tabs.activities', 'Activities') },
-              ].map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`px-6 py-2 rounded-t-lg font-semibold text-base transition-all duration-200 border-b-4 ${activeTab === tab.key ? 'border-[#385e82] text-[#385e82] bg-white' : 'border-transparent text-gray-400 bg-transparent hover:text-[#385e82]'}`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handlePrint}
-                className="bg-[#385e82] hover:bg-[#031b31] text-white font-medium px-4"
-              >
-                <HiDocumentDownload className="h-5 w-5 mr-2" />
-                {safeT(t, 'reports.cashBook.exportPDF', 'Export PDF')}
-              </Button>
-              <span className="text-sm font-medium text-[#385e82]">{safeT(t, 'profitability.year', 'Year')}:</span>
-              <select
-                className="rounded-lg border border-[#385e82] px-3 py-1 text-sm bg-white text-[#385e82] font-bold"
-                value={selectedYear}
-                onChange={e => setSelectedYear(Number(e.target.value))}
-              >
-                {availableYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
+          {/* Tabs Navigation and Tab Content */}
+          <Card className="overflow-visible mb-8 bg-white/90 border-0 shadow-none">
+            <div className="flex items-center justify-between border-b border-[#385e82] pb-2 px-2">
+              <nav className="flex space-x-2" aria-label="Tabs">
+                {[
+                  { key: "general", label: safeT(t, 'profitability.tabs.general', 'General') },
+                  { key: "products", label: safeT(t, 'profitability.tabs.products', 'Products') },
+                  { key: "expenses", label: safeT(t, 'profitability.tabs.expenses', 'Expenses') },
+                  { key: "activities", label: safeT(t, 'profitability.tabs.activities', 'Activities') },
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-6 py-2 rounded-t-lg font-semibold text-base transition-all duration-200 border-b-4 ${activeTab === tab.key ? 'border-[#385e82] text-[#385e82] bg-white' : 'border-transparent text-gray-400 bg-transparent hover:text-[#385e82]'}`}
+                  >
+                    {tab.label}
+                  </button>
                 ))}
-              </select>
+              </nav>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handlePrint}
+                  className="bg-[#385e82] hover:bg-[#031b31] text-white font-medium px-4"
+                >
+                  <HiDocumentDownload className="h-5 w-5 mr-2" />
+                  {safeT(t, 'reports.cashBook.exportPDF', 'Export PDF')}
+                </Button>
+                <span className="text-sm font-medium text-[#385e82]">{safeT(t, 'profitability.year', 'Year')}:</span>
+                <select
+                  className="rounded-lg border border-[#385e82] px-3 py-1 text-sm bg-white text-[#385e82] font-bold"
+                  value={selectedYear}
+                  onChange={e => setSelectedYear(Number(e.target.value))}
+                >
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
 
-                {/* Tab Content */}
-        {activeTab === "general" && (
-          <Card className="!rounded-2xl">
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.general', 'General Profitability')}</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-                  <thead className="bg-[#6c97be]">
-                    <tr>
-                      <th className="px-6 py-2 font-semibold text-base text-white text-left"></th>
-                      {months.map((m, i) => (
-                        <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {[
-                      { label: safeT(t, 'profitability.rows.sales', 'Sales'), data: generalTable.salesByMonth, color: 'text-blue-900' },
-                      { label: safeT(t, 'profitability.rows.costs', 'Costs'), data: generalTable.costsByMonth, color: 'text-red-700', invert: true },
-                      { label: safeT(t, 'profitability.rows.profit', 'Profit'), data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
-                    ].map((row, idx) => (
-                      <tr
-                        key={row.label}
-                        className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
-                          idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
-                        } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
-                      >
-                        <td className={`px-6 py-2 font-semibold text-base ${row.color} text-left`}>
-                          {row.label}
-                        </td>
-                        {row.data.map((val, i) => {
-                          let bgClass = "bg-gray-50 text-gray-700";
-                          if (i > 0) {
-                            const diff = val - row.data[i - 1];
-                            if (diff > 0) {
-                              bgClass = row.invert ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700";
-                            } else if (diff < 0) {
-                              bgClass = row.invert ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700";
-                            }
-                          }
-                          return (
-                            <td key={i} className="px-6 py-3 text-base font-medium">
-                              <span className={`px-3 py-1 rounded-full ${bgClass}`}>
-                                {safeFormatNumber(val)}
-                              </span>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </Card>
-        )}
-        {activeTab === "products" && (
-          <Card className="!rounded-2xl">
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4">{safeT(t, 'profitability.tabs.products', 'Product Sales by Month')}</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-                  <thead style={{backgroundColor: '#966262'}}>
-                    <tr>
-                      <th className="px-6 py-4 font-semibold text-base text-white text-left"></th>
-                      {months.map((m, i) => (
-                        <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
-                      ))}
-                      <th className="px-6 py-2 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-red-100">
-                  {productTypes.map((type, idx) => {
-                    const rowTotal = productTypeTable[type].reduce((sum, val) => sum + val, 0);
-                    const normalizedProductType = type.toLowerCase().replace(/\s+/g, '').replace(/'/g, '_');
-                    const productLabel = safeT(t, `products.types.${normalizedProductType}`, type);
-                    
-                    return (
-                      <tr
-                        key={type}
-                        className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
-                          idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
-                        } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
-                      >
-                        <td className="px-6 py-2 font-semibold text-base text-gray-900 text-left">
-                          {productLabel}
-                        </td>
-                        {productTypeTable[type].map((val, i) => {
-                          let bgClass = "text-gray-700";
-                          let bgStyle = {backgroundColor: '#f2eddd'};
-                          if (i > 0) {
-                            const diff = val - productTypeTable[type][i - 1];
-                            if (diff > 0) {
-                              bgClass = "bg-green-50 text-green-700";
-                              bgStyle = {};
-                            } else if (diff < 0) {
-                              bgClass = "bg-red-50 text-red-700";
-                              bgStyle = {};
-                            }
-                          }
-                          return (
-                            <td key={i} className="px-6 py-2 text-base font-medium">
-                              <span className={`px-3 py-1 rounded-full ${bgClass}`} style={bgStyle}>
-                                {safeFormatNumber(val)}
-                              </span>
-                            </td>
-                          );
-                        })}
-                        <td className="px-6 py-3 text-base font-semibold font-bold" style={{color: '#6a2020'}}>
-                          <span className="px-3 py-1 rounded-full text-white" style={{backgroundColor: '#a16363'}}>
-                            {safeFormatNumber(rowTotal)}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  <tr className="font-bold text-white" style={{backgroundColor: '#966262'}}>
-                    <td className="px-6 py-2 text-base text-left">
-                      {safeT(t, 'common.total', 'Total')}
-                    </td>
-                    {Array(12).fill(0).map((_, monthIndex) => {
-                      const monthTotal = productTypes.reduce((sum, type) => sum + productTypeTable[type][monthIndex], 0);
-                      return (
-                        <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
-                          {safeFormatNumber(monthTotal)}
-                        </td>
-                      );
-                    })}
-                      <td className="px-6 py-1 text-base font-semibold">
-                        {safeFormatNumber(productTypes.reduce((grandTotal, type) => 
-                          grandTotal + productTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+          {/* Tab Content */}
+          {activeTab === "general" && (
+            <Card className="!rounded-2xl">
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-[#385e82] mb-4">{safeT(t, 'profitability.tabs.general', 'General Profitability')}</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                    <thead className="bg-[#6c97be]">
+                      <tr>
+                        <th className="px-6 py-2 font-semibold text-base text-white text-left"></th>
+                        {months.map((m, i) => (
+                          <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
                         ))}
-                      </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </Card>
-        )}
-        {activeTab === "expenses" && (
-          <Card className="!rounded-2xl">
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-red-700 mb-4">{safeT(t, 'profitability.tabs.expenses', 'Expenses by Month')}</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-                  <thead className="bg-red-300">
-                    <tr>
-                      <th className="px-6 py-2 font-semibold text-base text-white text-left"></th>
-                      {months.map((m, i) => (
-                        <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
-                      ))}
-                      <th className="px-6 py-2 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                  {Object.keys(expenseTypeTable).map((type, idx) => {
-                    const rowTotal = expenseTypeTable[type].reduce((sum, val) => sum + val, 0);
-                    const normalizedExpenseType = type.replace(/\s+/g, '_').toLowerCase();
-                    const expenseLabel = safeT(t, `masterData.expenses.types.${normalizedExpenseType}`, type);
-                    
-                    return (
-                      <tr
-                        key={type}
-                        className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
-                          idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
-                        } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
-                      >
-                        <td className="px-6 py-2 font-semibold text-base text-gray-900 text-left">
-                          {expenseLabel}
-                        </td>
-                        {expenseTypeTable[type].map((val, i) => {
-                          let bgClass = "bg-gray-50 text-gray-700";
-                          if (i > 0) {
-                            const diff = val - expenseTypeTable[type][i - 1];
-                            if (diff > 0) { // Higher cost is bad
-                              bgClass = "bg-red-50 text-red-700";
-                            } else if (diff < 0) { // Lower cost is good
-                              bgClass = "bg-green-50 text-green-700";
-                            }
-                          }
-                          return (
-                            <td key={i} className="px-6 py-2 text-base font-medium">
-                              <span className={`px-3 py-1 rounded-full ${bgClass}`}>
-                                {safeFormatNumber(val)}
-                              </span>
-                            </td>
-                          );
-                        })}
-                        <td className="px-6 py-3 text-base font-semibold font-bold text-red-900">
-                          <span className="px-3 py-1 rounded-full bg-red-50 text-red-900">
-                            {safeFormatNumber(rowTotal)}
-                          </span>
-                        </td>
                       </tr>
-                    );
-                  })}
-                  <tr className="bg-red-300 font-bold text-white">
-                    <td className="px-6 py-1 text-base text-left">
-                      {safeT(t, 'common.total', 'Total')}
-                    </td>
-                    {Array(12).fill(0).map((_, monthIndex) => {
-                      const monthTotal = Object.keys(expenseTypeTable).reduce((sum, type) => sum + expenseTypeTable[type][monthIndex], 0);
-                      return (
-                        <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
-                          {safeFormatNumber(monthTotal)}
-                        </td>
-                      );
-                    })}
-                      <td className="px-6 py-1 text-base font-semibold">
-                        {safeFormatNumber(Object.keys(expenseTypeTable).reduce((grandTotal, type) => 
-                          grandTotal + expenseTypeTable[type].reduce((sum, val) => sum + val, 0), 0
-                        ))}
-                      </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </Card>
-        )}
-        {activeTab === "activities" && (
-          <Card className="!rounded-2xl">
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-green-900 mb-4">{safeT(t, 'profitability.tabs.activities', 'Activities by Month')}</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
-                  <thead className="bg-green-600/50">
-                    <tr>
-                      <th className="px-6 py-3 font-semibold text-base text-white text-left"></th>
-                      {months.map((m, i) => (
-                        <th key={i} className="px-6 py-3 font-semibold text-base text-white">{m}</th>
-                      ))}
-                      <th className="px-6 py-3 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {activityTypeRows.map((type, idx) => {
-                      const rowTotal = activityTypeTable[type].reduce((sum, val) => sum + val, 0);
-                      const normalizedType = type.replace(/\s+/g, '_').toLowerCase();
-                      const activityLabel = safeT(t, `products.activities.${normalizedType}`, type);
-                      
-                      return (
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {[
+                        { label: safeT(t, 'profitability.rows.sales', 'Sales'), data: generalTable.salesByMonth, color: 'text-blue-900' },
+                        { label: safeT(t, 'profitability.rows.costs', 'Costs'), data: generalTable.costsByMonth, color: 'text-red-700', invert: true },
+                        { label: safeT(t, 'profitability.rows.profit', 'Profit'), data: generalTable.profitByMonth, color: 'text-[#385e82] font-bold' },
+                      ].map((row, idx) => (
                         <tr
-                          key={type}
-                          className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${
-                            idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
-                          } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                          key={row.label}
+                          className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                            } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
                         >
-                          <td className="px-6 py-4 font-semibold text-base text-green-900 text-left">
-                            {activityLabel}
+                          <td className={`px-6 py-2 font-semibold text-base ${row.color} text-left`}>
+                            {row.label}
                           </td>
-                          {activityTypeTable[type].map((val, i) => {
-                            let bgClass = "bg-gray-100 text-gray-800";
+                          {row.data.map((val, i) => {
+                            let bgClass = "bg-gray-50 text-gray-700";
                             if (i > 0) {
-                              const diff = val - activityTypeTable[type][i - 1];
+                              const diff = val - row.data[i - 1];
                               if (diff > 0) {
-                                bgClass = "bg-green-50 text-green-700";
+                                bgClass = row.invert ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700";
                               } else if (diff < 0) {
-                                bgClass = "bg-red-50 text-red-700";
+                                bgClass = row.invert ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700";
                               }
                             }
                             return (
-                              <td key={i} className="px-6 py-4 text-base font-medium">
+                              <td key={i} className="px-6 py-3 text-base font-medium">
                                 <span className={`px-3 py-1 rounded-full ${bgClass}`}>
                                   {safeFormatNumber(val)}
                                 </span>
                               </td>
                             );
                           })}
-                          <td className="px-6 py-3 text-base font-semibold font-bold text-green-900">
-                            <span className="px-3 py-1 rounded-full bg-green-50 text-green-900">
-                              {safeFormatNumber(rowTotal)}
-                            </span>
-                          </td>
                         </tr>
-                      );
-                    })}
-                    <tr className="bg-green-600/50 font-bold text-white">
-                      <td className="px-6 py-4 text-base text-left">
-                        {safeT(t, 'common.total', 'Total')}
-                      </td>
-                      {Array(12).fill(0).map((_, monthIndex) => {
-                        const monthTotal = activityTypeRows.reduce((sum, type) => sum + activityTypeTable[type][monthIndex], 0);
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Card>
+          )}
+          {activeTab === "products" && (
+            <Card className="!rounded-2xl">
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4">{safeT(t, 'profitability.tabs.products', 'Product Sales by Month')}</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                    <thead style={{ backgroundColor: '#966262' }}>
+                      <tr>
+                        <th className="px-6 py-4 font-semibold text-base text-white text-left"></th>
+                        {months.map((m, i) => (
+                          <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
+                        ))}
+                        <th className="px-6 py-2 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-red-100">
+                      {productTypes.map((type, idx) => {
+                        const rowTotal = productTypeTable[type].reduce((sum, val) => sum + val, 0);
+                        const normalizedProductType = type.toLowerCase().replace(/\s+/g, '').replace(/'/g, '_');
+                        const productLabel = safeT(t, `products.types.${normalizedProductType}`, type);
+
                         return (
-                          <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
-                            {safeFormatNumber(monthTotal)}
-                          </td>
+                          <tr
+                            key={type}
+                            className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                              } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                          >
+                            <td className="px-6 py-2 font-semibold text-base text-gray-900 text-left">
+                              {productLabel}
+                            </td>
+                            {productTypeTable[type].map((val, i) => {
+                              let bgClass = "text-gray-700";
+                              let bgStyle = { backgroundColor: '#f2eddd' };
+                              if (i > 0) {
+                                const diff = val - productTypeTable[type][i - 1];
+                                if (diff > 0) {
+                                  bgClass = "bg-green-50 text-green-700";
+                                  bgStyle = {};
+                                } else if (diff < 0) {
+                                  bgClass = "bg-red-50 text-red-700";
+                                  bgStyle = {};
+                                }
+                              }
+                              return (
+                                <td key={i} className="px-6 py-2 text-base font-medium">
+                                  <span className={`px-3 py-1 rounded-full ${bgClass}`} style={bgStyle}>
+                                    {safeFormatNumber(val)}
+                                  </span>
+                                </td>
+                              );
+                            })}
+                            <td className="px-6 py-3 text-base font-semibold font-bold" style={{ color: '#6a2020' }}>
+                              <span className="px-3 py-1 rounded-full text-white" style={{ backgroundColor: '#a16363' }}>
+                                {safeFormatNumber(rowTotal)}
+                              </span>
+                            </td>
+                          </tr>
                         );
                       })}
-                      <td className="px-6 py-4 text-base font-semibold">
-                        {safeFormatNumber(
-                          activityTypeRows.reduce((grandTotal, type) => 
-                            grandTotal + activityTypeTable[type].reduce((sum, val) => sum + val, 0), 0
-                          )
-                        )}
-                      </td>
-                    </tr>
+                      <tr className="font-bold text-white" style={{ backgroundColor: '#966262' }}>
+                        <td className="px-6 py-2 text-base text-left">
+                          {safeT(t, 'common.total', 'Total')}
+                        </td>
+                        {Array(12).fill(0).map((_, monthIndex) => {
+                          const monthTotal = productTypes.reduce((sum, type) => sum + productTypeTable[type][monthIndex], 0);
+                          return (
+                            <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
+                              {safeFormatNumber(monthTotal)}
+                            </td>
+                          );
+                        })}
+                        <td className="px-6 py-1 text-base font-semibold">
+                          {safeFormatNumber(productTypes.reduce((grandTotal, type) =>
+                            grandTotal + productTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                          ))}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Card>
+          )}
+          {activeTab === "expenses" && (
+            <Card className="!rounded-2xl">
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-red-700 mb-4">{safeT(t, 'profitability.tabs.expenses', 'Expenses by Month')}</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                    <thead className="bg-red-300">
+                      <tr>
+                        <th className="px-6 py-2 font-semibold text-base text-white text-left"></th>
+                        {months.map((m, i) => (
+                          <th key={i} className="px-6 py-2 font-semibold text-base text-white">{m}</th>
+                        ))}
+                        <th className="px-6 py-2 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {Object.keys(expenseTypeTable).map((type, idx) => {
+                        const rowTotal = expenseTypeTable[type].reduce((sum, val) => sum + val, 0);
+                        const normalizedExpenseType = type.replace(/\s+/g, '_').toLowerCase();
+                        const expenseLabel = safeT(t, `masterData.expenses.types.${normalizedExpenseType}`, type);
+
+                        return (
+                          <tr
+                            key={type}
+                            className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                              } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                          >
+                            <td className="px-6 py-2 font-semibold text-base text-gray-900 text-left">
+                              {expenseLabel}
+                            </td>
+                            {expenseTypeTable[type].map((val, i) => {
+                              let bgClass = "bg-gray-50 text-gray-700";
+                              if (i > 0) {
+                                const diff = val - expenseTypeTable[type][i - 1];
+                                if (diff > 0) { // Higher cost is bad
+                                  bgClass = "bg-red-50 text-red-700";
+                                } else if (diff < 0) { // Lower cost is good
+                                  bgClass = "bg-green-50 text-green-700";
+                                }
+                              }
+                              return (
+                                <td key={i} className="px-6 py-2 text-base font-medium">
+                                  <span className={`px-3 py-1 rounded-full ${bgClass}`}>
+                                    {safeFormatNumber(val)}
+                                  </span>
+                                </td>
+                              );
+                            })}
+                            <td className="px-6 py-3 text-base font-semibold font-bold text-red-900">
+                              <span className="px-3 py-1 rounded-full bg-red-50 text-red-900">
+                                {safeFormatNumber(rowTotal)}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      <tr className="bg-red-300 font-bold text-white">
+                        <td className="px-6 py-1 text-base text-left">
+                          {safeT(t, 'common.total', 'Total')}
+                        </td>
+                        {Array(12).fill(0).map((_, monthIndex) => {
+                          const monthTotal = Object.keys(expenseTypeTable).reduce((sum, type) => sum + expenseTypeTable[type][monthIndex], 0);
+                          return (
+                            <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
+                              {safeFormatNumber(monthTotal)}
+                            </td>
+                          );
+                        })}
+                        <td className="px-6 py-1 text-base font-semibold">
+                          {safeFormatNumber(Object.keys(expenseTypeTable).reduce((grandTotal, type) =>
+                            grandTotal + expenseTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                          ))}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Card>
+          )}
+          {activeTab === "activities" && (
+            <Card className="!rounded-2xl">
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-green-900 mb-4">{safeT(t, 'profitability.tabs.activities', 'Activities by Month')}</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-base text-center text-gray-900 rounded overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+                    <thead className="bg-green-600/50">
+                      <tr>
+                        <th className="px-6 py-3 font-semibold text-base text-white text-left"></th>
+                        {months.map((m, i) => (
+                          <th key={i} className="px-6 py-3 font-semibold text-base text-white">{m}</th>
+                        ))}
+                        <th className="px-6 py-3 font-semibold text-base text-white">{safeT(t, 'common.total', 'Total')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {activityTypeRows.map((type, idx) => {
+                        const rowTotal = activityTypeTable[type].reduce((sum, val) => sum + val, 0);
+                        const normalizedType = type.replace(/\s+/g, '_').toLowerCase();
+                        const activityLabel = safeT(t, `products.activities.${normalizedType}`, type);
+
+                        return (
+                          <tr
+                            key={type}
+                            className={`transition-all duration-200 border-b border-purple-100 last:border-b-0 ${idx % 2 === 1 ? 'bg-purple-50/40' : 'bg-white'
+                              } hover:shadow-lg hover:scale-[1.02] hover:bg-white`}
+                          >
+                            <td className="px-6 py-4 font-semibold text-base text-green-900 text-left">
+                              {activityLabel}
+                            </td>
+                            {activityTypeTable[type].map((val, i) => {
+                              let bgClass = "bg-gray-100 text-gray-800";
+                              if (i > 0) {
+                                const diff = val - activityTypeTable[type][i - 1];
+                                if (diff > 0) {
+                                  bgClass = "bg-green-50 text-green-700";
+                                } else if (diff < 0) {
+                                  bgClass = "bg-red-50 text-red-700";
+                                }
+                              }
+                              return (
+                                <td key={i} className="px-6 py-4 text-base font-medium">
+                                  <span className={`px-3 py-1 rounded-full ${bgClass}`}>
+                                    {safeFormatNumber(val)}
+                                  </span>
+                                </td>
+                              );
+                            })}
+                            <td className="px-6 py-3 text-base font-semibold font-bold text-green-900">
+                              <span className="px-3 py-1 rounded-full bg-green-50 text-green-900">
+                                {safeFormatNumber(rowTotal)}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      <tr className="bg-green-600/50 font-bold text-white">
+                        <td className="px-6 py-4 text-base text-left">
+                          {safeT(t, 'common.total', 'Total')}
+                        </td>
+                        {Array(12).fill(0).map((_, monthIndex) => {
+                          const monthTotal = activityTypeRows.reduce((sum, type) => sum + activityTypeTable[type][monthIndex], 0);
+                          return (
+                            <td key={monthIndex} className="px-6 py-4 text-base font-semibold">
+                              {safeFormatNumber(monthTotal)}
+                            </td>
+                          );
+                        })}
+                        <td className="px-6 py-4 text-base font-semibold">
+                          {safeFormatNumber(
+                            activityTypeRows.reduce((grandTotal, type) =>
+                              grandTotal + activityTypeTable[type].reduce((sum, val) => sum + val, 0), 0
+                            )
+                          )}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
