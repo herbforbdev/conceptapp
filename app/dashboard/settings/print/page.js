@@ -172,6 +172,19 @@ export default function PrintSettingsPage() {
                 placeholder={safeT(t, 'settings.print.emailPlaceholder', 'Enter email address')}
               />
             </div>
+            <div className="md:col-span-2">
+              <Label htmlFor="companyLogo">{safeT(t, 'settings.print.logoUrl', 'Logo URL')}</Label>
+              <TextInput
+                id="companyLogo"
+                type="url"
+                value={settings.company.logo ?? ''}
+                onChange={(e) => updateSettings('company.logo', e.target.value || null)}
+                placeholder={safeT(t, 'settings.print.logoUrlPlaceholder', 'https://example.com/logo.png')}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {safeT(t, 'settings.print.logoUrlDesc', 'Optional. Used on PDF reports (e.g. Cash Book).')}
+              </p>
+            </div>
           </div>
         </Card>
 

@@ -123,6 +123,9 @@
       "phonePlaceholder": "Entrez le numéro de téléphone",
       "email": "Email",
       "emailPlaceholder": "Entrez l'adresse email",
+      "logoUrl": "URL du logo",
+      "logoUrlPlaceholder": "https://exemple.com/logo.png",
+      "logoUrlDesc": "Optionnel. Utilisé sur les rapports PDF (ex. Livre de caisse).",
       "pageSettings": "Paramètres de page",
       "pageSize": "Taille de page",
       "orientation": "Orientation",
@@ -1509,7 +1512,15 @@
       "transactions": "Transactions",
       "generatedOn": "Généré le",
       "records": "Enregistrements",
-      "preparedBy": "Préparé par"
+      "preparedBy": "Préparé par",
+      "reportTitleLivre": "LIVRE DE CAISSE",
+      "monthOf": "Mois de",
+      "voucherNumber": "N° de pièce",
+      "designation": "Désignation",
+      "totalEntries": "Total des entrées",
+      "totalExits": "Total des sorties",
+      "totalBalance": "Solde total",
+      "dateAndSignature": "Date et signature"
     }
   },
   "dashboard": {

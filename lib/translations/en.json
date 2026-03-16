@@ -116,6 +116,9 @@
       "phonePlaceholder": "Enter phone number",
       "email": "Email",
       "emailPlaceholder": "Enter email address",
+      "logoUrl": "Logo URL",
+      "logoUrlPlaceholder": "https://example.com/logo.png",
+      "logoUrlDesc": "Optional. Used on PDF reports (e.g. Cash Book).",
       "pageSettings": "Page Settings",
       "pageSize": "Page Size",
       "orientation": "Orientation",
@@ -1546,7 +1549,15 @@
       "noManualEntries": "No manual entries found for the selected period",
       "transactions": "Transactions",
       "generatedOn": "Generated on",
-      "preparedBy": "Prepared by"
+      "preparedBy": "Prepared by",
+      "reportTitleLivre": "CASH BOOK",
+      "monthOf": "Month of",
+      "voucherNumber": "Voucher No.",
+      "designation": "Description",
+      "totalEntries": "Total entries",
+      "totalExits": "Total exits",
+      "totalBalance": "Total balance",
+      "dateAndSignature": "Date and signature"
     }
   },
   "dashboard": {

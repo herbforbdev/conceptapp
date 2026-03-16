@@ -231,7 +231,7 @@ export default function CashBookPage() {
   const { data: costs, loading: costsLoading } = useFirestoreCollection("Costs");
   const { data: manualEntries = [], loading: manualEntriesLoading } = useFirestoreCollection("ManualCashBookEntries");
   const { productMap, activityTypeMap, expenseTypeMap } = useMasterData();
-  const { getPrintStyles } = usePrintSettings();
+  const { getPrintStyles, printSettings } = usePrintSettings();
   
   // Get available years from data
   const availableYears = useMemo(() => {
@@ -729,6 +729,17 @@ export default function CashBookPage() {
   
   return (
     <AdminOnly>
+      <style jsx global>{`
+        @media print {
+          .print-cashbook-header {
+            page-break-after: avoid;
+            margin-bottom: 0.25rem;
+          }
+          .print-content.print-content {
+            padding-top: 0;
+          }
+        }
+      `}</style>
       <div className="p-4 bg-gray-50 min-h-screen">
         {/* Back Button */}
         <div className="mb-4">
@@ -1639,315 +1650,146 @@ export default function CashBookPage() {
         )}
         
         
-        {/* Print Content Wrapper - Includes all summaries and detailed table */}
+        {/* Print Content Wrapper - Monthly cash book PDF (header + table on first page, no footer) */}
         <div ref={printRef} className="print-content hidden print:block" style={{ display: 'none' }}>
-          {/* Print Header */}
-          <div className="print-header">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-[#385e82]">
-                {user?.company || safeT(t, 'reports.cashBook.pageTitle', 'Monthly Cash Book')}
-              </h1>
-              <p className="text-gray-600 mt-1">
-                {safeT(t, 'reports.cashBook.pageSubtitle', 'Detailed cash transactions ledger')}
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                {months[selectedMonth - 1]} {selectedYear} | {safeT(t, 'reports.cashBook.currency', 'Currency')}: {currency === 'FC' ? 'CDF (FC)' : 'USD'}
-              </p>
-              {user?.location && (
-                <p className="text-xs text-gray-400 mt-1">{user.location}</p>
-              )}
+          {/* Print Header: left = logo + company (name big, address/phone/email small if set); right = CASH BOOK + month/year */}
+          <div className="print-header print-cashbook-header mb-1">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex items-start gap-2 min-w-0">
+                {printSettings?.company?.logo && (
+                  <img
+                    src={printSettings.company.logo}
+                    alt=""
+                    className="h-8 w-auto object-contain flex-shrink-0"
+                    aria-hidden
+                  />
+                )}
+                <div className="min-w-0">
+                  <h1 className="text-lg font-bold text-[#385e82] leading-tight">
+                    {printSettings?.company?.name || user?.company || 'Concept'}
+                  </h1>
+                  {(printSettings?.company?.address?.trim() || printSettings?.company?.phone?.trim() || printSettings?.company?.email?.trim()) ? (
+                    <div className="mt-1 space-y-0.5 text-xs text-gray-600 leading-tight">
+                      {printSettings?.company?.address?.trim() && (
+                        <p>{printSettings.company.address.trim()}</p>
+                      )}
+                      {printSettings?.company?.phone?.trim() && (
+                        <p>{printSettings.company.phone.trim()}</p>
+                      )}
+                      {printSettings?.company?.email?.trim() && (
+                        <p>{printSettings.company.email.trim()}</p>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <p className="text-sm font-bold text-[#385e82] leading-tight">
+                  {safeT(t, 'reports.cashBook.reportTitleLivre', 'CASH BOOK')}
+                </p>
+                <p className="text-xs text-gray-600 leading-tight mt-0.5">
+                  ({currency === 'FC' ? 'CDF' : 'USD'}) · {safeT(t, 'reports.cashBook.monthOf', 'Month of')} {months[selectedMonth - 1]} {selectedYear}
+                </p>
+              </div>
             </div>
           </div>
-          
-          {/* Print Summary Section */}
-          {summary && cashBookEntries.length > 0 && (
-            <div className="print-summary-section">
-              <h2 className="text-xl font-bold text-[#385e82] mb-4 print-avoid-break">
-                {safeT(t, 'reports.cashBook.executiveSummary', 'Executive Summary')}
-              </h2>
-              <div className="grid grid-cols-4 gap-4 mb-6 print-avoid-break">
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p className="text-sm text-gray-600 mb-1">{safeT(t, 'reports.cashBook.openingBalance', 'Opening Balance')}</p>
-                  <p className="text-xl font-bold text-blue-900">{formatCurrency(summary.openingBalance, currency)}</p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <p className="text-sm text-gray-600 mb-1">{safeT(t, 'reports.cashBook.totalCashIn', 'Total Cash In')}</p>
-                  <p className="text-xl font-bold text-green-900">{formatCurrency(summary.totalCashIn, currency)}</p>
-                </div>
-                <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                  <p className="text-sm text-gray-600 mb-1">{safeT(t, 'reports.cashBook.totalCashOut', 'Total Cash Out')}</p>
-                  <p className="text-xl font-bold text-red-900">{formatCurrency(summary.totalCashOut, currency)}</p>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                  <p className="text-sm text-gray-600 mb-1">{safeT(t, 'reports.cashBook.closingBalance', 'Closing Balance')}</p>
-                  <p className="text-xl font-bold text-purple-900">{formatCurrency(summary.closingBalance, currency)}</p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Include all summary reports in print */}
-          {cashBookEntries.length > 0 && (
-            <>
-              {/* Transaction Type Breakdown - Print Version */}
-              <div className="print-summary-section print-page-break">
-                <h2 className="text-lg font-semibold text-[#385e82] mb-4 print-avoid-break">
-                  {safeT(t, 'reports.cashBook.transactionTypeBreakdown', 'Transaction Type Breakdown')}
-                </h2>
-                <div className="print-table-wrapper">
-                  <table className="w-full text-sm text-gray-900 border border-gray-200">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">{safeT(t, 'reports.cashBook.type', 'Type')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.count', 'Count')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashIn', 'Cash In')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.net', 'Net')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.percentage', '% of Total')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-4 py-3 font-medium text-blue-900">{safeT(t, 'reports.cashBook.sales', 'Sales')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.sales.count}</td>
-                        <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.sales.cashIn, currency)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.sales.cashOut, currency)}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-blue-900">
-                          {formatCurrency(transactionTypeSummary.sales.cashIn - transactionTypeSummary.sales.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {transactionTypeSummary.total.count > 0 
-                            ? ((transactionTypeSummary.sales.count / transactionTypeSummary.total.count) * 100).toFixed(1)
-                            : '0.0'
-                          }%
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 font-medium text-red-900">{safeT(t, 'reports.cashBook.costs', 'Costs')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.costs.count}</td>
-                        <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.costs.cashIn, currency)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.costs.cashOut, currency)}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-red-900">
-                          {formatCurrency(transactionTypeSummary.costs.cashIn - transactionTypeSummary.costs.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {transactionTypeSummary.total.count > 0 
-                            ? ((transactionTypeSummary.costs.count / transactionTypeSummary.total.count) * 100).toFixed(1)
-                            : '0.0'
-                          }%
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 font-medium text-purple-900">{safeT(t, 'reports.cashBook.manual', 'Manual Entries')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.manual.count}</td>
-                        <td className="px-4 py-3 text-right font-medium text-green-700">{formatCurrency(transactionTypeSummary.manual.cashIn, currency)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-red-700">{formatCurrency(transactionTypeSummary.manual.cashOut, currency)}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-purple-900">
-                          {formatCurrency(transactionTypeSummary.manual.cashIn - transactionTypeSummary.manual.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {transactionTypeSummary.total.count > 0 
-                            ? ((transactionTypeSummary.manual.count / transactionTypeSummary.total.count) * 100).toFixed(1)
-                            : '0.0'
-                          }%
-                        </td>
-                      </tr>
-                      <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
-                        <td className="px-4 py-3 text-gray-900">{safeT(t, 'common.total', 'Total')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.total.count}</td>
-                        <td className="px-4 py-3 text-right text-green-900">{formatCurrency(transactionTypeSummary.total.cashIn, currency)}</td>
-                        <td className="px-4 py-3 text-right text-red-900">{formatCurrency(transactionTypeSummary.total.cashOut, currency)}</td>
-                        <td className="px-4 py-3 text-right text-[#385e82]">
-                          {formatCurrency(transactionTypeSummary.total.cashIn - transactionTypeSummary.total.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right">100.0%</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              {/* Daily Summary - Print Version */}
-              <div className="print-summary-section print-page-break">
-                <h2 className="text-lg font-semibold text-[#385e82] mb-4 print-avoid-break">
-                  {safeT(t, 'reports.cashBook.dailySummary', 'Daily Summary')}
-                </h2>
-                <div className="print-table-wrapper">
-                  <table className="w-full text-sm text-gray-900 border border-gray-200">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">{safeT(t, 'common.date', 'Date')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.transactions', 'Transactions')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashIn', 'Cash In')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.net', 'Net')}</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">{safeT(t, 'reports.cashBook.balance', 'Balance')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {dailySummary.map((day, idx) => (
-                        <tr key={day.dateKey} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-4 py-3 font-medium">
-                            {day.date.toLocaleDateString('en-GB', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })}
-                          </td>
-                          <td className="px-4 py-3 text-right">{day.transactions}</td>
-                          <td className="px-4 py-3 text-right font-medium text-green-700">
-                            {formatCurrency(day.cashIn, currency)}
-                          </td>
-                          <td className="px-4 py-3 text-right font-medium text-red-700">
-                            {formatCurrency(day.cashOut, currency)}
-                          </td>
-                          <td className="px-4 py-3 text-right font-semibold">
-                            {formatCurrency(day.cashIn - day.cashOut, currency)}
-                          </td>
-                          <td className="px-4 py-3 text-right font-bold text-[#385e82]">
-                            {formatCurrency(day.balance, currency)}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="bg-gray-100 font-bold border-t-2 border-gray-300">
-                        <td className="px-4 py-3 text-gray-900">{safeT(t, 'common.total', 'Total')}</td>
-                        <td className="px-4 py-3 text-right">{transactionTypeSummary.total.count}</td>
-                        <td className="px-4 py-3 text-right text-green-900">
-                          {formatCurrency(transactionTypeSummary.total.cashIn, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-red-900">
-                          {formatCurrency(transactionTypeSummary.total.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-[#385e82]">
-                          {formatCurrency(transactionTypeSummary.total.cashIn - transactionTypeSummary.total.cashOut, currency)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-[#385e82]">
-                          {summary ? formatCurrency(summary.closingBalance, currency) : formatCurrency(0, currency)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          )}
-          
-          {/* Detailed Cash Book Table */}
-          <div className="print-page-break print-table-wrapper">
-            <h2 className="text-lg font-semibold text-[#385e82] mb-4 print-avoid-break">
-              {safeT(t, 'reports.cashBook.cashBookTable', 'Cash Book Ledger')} - {months[selectedMonth - 1]} {selectedYear}
-            </h2>
-            
+
+          {/* Main table: N° (1,2,3...), Date, Entrées, Sorties, Désignation, Solde - compact font */}
+          <div className="print-table-wrapper">
             {cashBookEntries.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-6 text-gray-400 text-xs">
                 {safeT(t, 'reports.cashBook.noData', 'No transactions found for the selected period')}
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-center text-gray-900 border border-gray-300">
-                    <thead className="bg-[#385e82]">
-                      <tr>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-left">
-                          {safeT(t, 'common.date', 'Date')}
-                        </th>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-left">
-                          {safeT(t, 'common.description', 'Description')}
-                        </th>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-right">
-                          {safeT(t, 'reports.cashBook.cashIn', 'Cash In')}
-                        </th>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-right">
-                          {safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}
-                        </th>
-                        <th className="px-6 py-3 font-semibold text-base text-white text-right">
-                          {safeT(t, 'reports.cashBook.balance', 'Balance')}
-                        </th>
+                <table className="w-full text-xs text-gray-900 border border-gray-300">
+                  <thead className="bg-[#385e82]">
+                    <tr>
+                      <th className="px-2 py-1 font-semibold text-white text-left text-xs">
+                        {safeT(t, 'reports.cashBook.voucherNumber', 'Voucher No.')}
+                      </th>
+                      <th className="px-2 py-1 font-semibold text-white text-left text-xs">
+                        {safeT(t, 'common.date', 'Date')}
+                      </th>
+                      <th className="px-2 py-1 font-semibold text-white text-right text-xs">
+                        {safeT(t, 'reports.cashBook.cashIn', 'Cash In')}
+                      </th>
+                      <th className="px-2 py-1 font-semibold text-white text-right text-xs">
+                        {safeT(t, 'reports.cashBook.cashOut', 'Cash Out')}
+                      </th>
+                      <th className="px-2 py-1 font-semibold text-white text-left text-xs">
+                        {safeT(t, 'reports.cashBook.designation', 'Description')}
+                      </th>
+                      <th className="px-2 py-1 font-semibold text-white text-right text-xs">
+                        {safeT(t, 'reports.cashBook.balance', 'Balance')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {/* Opening balance row */}
+                    {summary && (
+                      <tr className="bg-blue-50 font-semibold print-avoid-break">
+                        <td colSpan="2" className="px-2 py-1 text-left text-[#385e82] text-xs">
+                          {safeT(t, 'reports.cashBook.openingBalance', 'Opening Balance')}
+                        </td>
+                        <td className="px-2 py-1 text-right text-gray-500 text-xs">—</td>
+                        <td className="px-2 py-1 text-right text-gray-500 text-xs">—</td>
+                        <td className="px-2 py-1 text-left text-gray-500 text-xs">—</td>
+                        <td className="px-2 py-1 text-right font-bold text-[#385e82] text-xs">
+                          {formatCurrency(summary.openingBalance, currency)}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {/* Opening Balance Row */}
-                      {summary && (
-                        <tr className="bg-blue-50 font-semibold print-avoid-break">
-                          <td colSpan="2" className="px-6 py-3 text-left text-[#385e82]">
-                            {safeT(t, 'reports.cashBook.openingBalance', 'Opening Balance')}
-                          </td>
-                          <td className="px-6 py-3 text-right text-gray-500">—</td>
-                          <td className="px-6 py-3 text-right text-gray-500">—</td>
-                          <td className="px-6 py-3 text-right font-bold text-[#385e82]">
-                            {formatCurrency(summary.openingBalance, currency)}
-                          </td>
-                        </tr>
-                      )}
-                      
-                      {/* Transaction Rows - Show all entries for print */}
-                      {cashBookEntries.map((entry, idx) => {
-                        return (
-                          <tr
-                            key={`${entry.transactionType}-${entry.reference}-${idx}`}
-                            className={`${idx % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}
-                          >
-                            <td className="px-6 py-3 text-left text-gray-900 whitespace-nowrap">
-                              {entry.date.toLocaleDateString('en-GB', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric'
-                              })}
-                            </td>
-                            <td className="px-6 py-3 text-left text-gray-900">
-                              {entry.description}
-                            </td>
-                            <td className="px-6 py-3 text-right font-medium text-green-700">
-                              {entry.cashIn > 0 ? formatCurrency(entry.cashIn, currency) : '—'}
-                            </td>
-                            <td className="px-6 py-3 text-right font-medium text-red-700">
-                              {entry.cashOut > 0 ? formatCurrency(entry.cashOut, currency) : '—'}
-                            </td>
-                            <td className="px-6 py-3 text-right font-bold text-[#385e82]">
-                              {formatCurrency(entry.balance, currency)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      
-                      {/* Closing Balance Row */}
-                      {summary && (
-                        <tr className="bg-[#385e82] font-bold text-white print-avoid-break">
-                          <td colSpan="2" className="px-6 py-3 text-left">
-                            {safeT(t, 'reports.cashBook.closingBalance', 'Closing Balance')}
-                          </td>
-                          <td className="px-6 py-3 text-right">
-                            {formatCurrency(summary.totalCashIn, currency)}
-                          </td>
-                          <td className="px-6 py-3 text-right">
-                            {formatCurrency(summary.totalCashOut, currency)}
-                          </td>
-                          <td className="px-6 py-3 text-right">
-                            {formatCurrency(summary.closingBalance, currency)}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                    )}
+                    {cashBookEntries.map((entry, idx) => (
+                      <tr
+                        key={`${entry.transactionType}-${entry.reference}-${idx}`}
+                        className={`${idx % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'} leading-tight`}
+                      >
+                        <td className="px-2 py-1 text-left text-gray-900 whitespace-nowrap text-xs">
+                          {idx + 1}
+                        </td>
+                        <td className="px-2 py-1 text-left text-gray-900 whitespace-nowrap text-xs">
+                          {entry.date.toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })}
+                        </td>
+                        <td className="px-2 py-1 text-right font-medium text-green-700 text-xs whitespace-nowrap">
+                          {entry.cashIn > 0 ? formatCurrency(entry.cashIn, currency) : '—'}
+                        </td>
+                        <td className="px-2 py-1 text-right font-medium text-red-700 text-xs whitespace-nowrap">
+                          {entry.cashOut > 0 ? formatCurrency(entry.cashOut, currency) : '—'}
+                        </td>
+                        <td className="px-2 py-1 text-left text-gray-900 text-xs">
+                          {entry.description}
+                        </td>
+                        <td className="px-2 py-1 text-right font-bold text-[#385e82] text-xs whitespace-nowrap">
+                          {formatCurrency(entry.balance, currency)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Summary box: Total entrées, Total sorties, Solde total */}
+                {summary && (
+                  <div className="mt-2 flex justify-end print-avoid-break">
+                    <div className="border border-gray-300 rounded p-2 bg-gray-50 min-w-[180px] text-xs">
+                      <p className="text-gray-700 leading-tight">
+                        {safeT(t, 'reports.cashBook.totalEntries', 'Total entries')}: {formatCurrency(summary.totalCashIn, currency)}
+                      </p>
+                      <p className="text-gray-700 leading-tight mt-0.5">
+                        {safeT(t, 'reports.cashBook.totalExits', 'Total exits')}: {formatCurrency(summary.totalCashOut, currency)}
+                      </p>
+                      <p className="font-bold text-[#385e82] leading-tight mt-0.5">
+                        {safeT(t, 'reports.cashBook.totalBalance', 'Total balance')}: {formatCurrency(summary.closingBalance, currency)}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </>
             )}
-          </div>
-          
-          {/* Print Footer */}
-          <div className="print-footer">
-            <div className="text-center text-xs text-gray-500 mt-6">
-              <p>{safeT(t, 'reports.cashBook.generatedOn', 'Generated on')} {new Date().toLocaleDateString('en-GB', { 
-                day: '2-digit', 
-                month: 'long', 
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}</p>
-              {user?.email && (
-                <p className="mt-1">{safeT(t, 'reports.cashBook.preparedBy', 'Prepared by')}: {user.email}</p>
-              )}
-            </div>
           </div>
         </div>
         

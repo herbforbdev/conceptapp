@@ -130,19 +130,21 @@ export function validateRelationships(
   // Check for duplicate activity type names
   const activityNames = new Set<string>();
   activityTypes.forEach(activity => {
-    if (activityNames.has(activity.name.toLowerCase())) {
+    const name = (activity.name ?? '').toLowerCase();
+    if (activityNames.has(name)) {
       errors.push(`Duplicate activity type name found: ${activity.name}`);
     }
-    activityNames.add(activity.name.toLowerCase());
+    activityNames.add(name);
   });
 
   // Check for duplicate expense type names
   const expenseNames = new Set<string>();
   expenseTypes.forEach(expense => {
-    if (expenseNames.has(expense.name.toLowerCase())) {
+    const name = (expense.name ?? '').toLowerCase();
+    if (expenseNames.has(name)) {
       errors.push(`Duplicate expense type name found: ${expense.name}`);
     }
-    expenseNames.add(expense.name.toLowerCase());
+    expenseNames.add(name);
   });
 
   return {
