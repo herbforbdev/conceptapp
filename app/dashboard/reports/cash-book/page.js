@@ -86,6 +86,42 @@ function isIOS() {
          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
+/** html2canvas cannot capture display:none; clone off-screen for iOS Safari PDF. */
+function waitForImagesInNode(root) {
+  if (!root) return Promise.resolve();
+  const imgs = root.querySelectorAll('img');
+  const promises = Array.from(imgs).map((img) => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise((resolve) => {
+      const done = () => resolve();
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+      setTimeout(done, 4000);
+    });
+  });
+  return Promise.all(promises);
+}
+
+function prepareNodeForIOSPdfCapture(sourceEl) {
+  const clone = sourceEl.cloneNode(true);
+  clone.classList.remove('hidden', 'print:block');
+  clone.style.cssText = [
+    'display:block',
+    'visibility:visible',
+    'position:absolute',
+    'left:-9999px',
+    'top:0',
+    'width:794px',
+    'max-width:794px',
+    'background:#ffffff',
+    'box-sizing:border-box',
+    'padding:12px',
+    'z-index:0'
+  ].join(';');
+  document.body.appendChild(clone);
+  return clone;
+}
+
 // Helper function to parse Firestore dates
 function parseDate(date) {
   if (!date) return null;
@@ -435,30 +471,41 @@ export default function CashBookPage() {
     }
 
     if (isIOS()) {
-      // Use html2pdf.js for iOS devices
+      // html2canvas does not render display:none; source node stays hidden for layout
+      let captureNode = null;
       try {
-        const element = printRef.current;
+        const sourceEl = printRef.current;
+        captureNode = prepareNodeForIOSPdfCapture(sourceEl);
+        await waitForImagesInNode(captureNode);
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        });
         const opt = {
           margin: [10, 10, 10, 10],
           filename: `Cash_Book_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { 
-            scale: 2, 
+          image: { type: 'jpeg', quality: 0.92 },
+          html2canvas: {
+            scale: 1.5,
             useCORS: true,
             logging: false,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            windowWidth: 794
           },
-          jsPDF: { 
-            unit: 'mm', 
-            format: 'a4', 
-            orientation: 'portrait' 
+          jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
           },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+          pagebreak: { mode: ['css', 'legacy'] }
         };
-        await html2pdf().set(opt).from(element).save();
+        await html2pdf().set(opt).from(captureNode).save();
       } catch (error) {
         console.error('Error generating PDF on iOS:', error);
         alert('Failed to generate PDF. Please try again.');
+      } finally {
+        if (captureNode?.parentNode) {
+          captureNode.parentNode.removeChild(captureNode);
+        }
       }
     } else {
       // Use react-to-print for desktop browsers
