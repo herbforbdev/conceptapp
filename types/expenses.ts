@@ -6,6 +6,9 @@ export interface ExpenseType {
   budget?: number;
   description?: string;
   isActive?: boolean;
+  accountId?: string;
+  accountCode?: string;
+  accountName?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }

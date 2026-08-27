@@ -26,6 +26,7 @@ import { useLanguage } from "@/context/LanguageContext";
 
 import { saveSalesFilters, loadSalesFilters, STORAGE_KEYS } from "@/lib/utils/salesStateManagement";
 import { useMasterData } from "@/hooks/useMasterData";
+import { buildAccountStamp } from "@/lib/accounting/accountHelpers";
 import TopCard from "@/components/shared/TopCard";
 import { TIME_PERIODS } from '@/lib/constants/timePeriods';
 import TimePeriodSelector from '@/components/shared/TimePeriodSelector';
@@ -596,6 +597,7 @@ export default function SalesPage() {
     activityTypes,
     productMap,
     activityTypeMap,
+    defaultSalesAccount,
     loading: masterDataLoading 
   } = useMasterData();
 
@@ -1203,6 +1205,10 @@ export default function SalesPage() {
       if (updates.productId) {
         const product = productMap.get(updates.productId);
         updates.productName = product?.productid || 'Unknown Product';
+      }
+
+      if (defaultSalesAccount) {
+        Object.assign(updates, buildAccountStamp(defaultSalesAccount));
       }
       
       await updateDoc(docRef, updates);

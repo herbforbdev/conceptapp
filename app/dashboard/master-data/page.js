@@ -32,9 +32,11 @@ import {
   HiOutlineArchive,
   HiOutlineClipboardList
 } from "react-icons/hi";
-import { FaBoxes, FaMoneyBillWave, FaIndustry } from "react-icons/fa";
+import { FaBoxes, FaMoneyBillWave, FaIndustry, FaBook } from "react-icons/fa";
 import { useMasterData } from "@/hooks/useMasterData";
 import { useProductTypes } from '@/lib/hooks/useProductTypes';
+import GlAccountsTab from "@/components/master-data/GlAccountsTab";
+import AccountSelect from "@/components/master-data/AccountSelect";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -372,6 +374,7 @@ export default function MasterDataPage() {
     expenseTypeMap,
     loading: masterDataLoading 
   } = useMasterData();
+  const { data: glAccounts, loading: glAccountsLoading } = useFirestoreCollection("GlAccounts");
 
   // 3. State management - group all useState hooks together
   const [activeTab, setActiveTab] = useState("products");
@@ -418,6 +421,16 @@ export default function MasterDataPage() {
   const [editingTypeId, setEditingTypeId] = useState(null);
   const [editingTypeName, setEditingTypeName] = useState("");
   const [editingTypeDesc, setEditingTypeDesc] = useState("");
+
+  const getAccountFields = (accountId) => {
+    if (!accountId) return { accountId: '', accountCode: '', accountName: '' };
+    const account = (glAccounts || []).find(a => a.id === accountId || a.code === accountId);
+    return {
+      accountId,
+      accountCode: account?.code || '',
+      accountName: account?.name || ''
+    };
+  };
 
   // 4. Memoized values
   const activeData = useMemo(() => {
@@ -644,7 +657,8 @@ export default function MasterDataPage() {
         ...item,
         name: getTranslatedExpenseTypeName(item.name, t),
         category: item.category || '',
-        description: item.description || '' // Use original database value, not translation
+        description: item.description || '',
+        accountId: item.accountId || ''
       });
     }
     // For products tab, populate with original database values for editing
@@ -693,8 +707,8 @@ export default function MasterDataPage() {
           if (editingData.name === getTranslatedExpenseTypeName(originalItem.name, t)) {
             dataToSave.name = originalItem.name; // Keep original English
           }
-          // Otherwise keep the edited value as-is (user entered new text)
         }
+        dataToSave = { ...dataToSave, ...getAccountFields(editingData.accountId) };
       } else if (activeTab === "products") {
         // Find original product by ID
         const originalItem = products?.find(item => item.id.trim() === cleanId);
@@ -738,6 +752,7 @@ export default function MasterDataPage() {
         collectionName = 'Products';
       } else if (activeTab === 'expenses') {
         collectionName = 'ExpenseTypes';
+        data = { ...data, ...getAccountFields(addRowData.accountId) };
       } else {
         collectionName = 'ActivityTypes';
       }
@@ -1061,6 +1076,9 @@ export default function MasterDataPage() {
                   {getSortIcon('category')}
                 </div>
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('masterData.table.account')}
+              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t('masterData.table.actions')}
               </th>
@@ -1317,6 +1335,25 @@ export default function MasterDataPage() {
               </span>
             )}
           </td>
+          <td className="px-6 py-3">
+            {editingId === item.id ? (
+              <AccountSelect
+                value={editingData.accountId || ''}
+                onChange={(accountId) => setEditingData({ ...editingData, accountId })}
+                accounts={glAccounts || []}
+                placeholder={t('masterData.table.account')}
+              />
+            ) : (
+              <span className="text-sm text-gray-700">
+                {(() => {
+                  const account = (glAccounts || []).find(a => a.id === item.accountId);
+                  const code = item.accountCode || account?.code;
+                  const name = item.accountName || account?.name;
+                  return code ? `${code} — ${name}` : '—';
+                })()}
+              </span>
+            )}
+          </td>
           <td className="px-6 py-3 text-right">
             <div className="flex items-center gap-2 justify-end">
               {editingId === item.id ? (
@@ -1494,9 +1531,17 @@ export default function MasterDataPage() {
               <option value="social">{t('masterData.expenseCategories.social')}</option>
               <option value="fiscal">{t('masterData.expenseCategories.fiscal')}</option>
               <option value="operational">{t('masterData.expenseCategories.operational')}</option>
-            </Select>
-          </td>
-          <td className="px-6 py-3 text-right">
+              </Select>
+            </td>
+            <td className="px-6 py-3">
+              <AccountSelect
+                value={addRowData.accountId || ''}
+                onChange={(accountId) => handleAddRowChange('accountId', accountId)}
+                accounts={glAccounts || []}
+                placeholder={t('masterData.table.account')}
+              />
+            </td>
+            <td className="px-6 py-3 text-right">
             <div className="flex gap-2 justify-end">
               <Button size="xs" color="success" onClick={handleSaveAddRow} disabled={addRowLoading} className="bg-green-100 text-green-600 hover:bg-green-200">
                 <HiCheck className="h-4 w-4" />
@@ -1544,7 +1589,7 @@ export default function MasterDataPage() {
       </div>
 
       {/* Top Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <TopCard
           title={t('masterData.cards.totalProducts')}
           count={products?.length || 0}
@@ -1562,6 +1607,12 @@ export default function MasterDataPage() {
           count={activityTypes?.length || 0}
           icon={FaIndustry}
           color="border-purple-600"
+        />
+        <TopCard
+          title={t('masterData.cards.glAccounts')}
+          count={glAccounts?.length || 0}
+          icon={FaBook}
+          color="border-amber-600"
         />
       </div>
 
@@ -1615,9 +1666,28 @@ export default function MasterDataPage() {
               <FaIndustry className="mr-2 h-5 w-5" />
               {t('masterData.tabs.activities')}
             </button>
+            <button
+              onClick={() => {
+                setActiveTab("accounts");
+                setSelectedItems([]);
+                setCurrentPage(1);
+              }}
+              className={`${
+                activeTab === "accounts"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              } flex items-center py-4 px-6 border-b-2 font-medium text-sm`}
+            >
+              <FaBook className="mr-2 h-5 w-5" />
+              {t('masterData.tabs.accounts')}
+            </button>
           </nav>
         </div>
 
+        {activeTab === "accounts" ? (
+          <GlAccountsTab glAccounts={glAccounts || []} loading={glAccountsLoading} />
+        ) : (
+        <>
         {/* Table Add Button */}
         <div className="flex justify-end mb-2">
           {!showAddRow && (
@@ -1670,6 +1740,8 @@ export default function MasterDataPage() {
             </button>
           </div>
         </div>
+        </>
+        )}
       </Card>
 
       {/* Mass Edit Modal */}

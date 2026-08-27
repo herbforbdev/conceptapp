@@ -24,6 +24,9 @@ export interface ExpenseType {
   description?: string;
   category?: string;
   type?: string;
+  accountId?: string;
+  accountCode?: string;
+  accountName?: string;
   createdAt?: Date;
   modifiedAt?: Date;
 }
@@ -37,6 +40,9 @@ export interface Sale {
   amountUSD: number;
   exchangeRate: number;
   channel: string;
+  accountId?: string;
+  accountCode?: string;
+  accountName?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -77,5 +83,8 @@ export interface Cost {
   amountFC: number;
   amountUSD: number;
   exchangeRate: number;
+  accountId?: string;
+  accountCode?: string;
+  accountName?: string;
   modifiedAt?: Date;
 } 

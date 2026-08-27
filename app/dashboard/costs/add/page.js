@@ -13,6 +13,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { AlertCircle } from 'lucide-react';
 import { ExchangeRateService } from '@/lib/exchangeRates';
+import { stampFromExpenseType } from '@/lib/accounting/accountHelpers';
 
 // Utility to convert expense type names to camelCase for translation keys
 function toCamelCase(str) {
@@ -24,7 +25,7 @@ function toCamelCase(str) {
 
 export default function AddCostPage() {
   const router = useRouter();
-  const { expenseTypes, activityTypes, expenseTypeMap, activityTypeMap, loading: masterLoading } = useMasterData();
+  const { expenseTypes, activityTypes, expenseTypeMap, activityTypeMap, glAccountMap, loading: masterLoading } = useMasterData();
   
   // Get existing costs data for duplicate checking
   const { data: existingCosts } = useFirestoreCollection("Costs");
@@ -129,15 +130,18 @@ export default function AddCostPage() {
           setError('Amounts and exchange rate must be greater than zero'); setIsSubmitting(false); return;
         }
         
+        const expenseType = expenseTypeMap.get(entry.expenseTypeId);
+        const accountStamp = stampFromExpenseType(expenseType, glAccountMap || new Map());
         await addCost({
           date: new Date(entry.date),
           activityTypeId: entry.activityTypeId,
           activityTypeName: activityTypeMap.get(entry.activityTypeId)?.name || '',
           expenseTypeId: entry.expenseTypeId,
-          expenseTypeName: expenseTypeMap.get(entry.expenseTypeId)?.name || '',
+          expenseTypeName: expenseType?.name || '',
           amountFC: Number(entry.amountFC),
           amountUSD: Number(entry.amountUSD),
-          exchangeRate: Number(entry.exchangeRate)
+          exchangeRate: Number(entry.exchangeRate),
+          ...accountStamp
         });
       }
       router.push('/dashboard/costs');

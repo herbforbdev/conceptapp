@@ -9,6 +9,7 @@ export function useMasterData() {
   const [products, setProducts] = useState([]);
   const [activityTypes, setActivityTypes] = useState([]);
   const [expenseTypes, setExpenseTypes] = useState([]);
+  const [glAccounts, setGlAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -54,6 +55,13 @@ export function useMasterData() {
         }));
         setExpenseTypes(expenseTypesData);
 
+        const glAccountsSnapshot = await getDocs(collection(firestore, 'GlAccounts'));
+        const glAccountsData = glAccountsSnapshot.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+        setGlAccounts(glAccountsData);
+
         setLoading(false);
       } catch (err) {
         console.error('Error fetching master data:', err);
@@ -88,10 +96,33 @@ export function useMasterData() {
   const expenseTypeMap = useMemo(() => {
     return new Map(expenseTypes.map(type => [type.id, {
       ...type,
-      // Use translated name
       name: type.translatedName
     }]));
   }, [expenseTypes]);
+
+  const glAccountMap = useMemo(() => {
+    const map = new Map();
+    glAccounts.forEach(account => {
+      if (account.id) map.set(account.id, account);
+      if (account.code) map.set(account.code, account);
+    });
+    return map;
+  }, [glAccounts]);
+
+  const postableAccounts = useMemo(() => {
+    return glAccounts
+      .filter(account => account.isPostable && account.isActive !== false)
+      .sort((a, b) => String(a.code).localeCompare(String(b.code), 'fr', { numeric: true }));
+  }, [glAccounts]);
+
+  const defaultSalesAccount = useMemo(() => {
+    return glAccounts.find(account =>
+      account.isDefaultSalesAccount &&
+      account.isActive !== false &&
+      account.class === '7' &&
+      account.isPostable
+    );
+  }, [glAccounts]);
 
   // Helper functions
   const getProductsByType = (type) => {
@@ -138,11 +169,15 @@ export function useMasterData() {
     products,
     activityTypes,
     expenseTypes,
+    glAccounts,
     
     // Maps for efficient lookups
     productMap,
     activityTypeMap,
     expenseTypeMap,
+    glAccountMap,
+    postableAccounts,
+    defaultSalesAccount,
     
     // Loading and error states
     loading,

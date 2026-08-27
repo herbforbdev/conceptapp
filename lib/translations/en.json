@@ -975,7 +975,8 @@
     "tabs": {
       "products": "Products",
       "expenses": "Expenses",
-      "activities": "Activities"
+      "activities": "Activities",
+      "accounts": "Accounts"
     },
     "table": {
       "id": "ID",
@@ -985,6 +986,7 @@
       "description": "Description",
       "category": "Category",
       "budget": "Budget",
+      "account": "Account",
       "actions": "Actions"
     },
     "actions": {
@@ -1036,7 +1038,24 @@
     "cards": {
       "totalProducts": "Total products",
       "expenseTypes": "Expense types",
-      "activityTypes": "Activity types"
+      "activityTypes": "Activity types",
+      "glAccounts": "GL accounts"
+    },
+    "accounts": {
+      "code": "Code",
+      "name": "Name",
+      "namePlaceholder": "Account name",
+      "level": "Level",
+      "header": "Group",
+      "postable": "Postable",
+      "defaultSales": "Default for sales",
+      "empty": "No accounts yet. Load the Class 6 chart or add accounts.",
+      "loadChart": "Load Class 6 chart",
+      "seedError": "Could not load the chart of accounts.",
+      "saveError": "Could not save the account.",
+      "deleteError": "Could not delete this account. Remove child accounts first.",
+      "defaultSalesError": "Default sales account must be a class 7 postable account.",
+      "duplicateCode": "This account code already exists."
     },
     "expenses": {
       "types": {
@@ -1558,6 +1577,28 @@
       "totalExits": "Total exits",
       "totalBalance": "Total balance",
       "dateAndSignature": "Date and signature"
+    },
+    "accounts": {
+      "title": "Accounts",
+      "description": "Sales and costs classified by GL account",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "rollup": "Group by",
+      "rollupLeaf": "Postable account",
+      "rollupGroup": "Account group (2 digits)",
+      "rollupClass": "Class",
+      "totalSales": "Sales",
+      "totalCosts": "Costs",
+      "net": "Net",
+      "code": "Code",
+      "name": "Account",
+      "salesUsd": "Sales USD",
+      "salesCdf": "Sales CDF",
+      "costsUsd": "Costs USD",
+      "costsCdf": "Costs CDF",
+      "netUsd": "Net USD",
+      "unclassified": "Unclassified",
+      "empty": "No classified sales or costs in this period."
     }
   },
   "dashboard": {

@@ -12,6 +12,9 @@
 | `productId`        | 🔗 Link to **Product Collection** → matches `productid` or `name`          |
 | `quantitySold`     | Number of product units sold                                               |
 | `activityTypeName` | Readable name of the related activity (from `name` in Activity Collection) |
+| `accountId`        | Optional 🔗 to **GlAccounts** (default class-7 sales account at save time) |
+| `accountCode`      | GL code stamped from the default sales account                             |
+| `accountName`      | GL name stamped from the default sales account                             |
 
 ---
 
@@ -63,5 +66,27 @@
 | `activityTypeName` | Readable name of the related activity (from `name` in Activity Collection)         |
 | `expenseTypeName`  | 🔗 Link to **Expense Collection** → matches `name` - Readable name of expense type |
 | `budget`           | % number to determine the budget of the expense type                               |
+| `accountId`        | Optional 🔗 to **GlAccounts** (lowest-level account used at save time)             |
+| `accountCode`      | GL code stamped from the linked account                                            |
+| `accountName`      | GL name stamped from the linked account                                            |
 
 ---
+
+### 📒 **Firestore Collection: GlAccounts**
+
+Chart of accounts (SYSCOHADA-style). Document ID = `code`.
+
+| **Field Name**            | **Description**                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| `code`                    | Unique GL code (`6`, `60`, `604`, `6042`, `701`…)                               |
+| `name`                    | Official account label                                                          |
+| `class`                   | First digit of the code (`6` charges, `7` produits)                             |
+| `parentCode`              | Parent code (drop last digit). Null for the class root                          |
+| `isPostable`              | `true` only for the **lowest coded account on that branch**                     |
+| `isActive`                | Hidden from dropdowns when false                                                |
+| `isDefaultSalesAccount`   | At most one class-7 postable account used for all sales                         |
+| `createdAt` / `updatedAt` | Timestamps                                                                      |
+
+Expense types may store optional `accountId`, `accountCode`, `accountName`.
+Sales entries stamp the default class-7 account when one is set.
+

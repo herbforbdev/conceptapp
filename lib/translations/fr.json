@@ -960,7 +960,8 @@
     "tabs": {
       "products": "Produits",
       "expenses": "Dépenses",
-      "activities": "Activités"
+      "activities": "Activités",
+      "accounts": "Comptes"
     },
     "table": {
       "id": "ID",
@@ -970,6 +971,7 @@
       "description": "Description",
       "category": "Catégorie",
       "budget": "Budget",
+      "account": "Compte",
       "actions": "Actions"
     },
     "actions": {
@@ -1021,7 +1023,24 @@
     "cards": {
       "totalProducts": "Nombre total de produits",
       "expenseTypes": "Types de dépenses",
-      "activityTypes": "Types d'activités"
+      "activityTypes": "Types d'activités",
+      "glAccounts": "Comptes comptables"
+    },
+    "accounts": {
+      "code": "Code",
+      "name": "Nom",
+      "namePlaceholder": "Nom du compte",
+      "level": "Niveau",
+      "header": "Groupe",
+      "postable": "Imputable",
+      "defaultSales": "Défaut pour les ventes",
+      "empty": "Aucun compte. Chargez le plan de la classe 6 ou ajoutez des comptes.",
+      "loadChart": "Charger le plan classe 6",
+      "seedError": "Impossible de charger le plan comptable.",
+      "saveError": "Impossible d’enregistrer le compte.",
+      "deleteError": "Impossible de supprimer ce compte. Supprimez d’abord les sous-comptes.",
+      "defaultSalesError": "Le compte de vente par défaut doit être un compte imputable de classe 7.",
+      "duplicateCode": "Ce code de compte existe déjà."
     },
     "expenses": {
       "types": {
@@ -1521,6 +1540,28 @@
       "totalExits": "Total des sorties",
       "totalBalance": "Solde total",
       "dateAndSignature": "Date et signature"
+    },
+    "accounts": {
+      "title": "Comptes",
+      "description": "Ventes et coûts classés par compte comptable",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "rollup": "Regrouper par",
+      "rollupLeaf": "Compte imputable",
+      "rollupGroup": "Groupe de comptes (2 chiffres)",
+      "rollupClass": "Classe",
+      "totalSales": "Ventes",
+      "totalCosts": "Coûts",
+      "net": "Net",
+      "code": "Code",
+      "name": "Compte",
+      "salesUsd": "Ventes USD",
+      "salesCdf": "Ventes CDF",
+      "costsUsd": "Coûts USD",
+      "costsCdf": "Coûts CDF",
+      "netUsd": "Net USD",
+      "unclassified": "Non classé",
+      "empty": "Aucune vente ou coût classé sur cette période."
     }
   },
   "dashboard": {

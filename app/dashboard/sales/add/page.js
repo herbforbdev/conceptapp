@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { ExchangeRateService } from '@/lib/exchangeRates';
 import { inventoryService } from '@/services/firestore/inventoryService';
+import { buildAccountStamp } from '@/lib/accounting/accountHelpers';
 
 export default function AddSalePage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function AddSalePage() {
     productMap,
     activityTypeMap,
     getProductsByActivity,
+    defaultSalesAccount,
     loading: masterDataLoading 
   } = useMasterData();
 
@@ -329,7 +331,8 @@ export default function AddSalePage() {
           amountUSD: Number(entry.amountUSD),
           exchangeRate: Number(entry.exchangeRate),
           channel: entry.channel,
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          ...buildAccountStamp(defaultSalesAccount)
         });
         // 2. Add OUT movement for sold product
         await inventoryService.addInventoryMovementWithSource({

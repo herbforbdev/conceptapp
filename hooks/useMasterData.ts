@@ -4,18 +4,24 @@ import { createProductMap, createActivityTypeMap, createExpenseTypeMap } from '@
 import { Product } from '@/types/products';
 import { ActivityType } from '@/types/activities';
 import { ExpenseType } from '@/types/expenses';
-import { validateRelationships, ValidationResult } from '@/lib/firestore/masterData';
+import { GlAccount } from '@/types/accounts';
+import { validateRelationships } from '@/lib/firestore/masterData';
+import { createGlAccountMap, getDefaultSalesAccount, getPostableAccounts } from '@/lib/accounting/accountHelpers';
 
 export interface MasterDataContextType {
   // Collections
   products: Product[];
   activityTypes: ActivityType[];
   expenseTypes: ExpenseType[];
+  glAccounts: GlAccount[];
   
   // Maps for efficient lookups
   productMap: Map<string, Product>;
   activityTypeMap: Map<string, ActivityType>;
   expenseTypeMap: Map<string, ExpenseType>;
+  glAccountMap: Map<string, GlAccount>;
+  postableAccounts: GlAccount[];
+  defaultSalesAccount: GlAccount | undefined;
   
   // Loading and error states
   loading: boolean;
@@ -33,11 +39,15 @@ export function useMasterData(): MasterDataContextType {
   const { data: products, loading: productsLoading, error: productsError } = useFirestoreCollection<Product>("Products");
   const { data: activityTypes, loading: activitiesLoading, error: activitiesError } = useFirestoreCollection<ActivityType>("ActivityTypes");
   const { data: expenseTypes, loading: expensesLoading, error: expensesError } = useFirestoreCollection<ExpenseType>("ExpenseTypes");
+  const { data: glAccounts, loading: accountsLoading, error: accountsError } = useFirestoreCollection<GlAccount>("GlAccounts");
 
   // Create maps
   const productMap = useMemo(() => createProductMap(products || []), [products]);
   const activityTypeMap = useMemo(() => createActivityTypeMap(activityTypes as any || []), [activityTypes]);
   const expenseTypeMap = useMemo(() => createExpenseTypeMap(expenseTypes || []), [expenseTypes]);
+  const glAccountMap = useMemo(() => createGlAccountMap(glAccounts || []), [glAccounts]);
+  const postableAccounts = useMemo(() => getPostableAccounts(glAccounts || []), [glAccounts]);
+  const defaultSalesAccount = useMemo(() => getDefaultSalesAccount(glAccounts || []), [glAccounts]);
 
   // Validate relationships
   const validationResult = useMemo(() => {
@@ -81,15 +91,19 @@ export function useMasterData(): MasterDataContextType {
     products: products || [],
     activityTypes: activityTypes || [],
     expenseTypes: expenseTypes || [],
+    glAccounts: glAccounts || [],
     
     // Maps
     productMap,
     activityTypeMap,
     expenseTypeMap,
+    glAccountMap,
+    postableAccounts,
+    defaultSalesAccount,
     
     // Loading and error states
     loading: productsLoading || activitiesLoading || expensesLoading,
-    error: productsError || activitiesError || expensesError,
+    error: productsError || activitiesError || expensesError || accountsError,
     
     // Helper functions
     getProductsByType,

@@ -296,3 +296,15 @@
 - **Description:** Block Ice Activity
 - **Created At:** 12 February 2025, 00:00 (UTC+1)
 - **Last Modified:** 10 February 2025, 00:00 (UTC+1)
+
+---
+
+### **Firestore Collections – GlAccounts**
+
+SYSCOHADA Class 6 chart of accounts. Seeded from Master Data → Accounts if the collection is empty.
+
+- Document ID = account `code`
+- Headers (`60`, `604`, `624`…) have `isPostable: false`
+- Lowest-level accounts (`601`, `6042`, `645`…) have `isPostable: true` and can be linked to expense types
+- Class 7 sales accounts are added manually; one postable class-7 account can be marked `isDefaultSalesAccount`
+

@@ -26,6 +26,9 @@ export interface ExpenseType {
   description?: string;
   type?: string;
   budgetCode?: number;
+  accountId?: string;
+  accountCode?: string;
+  accountName?: string;
   createdAt?: Date;
   modifiedAt?: Date;
 }
@@ -44,6 +47,9 @@ export interface Sale {
   productId: string;
   productName?: string;
   quantitySold: number;
+  accountId?: string;
+  accountCode?: string;
+  accountName?: string;
 }
 
 export interface Production {
@@ -88,6 +94,9 @@ export interface Cost {
   exchangeRate: number;
   expenseTypeId: string;
   expenseTypeName: string;
+  accountId?: string;
+  accountCode?: string;
+  accountName?: string;
   modifiedAt?: Date;
 }
 

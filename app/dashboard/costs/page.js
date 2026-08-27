@@ -21,6 +21,7 @@ import {
   batchDeleteCosts,
 } from '@/services/firestore/costsService';
 import { useMasterData } from '@/hooks/useMasterData';
+import { stampFromExpenseType } from '@/lib/accounting/accountHelpers';
 import { useLanguage } from '@/context/LanguageContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
@@ -410,7 +411,8 @@ function CostsPage() {
     activityTypeMap, 
     loading: masterDataLoading,
     products,
-    productMap
+    productMap,
+    glAccountMap
   } = useMasterData();
 
   // Fetch costs data
@@ -623,7 +625,13 @@ function CostsPage() {
   };
   const cancelEditing = () => { setEditingRow(null); setEditingData({}); };
   const saveEditing = async (id) => {
-    await updateCost(id, editingData);
+    const expenseType = expenseTypeMap.get(editingData.expenseTypeId);
+    const accountStamp = stampFromExpenseType(expenseType, glAccountMap || new Map());
+    await updateCost(id, {
+      ...editingData,
+      expenseTypeName: expenseType?.name || editingData.expenseTypeName,
+      ...accountStamp
+    });
     setEditingRow(null);
     setEditingData({});
     handleRefresh();

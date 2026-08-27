@@ -59,6 +59,13 @@ export default function ReportsPage() {
       icon: <HiCurrencyDollar className="h-8 w-8" />,
       href: "/dashboard/reports/cash-book",
       color: "bg-teal-500"
+    },
+    {
+      title: t('reports.accounts.title'),
+      description: t('reports.accounts.description'),
+      icon: <HiDocumentReport className="h-8 w-8" />,
+      href: "/dashboard/reports/accounts",
+      color: "bg-indigo-500"
     }
   ];
 
