@@ -10,7 +10,7 @@ import { useMasterData } from "@/hooks/useMasterData";
 import AdminOnly from "@/components/AdminOnly";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import TopCard from "@/components/shared/TopCard";
-import { formatDateForInput } from "@/lib/utils/dateUtils";
+import { formatDateForInput } from "@/lib/utils/dateUtils.ts";
 import { AccountRollup, AccountReportRow, GlAccount } from "@/types/accounts";
 import { aggregateAccountsReport, summarizeAccountRows } from "@/lib/analysis/accountsAnalysis";
 

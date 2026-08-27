@@ -6,7 +6,7 @@ import {
   stampFromExpenseType,
   getDefaultSalesAccount
 } from '@/lib/accounting/accountHelpers';
-import { parseFirestoreDate } from '@/lib/utils/dateUtils';
+import { parseFirestoreDate } from '@/lib/utils/dateUtils.ts';
 
 interface AmountEntry {
   accountId?: string;
@@ -127,7 +127,7 @@ export const aggregateAccountsReport = (
     .sort((a, b) => {
       if (a.isUnclassified) return 1;
       if (b.isUnclassified) return -1;
-      return a.code.localeCompare(b.code, 'fr', { numeric: true });
+      return String(a.code || '').localeCompare(String(b.code || ''), 'fr', { numeric: true });
     });
 };
 
